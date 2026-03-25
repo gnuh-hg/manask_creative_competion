@@ -1,0 +1,158 @@
+/* ── base.css — shared variables, reset, scrollbar, typography ── */
+
+:root {
+  --bg-tertiary: #24242a;
+  --bg-hover: #2b2d31;
+  --bg-card: #1a1a20;
+  --accent-primary: #6366f1;
+  --accent-hover: #7c3aed;
+  --accent-danger: #ef4444;
+  --accent-green: #22c55e;
+  --accent-amber: #f59e0b;
+  --accent-cyan: #06b6d4;
+  --text-primary: #f1f1f3;
+  --text-secondary: #9494a0;
+  --text-tertiary: #5a5a68;
+  --border-color: #27272a;
+  --shadow-md: 0 4px 16px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 8px 24px rgb(0 0 0 / 0.5);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Heatmap levels */
+  --heat-0: #1a1a20;
+  --heat-1: #2d2b4e;
+  --heat-2: #4338a0;
+  --heat-3: #6366f1;
+  --heat-4: #818cf8;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+::-webkit-scrollbar { width: 3px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0); border-radius: 3px; transition: background 0.2s ease; }
+::-webkit-scrollbar-track ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); }
+
+body {
+  background: linear-gradient(135deg, #0e0d12 0%, #1a1625 100%);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 32px 24px 48px;
+}
+
+/* ── Page layout ── */
+.page {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── Shared card shell ── */
+.card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 60% -10%, rgba(99,102,241,0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* ── Shared period tabs ── */
+.period-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.period-tab {
+  padding: 5px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: all 0.18s ease;
+  border: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.period-tab.active { background: var(--bg-hover); color: var(--text-primary); }
+.period-tab:hover:not(.active) { color: var(--text-secondary); }
+
+/* ── Shared section label ── */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: 'DM Mono', monospace;
+}
+
+.close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+.close-btn:hover {
+    border-color: rgba(239,68,68,0.35);
+    color: #f87171;
+    background: rgba(239,68,68,0.05);
+}
+.close-btn svg { transition: transform 0.2s; flex-shrink: 0; }
+.close-btn:hover svg { transform: rotate(90deg); }

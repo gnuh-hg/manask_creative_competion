@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sign Up - Manask</title>
+        <link rel="icon" href="/logo_web_v2.png" type="image/png">
+        <script src='./../configuration.js'></script>
+        <link rel="stylesheet" href="./signup.css" />
+        <script src="./signup.js" defer></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="logo-wrapper">
+                <img class="logo" src="../logo_web.png" alt="Logo">
+            </div>
+            
+            <div class="form-wrapper">
+                <form class="user-name">
+                    <label for="name-input">USERNAME</label>
+                    <input 
+                        type="text" 
+                        id="name-input" 
+                        placeholder="johndoe" 
+                        class="modal-input"
+                        autocomplete="username"
+                        minlength="3"
+                        maxlength="30"
+                    >
+                </form>
+                
+                <form class="user-email">
+                    <label for="email-input">EMAIL</label>
+                    <input 
+                        type="email" 
+                        id="email-input" 
+                        placeholder="example@email.com" 
+                        class="modal-input"
+                        autocomplete="email"
+                    >
+                </form>
+                
+                <form class="user-password">
+                    <label for="password-input">PASSWORD</label>
+                    <div class="password-field">
+                        <input 
+                            type="password" 
+                            id="password-input" 
+                            placeholder="••••••••" 
+                            class="modal-input"
+                            autocomplete="new-password"
+                            minlength="6"
+                        >
+                        <button type="button" class="toggle-password" tabindex="-1">
+                            <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill"></div>
+                        </div>
+                        <span class="strength-text"></span>
+                    </div>
+                </form>
+            </div>
+            
+            <p class="signup">SIGN UP</p>
+            <p class="warning"></p>
+            
+            <a href="./login.html">
+                <p class="login">Already have an account? <span>Login now</span></p>
+            </a>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>Manask</title>
+        <link rel="icon" href="/logo_web_v2.png" type="image/png">
+        <script src='./configuration.js'></script>
+
+        <link rel="stylesheet" href="./main_screen/home.css" />
+        <script src="./main_screen/home.js" defer></script>
+
+        <link rel="stylesheet" href="./main_screen/app_header/app_header.css" />
+        <script src="./main_screen/app_header/app_header.js" defer></script>
+
+        <link rel="stylesheet" href="./main_screen/sidebar_nav/sidebar_nav.css" />
+        <script src="./main_screen/sidebar_nav/sidebar_nav.js" defer></script>
+
+        <link rel="stylesheet" href="./main_screen/container_task/container_task.css" />
+        <script src="./main_screen/container_task/container_task.js" defer></script>
+        
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    </head>
+    <body>
+        <!-- App Header -->
+        <div class="app-header">
+            <!-- User Profile (Left) -->
+            <div class="user-profile" id="userProfile">
+                <img class="logo-web" src="./logo_web.png" alt="Logo" id="profileImage">
+                <p class="username" id="usernameDisplay">Loading...</p>
+                <svg class="profile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+        
+            <!-- Navigation Buttons (Right) -->
+        <div class="nav-buttons">
+            <a href="./pomodoro/pomodoro.html" class="nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span class="nav-btn-text">Pomodoro</span>
+            </a>
+
+            <a href="./statistics/statistics.html" class="nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="20" x2="12" y2="10"></line>
+                    <line x1="18" y1="20" x2="18" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="16"></line>
+                </svg>
+                <span class="nav-btn-text">Statistics</span>
+            </a>
+        
+            <a href="./about/about.html" class="nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4M12 8h.01"></path>
+                </svg>
+                <span class="nav-btn-text">About Us</span>
+            </a>
+        </div>
+        </div>
+    
+        <!-- Profile Dropdown -->
+        <div class="profile-dropdown" id="profileDropdown">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-info">
+                    <div class="profile-name" id="dropdownName">Username</div>
+                    <div class="profile-email" id="dropdownEmail">email@example.com</div>
+                </div>
+            </div>
+        
+            <!-- Edit Name Section -->
+            <div class="edit-name-section">
+                <label class="edit-name-label">Change display name</label>
+                <input type="text" class="edit-name-input" id="nameInput" placeholder="Enter new name">
+                <div class="confirm-box">
+                    <p id="btnCancelName">Cancel</p>
+                    <p class="btn-accept" id="btnSaveName">Save</p>
+                </div>
+            </div>
+        
+            <!-- Divider -->
+            <div class="section-divider"></div>
+        
+            <!-- Change Password Section (Collapsible) -->
+            <div class="collapsible-section">
+                <div class="collapsible-header" id="passwordHeader">
+                    <div class="collapsible-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <span>Change password</span>
+                    </div>
+                    <svg class="collapsible-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                
+                <div class="collapsible-content" id="passwordContent">
+                    <div class="collapsible-body">
+                        <div class="password-section">
+                            <label class="password-label">Current password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" class="password-input" id="currentPassword" placeholder="Enter current password">
+                                <svg class="password-toggle" id="toggleCurrent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </div>
+                        
+                            <label class="password-label">New password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" class="password-input" id="newPassword" placeholder="Enter new password">
+                                <svg class="password-toggle" id="toggleNew" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </div>
+                            <p class="password-hint">At least 6 characters</p>
+                        
+                            <label class="password-label">Confirm new password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" class="password-input" id="confirmPassword" placeholder="Re-enter new password">
+                                <svg class="password-toggle" id="toggleConfirm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </div>
+                        
+                            <div class="confirm-box">
+                                <p id="btnCancelPassword">Cancel</p>
+                                <p class="btn-accept" id="btnSavePassword">Change password</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Divider -->
+            <div class="section-divider"></div>
+        
+            <!-- Logout Button -->
+            <button class="btn-logout" id="btnLogout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+            </button>
+        </div>
+
+        <div class="container">
+            <!-- Overlay khi sidebar mở trên mobile -->
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+            <!-- Nút toggle sidebar - chỉ hiện trên mobile -->
+            <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar">
+                <svg class="icon-menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6"  x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+
+            <div class="sidebar-nav">
+                <div class="folder-container"><ul class="list-wrapper"></ul></div>
+                <div class="sidebar-actions">
+                    <button class="add-button">
+                        <div class="icon-plus">
+                            <svg viewBox="0 0 100 100">
+                                <rect x="44" y="10" width="12" height="80" />
+                                <rect x="10" y="44" width="80" height="12" />
+                            </svg>
+                        </div>
+                        <p>Create new</p>
+                        <div class="icon-folder-plus">
+                            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                  <mask id="folder-mask">
+                                    <rect width="100%" height="100%" fill="white"/>
+                                    <circle cx="46" cy="47" r="9" fill="black"/>
+                                  </mask>
+                                </defs>
+                                <path d="M8 20 H22 L26 16 H44 Q50 16 50 22 V40 Q50 48 42 48 H16 Q8 48 8 40 Z"/>
+                                <g stroke-width="4" stroke-linecap="round">
+                                  <line x1="46" y1="42" x2="46" y2="52"/>
+                                  <line x1="41" y1="47" x2="51" y2="47"/>
+                                </g>
+                            </svg>
+                        </div>
+                    </button>
+
+                    <!-- Nút đóng sidebar - chỉ hiện trên mobile, nằm cạnh add-button -->
+                    <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6"  x2="6"  y2="18"/>
+                            <line x1="6"  y1="6"  x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                
+                    <div class="modal-overlay">
+                        <div class="modal-box">
+                            <div class="modal-tabs">
+                                <button class="btn-tab-folder">Create folder</button>
+                                <button class="btn-tab-project">Create project</button>
+                            </div>
+                            <div class="folder-form">
+                                <form class="input-group">
+                                    <input type="text" placeholder="Name folder" class="modal-input">
+                                </form>
+                            </div>
+                            <div class="project-form">
+                            <form class="input-group">
+                                <input type="text" placeholder="Name project" class="modal-input">
+                            </form>
+                            </div>
+                            <div class="color-palette">
+                            <button class="color-swatch" style="background-color: #a0aec0;"></button>
+                            <button class="color-swatch" style="background-color: #818cf8;"></button>
+                            <button class="color-swatch" style="background-color: #4fd1ed;"></button>
+                            <button class="color-swatch" style="background-color: #f6ad55;"></button>
+                            <button class="color-swatch" style="background-color: #b83280;"></button>
+                            <button class="color-swatch" style="background-color: #f687b3;"></button>
+                            <button class="color-swatch" style="background-color: #faf089;"></button>
+                            <button class="color-swatch" style="background-color: #9ae6b4;"></button>
+                            <button class="color-swatch" style="background-color: #fc8181;"></button>
+                            <button class="color-swatch" style="background-color: #a78bfa;"></button>
+                            <button class="color-swatch" style="background-color: #22d3ee;"></button>
+                            <button class="color-swatch" style="background-color: #6ee7b7;"></button>
+                            <button class="color-swatch" style="background-color: #8b5cf6;"></button>
+                            <button class="color-swatch" style="background-color: #3b82f6;"></button>
+                            <button class="color-swatch" style="background-color: #ec4899;"></button>
+                            <button class="color-swatch" style="background-color: #f87171;"></button>
+                            <button class="color-swatch" style="background-color: #94a3b8;"></button>
+                            <button class="color-swatch" style="background-color: #b7948c;"></button>
+                            <button class="color-swatch" style="background-color: #5eead4;"></button>
+                            <button class="color-swatch" style="background-color: #4a5568;"></button>
+                            </div>
+                            <div class="confirm-box">
+                                <p class="btn-cancel">Cancel</p>
+                                <p class="btn-accept">Accept</p>
+                            </div>
+                        </div>
+                        <div class="modal-more-box">
+                            <div class="form">
+                                <form class="input-group">
+                                    <input type="text" placeholder="New name" class="modal-input">
+                                </form>
+                            </div>
+                            <div class="color-palette">
+                            <button class="color-swatch" style="background-color: #a0aec0;"></button>
+                            <button class="color-swatch" style="background-color: #818cf8;"></button>
+                            <button class="color-swatch" style="background-color: #4fd1ed;"></button>
+                            <button class="color-swatch" style="background-color: #f6ad55;"></button>
+                            <button class="color-swatch" style="background-color: #b83280;"></button>
+                            <button class="color-swatch" style="background-color: #f687b3;"></button>
+                            <button class="color-swatch" style="background-color: #faf089;"></button>
+                            <button class="color-swatch" style="background-color: #9ae6b4;"></button>
+                            <button class="color-swatch" style="background-color: #fc8181;"></button>
+                            <button class="color-swatch" style="background-color: #a78bfa;"></button>
+                            <button class="color-swatch" style="background-color: #22d3ee;"></button>
+                            <button class="color-swatch" style="background-color: #6ee7b7;"></button>
+                            <button class="color-swatch" style="background-color: #8b5cf6;"></button>
+                            <button class="color-swatch" style="background-color: #3b82f6;"></button>
+                            <button class="color-swatch" style="background-color: #ec4899;"></button>
+                            <button class="color-swatch" style="background-color: #f87171;"></button>
+                            <button class="color-swatch" style="background-color: #94a3b8;"></button>
+                            <button class="color-swatch" style="background-color: #b7948c;"></button>
+                            <button class="color-swatch" style="background-color: #5eead4;"></button>
+                            <button class="color-swatch" style="background-color: #4a5568;"></button>
+                            </div>
+                            <div class="confirm-box">
+                                <p class="btn-cancel">Cancel</p>
+                                <p class="btn-delete">Delete</p>
+                                <p class="btn-accept">Accept</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+              
+            <div class="container-task">
+              <h1>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="3" width="16" height="18" rx="2" stroke="#333" stroke-width="2"/>
+                  <line x1="8" y1="8" x2="16" y2="8" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="8" y1="12" x2="16" y2="12" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="8" y1="16" x2="13" y2="16" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <p>Task Manager</p>
+                <button class="btn-done">New task</button>
+              </h1>
+              <div class="task-list"></div>
+            </div>
+
+            <div class="task-detail-panel">
+                <!-- Header -->
+                <div class="task-detail-header">
+                    <h3 class="task-detail-title">Task Details</h3>
+                    <button class="btn-close-detail">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            
+                <!-- Content -->
+                <div class="task-detail-content">
+                    <!-- Task Name -->
+                    <div class="detail-task-name-section">
+                        <input type="text" class="detail-task-name" placeholder="Task name">
+                    </div>
+                
+                    <!-- Priority -->
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                            </svg>
+                            <span>Priority</span>
+                        </div>
+                        <div class="detail-value">
+                            <div class="priority-badge high">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
+                                <span>High</span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Start Date -->
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span>Start date</span>
+                        </div>
+                        <div class="detail-value">
+                            <button class="date-picker-btn" id="startDateBtn">
+                                <span class="date-btn-text placeholder" id="startDateText">Set date</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- End Date -->
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span>Due date</span>
+                        </div>
+                        <div class="detail-value">
+                            <button class="date-picker-btn" id="dueDateBtn">
+                                <span class="date-btn-text placeholder" id="dueDateText">Set date</span>
+                            </button>
+                        </div>
+                    </div>
+                
+                    <!-- Time Spent -->
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span>Time spent</span>
+                        </div>
+                        <div class="detail-value">
+                            <div class="time-spent-display">
+                                <span class="time-value">0h 0m</span>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Notes -->
+                    <div class="detail-section detail-section-notes">
+                        <div class="detail-label">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <span>Notes</span>
+                        </div>
+                        <div class="detail-value">
+                            <textarea class="notes-textarea" placeholder="Add notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Footer Actions -->
+                <div class="task-detail-footer">
+                    <button class="btn-delete-task">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Delete task
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Overlay for Task Detail -->
+        <div class="calendar-overlay" id="taskCalendarOverlay">
+            <div class="calendar-popup" id="taskCalendarPopup">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" id="taskPrevMonthBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="calendar-title">
+                        <select class="month-select" id="taskMonthSelect">
+                            <option value="0">January</option><option value="1">February</option>
+                            <option value="2">March</option><option value="3">April</option>
+                            <option value="4">May</option><option value="5">June</option>
+                            <option value="6">July</option><option value="7">August</option>
+                            <option value="8">September</option><option value="9">October</option>
+                            <option value="10">November</option><option value="11">December</option>
+                        </select>
+                        <div class="year-stepper" id="taskYearStepper">
+                            <button class="year-step-btn" id="taskYearDown">-</button>
+                            <span class="year-display" id="taskYearDisplay">2026</span>
+                            <button class="year-step-btn" id="taskYearUp">+</button>
+                        </div>
+                    </div>
+                    <button class="calendar-nav-btn" id="taskNextMonthBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="calendar-weekdays">
+                    <div class="weekday">Su</div><div class="weekday">Mo</div>
+                    <div class="weekday">Tu</div><div class="weekday">We</div>
+                    <div class="weekday">Th</div><div class="weekday">Fr</div>
+                    <div class="weekday">Sa</div>
+                </div>
+                <div class="calendar-days" id="taskCalendarDays"></div>
+                <div class="calendar-footer">
+                    <button class="btn-clear" id="taskClearBtn">Clear</button>
+                    <button class="btn-today" id="taskTodayBtn">Today</button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

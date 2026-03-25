@@ -1,0 +1,161 @@
+/* ── summary.css ── */
+
+.summary-section {
+  padding: 20px 24px;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+/* ── Stat card ── */
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: default;
+}
+
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--c, var(--accent-primary));
+  opacity: 0.06;
+  top: -20px; right: -20px;
+  filter: blur(24px);
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.stat-card-icon {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  margin-bottom: 14px;
+  background: color-mix(in srgb, var(--c, var(--accent-primary)) 15%, transparent);
+  flex-shrink: 0;
+}
+
+.stat-card-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 6px;
+  font-family: 'DM Mono', monospace;
+}
+
+.stat-card-value {
+  font-size: 26px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: -0.03em;
+  color: var(--c, var(--accent-primary));
+  line-height: 1;
+  margin-bottom: 8px;
+  transition: color 0.2s;
+}
+
+.stat-card-value .unit {
+  font-size: 13px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.stat-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* delta badges */
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 99px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.delta-arrow {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.delta-pct {
+  line-height: 1;
+}
+
+.delta.up   { color: var(--accent-green);  background: rgba(34,197,94,0.1); }
+.delta.down { color: var(--accent-danger); background: rgba(239,68,68,0.1); }
+.delta.neutral { color: var(--text-secondary); background: rgba(148,148,160,0.1); }
+
+/* sparklines */
+.sparkline {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40px;
+  opacity: 0.18;
+  pointer-events: none;
+}
+.sparkline path { fill: none; stroke: var(--c, var(--accent-primary)); stroke-width: 1.5; }
+.sparkline .area { fill: url(#spark-grad); stroke: none; opacity: 1; }
+
+/* wide cards */
+.stat-card-wide { grid-column: span 4; }
+
+/* completion rate bar */
+.rate-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 99px;
+  margin: 10px 0 8px;
+  overflow: hidden;
+}
+.rate-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent-primary), #818cf8);
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.rate-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-family: 'DM Mono', monospace;
+}
+
+@media (max-width: 640px) {
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-card-wide { grid-column: span 2; }
+}

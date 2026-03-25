@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro - Manask</title>
+  <link rel="icon" href="/logo_web_v2.png" type="image/png">
+  <script src='../configuration.js'></script>
+
+  <link rel="stylesheet" href="./pomodoro.css">
+  <script src="./pomodoro.js" defer></script>
+</head>
+<body>
+
+<div class="pomo-wrapper">
+  <!-- Timer Panel -->
+  <div class="timer-panel">
+
+    <!-- Mode tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active">Pomodoro</button>
+      <button class="mode-tab">Short Break</button>
+      <button class="mode-tab">Long Break</button>
+    </div>
+
+    <!-- Timer circle -->
+    <div class="timer-circle-wrap">
+      <svg class="timer-svg" viewBox="0 0 220 220">
+        <circle class="timer-track" cx="110" cy="110" r="100"/>
+        <circle class="timer-progress" id="timerProgress" cx="110" cy="110" r="100"/>
+      </svg>
+      <div class="timer-center">
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        <div class="timer-mode-label" id="modeLabel">Focus</div>
+        <div class="session-dots" id="sessionDots"></div>
+      </div>
+    </div>
+
+    <!-- Task select -->
+    <div class="task-select-wrap">
+      <button class="task-trigger" id="taskTrigger">
+        <span id="taskTriggerLabel">— Select active task —</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Controls -->
+    <div class="timer-controls">
+      <button class="btn btn-icon" title="Reset">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      </button>
+      <button class="btn btn-primary" id="startBtn">
+        <svg id="startIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5,3 19,12 5,21"/>
+        </svg>
+        <span id="startLabel">Start</span>
+      </button>
+      <button class="btn btn-icon" title="Skip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5,4 15,12 5,20"/>
+          <line x1="19" y1="5" x2="19" y2="19"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div class="settings-panel">
+    <div class="settings-title">
+      <span class="settings-title-dot"></span>
+      SETTINGS
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label">Duration (minutes)</div>
+
+      <div class="setting-row">
+        <span class="setting-label">Pomodoro</span>
+        <div class="num-input-wrap">
+          <button class="num-btn" onclick="void(0)" data-target="focusDur" data-delta="-1">-</button>
+          <input class="num-input" type="number" id="focusDur" value="25" min="1" max="90" readonly>
+          <button class="num-btn" data-target="focusDur" data-delta="1">+</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <span class="setting-label">Short Break</span>
+        <div class="num-input-wrap">
+          <button class="num-btn" data-target="shortDur" data-delta="-1">-</button>
+          <input class="num-input" type="number" id="shortDur" value="5" min="1" max="30" readonly>
+          <button class="num-btn" data-target="shortDur" data-delta="1">+</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <span class="setting-label">Long Break</span>
+        <div class="num-input-wrap">
+          <button class="num-btn" data-target="longDur" data-delta="-1">-</button>
+          <input class="num-input" type="number" id="longDur" value="15" min="1" max="60" readonly>
+          <button class="num-btn" data-target="longDur" data-delta="1">+</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <span class="setting-label">Long Break After</span>
+        <div class="num-input-wrap">
+          <button class="num-btn" data-target="longAfter" data-delta="-1">-</button>
+          <input class="num-input" type="number" id="longAfter" value="4" min="2" max="10" readonly>
+          <button class="num-btn" data-target="longAfter" data-delta="1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="settings-section">
+      <div class="settings-section-label">Behavior</div>
+
+      <div class="setting-row">
+        <span class="setting-label">Disable Breaks</span>
+        <label class="toggle">
+          <input type="checkbox" id="disableBreak">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <span class="setting-label">Auto-start Pomodoro</span>
+        <label class="toggle">
+          <input type="checkbox" id="autoFocus">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <span class="setting-label">Auto-start Breaks</span>
+        <label class="toggle">
+          <input type="checkbox" id="autoBreak">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+    </div>
+
+    <button class="close-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+      Close Pomodoro
+    </button>
+    <p class="warning-close">Exit will discard current pomodoro!</p>
+  </div>
+</div>
+
+<!-- Task Picker Modal -->
+<div class="task-overlay" id="taskOverlay"></div>
+<div class="task-modal" id="taskModal">
+  <div class="task-modal-header">Select Active Task</div>
+
+  <div class="task-search-wrap">
+    <svg class="task-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input
+      id="taskSearchInput"
+      class="task-search-input"
+      type="text"
+      placeholder="Search tasks..."
+      autocomplete="off"
+    />
+  </div>
+
+  <div class="task-modal-list" id="taskModalList"></div>
+</div>
+</body>
+</html>

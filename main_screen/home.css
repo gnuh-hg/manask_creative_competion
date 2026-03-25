@@ -1,0 +1,53 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden; /* ← chặn scroll ở body level */
+}
+
+body {
+    background: linear-gradient(135deg, #0e0d12 0%, #1a1625 100%);
+    overflow-x: hidden;
+}
+
+.container {
+    display: flex;
+    position: relative;
+    overflow: hidden;
+    height: calc(100vh - 60px); /* 98vh → 100vh */
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+::-webkit-scrollbar:horizontal { display: none; }
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-track:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-track:hover ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}

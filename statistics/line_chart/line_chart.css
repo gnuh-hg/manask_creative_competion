@@ -1,0 +1,92 @@
+/* ── line-chart.css ── */
+
+.line-section {
+  padding: 24px 28px;
+}
+
+.line-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.line-title { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.line-subtitle { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+.line-legend { display: flex; gap: 16px; align-items: center; }
+.line-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+
+.legend-line { width: 22px; height: 2.5px; border-radius: 2px; position: relative; flex-shrink: 0; }
+.legend-line::after {
+  content: ''; position: absolute; width: 7px; height: 7px;
+  border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+.legend-line.tasks { background: #6366f1; }
+.legend-line.tasks::after { background: #6366f1; }
+.legend-line.focus { background: #22c55e; }
+.legend-line.focus::after { background: #22c55e; }
+
+/* stats mini row */
+.line-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.line-stat-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 16px; }
+.line-stat-label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.line-stat-value { font-size: 24px; font-weight: 600; font-family: 'DM Mono', monospace; letter-spacing: -0.03em; }
+.line-stat-value.tasks-val { color: #6366f1; }
+.line-stat-value.focus-val { color: #22c55e; }
+.line-stat-trend { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
+
+/* chart area */
+.chart-wrap { position: relative; }
+.chart-inner { display: flex; align-items: flex-start; }
+
+.y-axis-left {
+  width: 36px; flex-shrink: 0;
+  display: flex; flex-direction: column-reverse; justify-content: space-between;
+  padding-bottom: 22px; height: 242px;
+}
+.y-axis-right {
+  width: 40px; flex-shrink: 0;
+  display: flex; flex-direction: column-reverse; justify-content: space-between;
+  padding-bottom: 22px; height: 242px;
+}
+.y-label-left  { font-size: 10px; color: #6366f1; font-family: 'DM Mono', monospace; text-align: right; line-height: 1; opacity: 0.7; }
+.y-label-right { font-size: 10px; color: #22c55e; font-family: 'DM Mono', monospace; text-align: left; padding-left: 6px; line-height: 1; opacity: 0.7; }
+
+.svg-wrap { flex: 1; position: relative; }
+svg.line-chart { width: 100%; height: 220px; display: block; overflow: visible; }
+
+/* SVG primitives */
+.grid-line { stroke: #27272a; stroke-width: 1; }
+.area-tasks { fill: url(#gradT); opacity: 0.12; }
+.area-focus  { fill: url(#gradF); opacity: 0.09; }
+.line-path  { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.line-tasks { stroke: #6366f1; }
+.line-focus  { stroke: #22c55e; }
+.dot-tasks  { fill: #6366f1; }
+.dot-focus   { fill: #22c55e; }
+
+.crosshair {
+  stroke: var(--text-tertiary); stroke-width: 1; stroke-dasharray: 3 3;
+  pointer-events: none; opacity: 0; transition: opacity 0.1s;
+}
+.ring { fill: none; stroke-width: 2; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+.ring-tasks { stroke: #6366f1; }
+.ring-focus  { stroke: #22c55e; }
+
+/* line chart tooltip */
+.line-tooltip {
+  position: absolute;
+  background: var(--bg-hover); border: 1px solid var(--border-color);
+  border-radius: var(--radius-md); padding: 9px 12px; font-size: 11px; white-space: nowrap;
+  pointer-events: none; opacity: 0; transition: opacity 0.12s ease;
+  box-shadow: var(--shadow-md); z-index: 20; transform: translateX(-50%); top: 0;
+}
+.line-tooltip.show { opacity: 1; }
+.tt-label { font-size: 10px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; margin-bottom: 6px; text-align: center; }
+.tt-row   { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; color: var(--text-primary); }
+.tt-row:last-child { margin-bottom: 0; }
+.tt-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.tt-val   { font-family: 'DM Mono', monospace; font-weight: 500; margin-left: auto; padding-left: 14px; }

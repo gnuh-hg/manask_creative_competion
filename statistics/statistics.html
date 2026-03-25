@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics - Manask</title>
+<link rel="icon" href="/logo_web_v2.png" type="image/png">
+<script src='../configuration.js'></script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="summary/summary.css">
+<link rel="stylesheet" href="line_chart/line_chart.css">
+<link rel="stylesheet" href="donut_chart/donut_chart.css">
+<link rel="stylesheet" href="heatmap/heatmap.css">
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── Page header ── -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Statistics</div>
+      <div class="page-subtitle" id="pageDate"></div>
+    </div>
+    <button class="close-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+      Close Statistics
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 1 — Summary cards
+  ═══════════════════════════════════════════ -->
+  <div class="card">
+    <div class="summary-section">
+      <div class="summary-header">
+        <span class="section-label">Overview</span>
+        <div class="period-tabs">
+          <button class="period-tab summary-period-tab" onclick="setSummaryPeriod('week',this)">Week</button>
+          <button class="period-tab summary-period-tab active" onclick="setSummaryPeriod('month',this)">Month</button>
+          <button class="period-tab summary-period-tab" onclick="setSummaryPeriod('year',this)">Year</button>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+
+        <!-- Tasks completed -->
+        <div class="stat-card" style="--c:#818cf8">
+          <div class="stat-card-icon">✓</div>
+          <div class="stat-card-label">Tasks completed</div>
+          <div class="stat-card-value" id="sumValTasks">—</div>
+          <div class="stat-card-footer">
+            <span class="delta up" id="sumDeltaTasks">—</span>
+            <span>vs previous period</span>
+          </div>
+          <svg class="sparkline" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#818cf8"/>
+                <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path class="area" style="fill:url(#sg1)" id="sparkTasksArea"/>
+            <path id="sparkTasksLine" style="stroke:#818cf8"/>
+          </svg>
+        </div>
+
+        <!-- Focus hours -->
+        <div class="stat-card" style="--c:#22c55e">
+          <div class="stat-card-icon">⏱</div>
+          <div class="stat-card-label">Focus hours</div>
+          <div class="stat-card-value" id="sumValFocus">—</div>
+          <div class="stat-card-footer">
+            <span class="delta up" id="sumDeltaFocus">—</span>
+            <span>vs previous period</span>
+          </div>
+          <svg class="sparkline" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#22c55e"/>
+                <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path class="area" style="fill:url(#sg2)" id="sparkFocusArea"/>
+            <path id="sparkFocusLine" style="stroke:#22c55e"/>
+          </svg>
+        </div>
+
+        <!-- Pomodoros -->
+        <div class="stat-card" style="--c:#f59e0b">
+          <div class="stat-card-icon">🍅</div>
+          <div class="stat-card-label">Pomodoros</div>
+          <div class="stat-card-value" id="sumValPomo">—</div>
+          <div class="stat-card-footer">
+            <span class="delta up" id="sumDeltaPomo">—</span>
+            <span>vs previous period</span>
+          </div>
+          <svg class="sparkline" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sg3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path class="area" style="fill:url(#sg3)" id="sparkPomoArea"/>
+            <path id="sparkPomoLine" style="stroke:#f59e0b"/>
+          </svg>
+        </div>
+
+        <!-- Streak -->
+        <div class="stat-card" style="--c:#06b6d4">
+          <div class="stat-card-icon">🔥</div>
+          <div class="stat-card-label">Current streak</div>
+          <div class="stat-card-value" id="sumValStreak">—</div>
+          <div class="stat-card-footer" id="sumFooterStreak"></div>
+        </div>
+
+        <!-- Completion rate (wide) -->
+        <div class="stat-card stat-card-wide" style="--c:#818cf8">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div>
+              <div class="stat-card-label">Completion rate</div>
+              <div class="stat-card-value" id="sumValRate">—</div>
+            </div>
+            <div class="stat-card-icon" style="margin-bottom:0">📋</div>
+          </div>
+          <div class="rate-bar-bg">
+            <div class="rate-bar-fill" id="sumRateBar" style="width:0%"></div>
+          </div>
+          <div class="rate-detail">
+            <span id="sumRateCreated">—</span>
+            <span id="sumRateDone">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 2 — Line chart (trend)
+  ═══════════════════════════════════════════ -->
+  <div class="card">
+    <div class="line-section">
+      <div class="line-header">
+        <div>
+          <div class="line-title">Work Productivity</div>
+          <div class="line-subtitle">Tasks completed &amp; Focus hours</div>
+        </div>
+        <div class="line-legend">
+          <div class="line-legend-item"><div class="legend-line tasks"></div>Tasks</div>
+          <div class="line-legend-item"><div class="legend-line focus"></div>Focus hours</div>
+        </div>
+      </div>
+
+      <div class="period-tabs" style="margin-bottom:20px">
+        <button class="period-tab lc-period-tab" onclick="switchLcPeriod('week',this)">Week</button>
+        <button class="period-tab lc-period-tab active" onclick="switchLcPeriod('month',this)">Month</button>
+        <button class="period-tab lc-period-tab" onclick="switchLcPeriod('year',this)">Year</button>
+      </div>
+
+      <div class="line-stats-row">
+        <div class="line-stat-box">
+          <div class="line-stat-label">Total tasks</div>
+          <div class="line-stat-value tasks-val" id="lcTotalTasks">—</div>
+          <div class="line-stat-trend" id="lcTrendTasks"></div>
+        </div>
+        <div class="line-stat-box">
+          <div class="line-stat-label">Total focus hours</div>
+          <div class="line-stat-value focus-val" id="lcTotalFocus">—</div>
+          <div class="line-stat-trend" id="lcTrendFocus"></div>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-inner">
+          <div class="y-axis-left" id="lcYAxisLeft"></div>
+          <div class="svg-wrap" id="lcSvgWrap">
+            <svg class="line-chart" id="lcSvg" viewBox="0 0 600 220">
+              <defs>
+                <linearGradient id="gradT" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#6366f1"/>
+                  <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="gradF" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#22c55e"/>
+                  <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <g id="lcGrid"></g>
+              <path id="lcAreaT" class="area-tasks"/>
+              <path id="lcAreaF" class="area-focus"/>
+              <path id="lcLineT" class="line-path line-tasks"/>
+              <path id="lcLineF" class="line-path line-focus"/>
+              <line id="lcCross" class="crosshair" y1="0" y2="220"/>
+              <g id="lcRings"></g>
+              <g id="lcDots"></g>
+              <g id="lcHits"></g>
+            </svg>
+            <div class="line-tooltip" id="lcTooltip">
+              <div class="tt-label" id="lcTtLabel"></div>
+              <div class="tt-row">
+                <div class="tt-dot" style="background:#6366f1"></div>
+                <span>Tasks</span>
+                <span class="tt-val" id="lcTtTasks"></span>
+              </div>
+              <div class="tt-row">
+                <div class="tt-dot" style="background:#22c55e"></div>
+                <span>Focus</span>
+                <span class="tt-val" id="lcTtFocus"></span>
+              </div>
+            </div>
+          </div>
+          <div class="y-axis-right" id="lcYAxisRight"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 3 — Donut + Heatmap (side by side)
+  ═══════════════════════════════════════════ -->
+  <div class="bottom-row">
+
+    <!-- Donut -->
+    <div class="card">
+      <div class="donut-section">
+        <div class="donut-header">
+          <div>
+            <div class="donut-title">Distribution by Project</div>
+            <div class="donut-subtitle" id="donutSubtitle">Last 7 days · Tasks</div>
+          </div>
+          <div class="donut-controls">
+            <div class="period-tabs">
+              <button class="period-tab donut-period-tab" onclick="setDonutPeriod('week',this)">7 days</button>
+              <button class="period-tab donut-period-tab" onclick="setDonutPeriod('month',this)">30 days</button>
+              <button class="period-tab donut-period-tab" onclick="setDonutPeriod('year',this)">12 months</button>
+            </div>
+            <div class="donut-metric-row">
+              <button class="metric-btn active-tasks" id="donutBtnTasks" onclick="setDonutMetric('tasks',this)">
+                <span>✓</span> Tasks
+              </button>
+              <button class="metric-btn" id="donutBtnFocus" onclick="setDonutMetric('focus',this)">
+                <span>⏱</span> Hours
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="donut-chart-area">
+          <div class="donut-wrapper">
+            <svg class="donut-svg" id="donutSvg" viewBox="0 0 148 148">
+              <circle class="donut-track" cx="74" cy="74" r="56"/>
+            </svg>
+            <div class="donut-center">
+              <div class="donut-center-value" id="donutCenterValue">—</div>
+              <div class="donut-center-label" id="donutCenterLabel">Total</div>
+            </div>
+          </div>
+          <div class="donut-legend" id="donutLegend"></div>
+        </div>
+
+        <div class="donut-footer">
+          <div class="donut-footer-label">Total</div>
+          <div class="donut-footer-value" id="donutFooterValue">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="card">
+      <div class="heatmap-section">
+        <div class="heatmap-header">
+          <div>
+            <div class="heatmap-title">Activity</div>
+            <div class="heatmap-subtitle" id="hmSubtitle">Last 365 days · Tasks</div>
+          </div>
+          <div class="hm-metric-row">
+            <button class="hm-metric-btn active-tasks" id="hmBtnTasks" onclick="setHmMetric('tasks',this)">✓ Tasks</button>
+            <button class="hm-metric-btn" id="hmBtnFocus" onclick="setHmMetric('focus',this)">⏱ Hours</button>
+          </div>
+        </div>
+
+        <div class="heatmap-stats-strip">
+          <div class="hm-stat">
+            <div class="hm-stat-val tasks-col" id="hmStatTotal">—</div>
+            <div class="hm-stat-lbl" id="hmStatTotalLbl">Total tasks</div>
+          </div>
+          <div class="hm-stat-divider"></div>
+          <div class="hm-stat">
+            <div class="hm-stat-val tasks-col" id="hmStatLongest">—</div>
+            <div class="hm-stat-lbl">Longest streak</div>
+          </div>
+          <div class="hm-stat-divider"></div>
+          <div class="hm-stat">
+            <div class="hm-stat-val tasks-col" id="hmStatCurrent">—</div>
+            <div class="hm-stat-lbl">Current streak</div>
+          </div>
+          <div class="hm-stat-divider"></div>
+          <div class="hm-stat">
+            <div class="hm-stat-val tasks-col" id="hmStatBest">—</div>
+            <div class="hm-stat-lbl" id="hmStatBestLbl">Best day</div>
+          </div>
+        </div>
+
+        <div class="grid-outer">
+          <div>
+            <div class="heatmap-grid" id="hmGrid"></div>
+          </div>
+        </div>
+
+        <div class="heatmap-legend-row">
+          <div class="streak-info">
+            🔥 Streak: <span class="streak-badge" id="hmStreakBadge">0 days</span>
+          </div>
+          <div class="legend-scale">
+            <span>Less</span>
+            <div class="legend-cell" id="hmLeg0"></div>
+            <div class="legend-cell" id="hmLeg1"></div>
+            <div class="legend-cell" id="hmLeg2"></div>
+            <div class="legend-cell" id="hmLeg3"></div>
+            <div class="legend-cell" id="hmLeg4"></div>
+            <span>More</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.bottom-row -->
+
+</div><!-- /.page -->
+
+<!-- Heatmap tooltip (fixed position) -->
+<div class="hm-tooltip" id="hmTooltip">
+  <div class="hm-tt-date" id="hmTtDate"></div>
+  <div class="hm-tt-val"  id="hmTtVal"></div>
+  <div class="hm-tt-sub"  id="hmTtSub"></div>
+</div>
+
+<script src="summary/summary.js"></script>
+<script src="line_chart/line_chart.js"></script>
+<script src="donut_chart/donut_chart.js"></script>
+<script src="heatmap/heatmap.js"></script>
+<script>
+  /* ── Page date ── */
+  const now = new Date();
+  const months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  document.getElementById('pageDate').textContent =
+    `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+  document.querySelector('.close-btn')?.addEventListener('click', () => {
+      document.body.style.transition = 'opacity 0.3s';
+      document.body.style.opacity = '0';
+      setTimeout(() => {
+          window.location.href = '../index.html';
+      }, 300)
+  });
+
+  /* ── Init all sections ── */
+  (async () => {
+      await initSummary();
+      await initLineChart();
+      await initDonut();
+      await initHeatmap();
+  })();
+</script>
+
+<style>
+  /* ── Bottom row: donut + heatmap side by side ── */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 720px) {
+    .bottom-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+</body>
+</html>
