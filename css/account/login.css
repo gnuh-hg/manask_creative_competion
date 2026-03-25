@@ -284,7 +284,11 @@ a {
     border-top: 1px solid var(--border-color);
     margin-top: auto;
     text-decoration: none;
-    display: block;
+    display: flex;             /* Kích hoạt Flexbox */
+    justify-content: center;    /* Căn giữa theo chiều ngang */
+    align-items: center;        /* Căn giữa theo chiều dọc (nếu cần) */
+    gap: 5px;                  /* Tạo khoảng cách nhỏ giữa "Don't have..." và "Sign up now" */
+    
     transition: border-color 0.2s ease;
 }
 
@@ -300,13 +304,13 @@ a:hover {
     transition: color 0.2s ease;
 }
 
-.signup span {
+.signup-btn {
     color: var(--accent-color);
     font-weight: 600;
     transition: color 0.2s ease;
 }
 
-a:hover .signup span {
+a:hover .signup-btn {
     color: var(--accent-hover);
     text-decoration: underline;
 }
