@@ -1,3 +1,5 @@
+import * as utils from '../../utils.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
     const name_input = document.querySelector('.user-name input');
@@ -211,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            const response = await Config.fetchWithRetry(`${Config.URL_API}/signup`, {
+            const response = await utils.fetchWithRetry(`${utils.URL_API}/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -231,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Delay redirect for better UX
                 setTimeout(() => {
-                    window.location.href = "/pages/index.html";
+                    window.location.href = "/index.html";
                 }, 800);
             } else {
                 // Error from server

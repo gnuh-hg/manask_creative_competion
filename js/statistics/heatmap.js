@@ -1,5 +1,7 @@
 /* ── heatmap.js ── */
 
+import * as utils from '../../utils.js';
+
 function hmGenerateData() {
   const today = new Date(); today.setHours(0,0,0,0);
   const tasks = {}, focus = {};
@@ -24,7 +26,7 @@ function hmGenerateData() {
 }
 
 function hmDateKey(d) {
-  if (Config.TEST) return d.toISOString().slice(0, 10);
+  if (utils.TEST) return d.toISOString().slice(0, 10);
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -33,10 +35,10 @@ function hmDateKey(d) {
 
 let HM_DATA;
 async function initHeatmap() {
-  if (Config.TEST) HM_DATA = hmGenerateData();
+  if (utils.TEST) HM_DATA = hmGenerateData();
   else {
     try {
-      const res = await Config.fetchWithAuth(`${Config.URL_API}/statistic/heatmap`);
+      const res = await utils.fetchWithAuth(`${utils.URL_API}/statistic/heatmap`);
       if (!res.ok) throw new Error(res.status);
       HM_DATA = await res.json();
       console.log('heatmap', HM_DATA);
@@ -99,6 +101,8 @@ function setHmMetric(m, btn) {
   renderHeatmap();
 }
 
+export { initHeatmap, setHmMetric };
+
 function renderHeatmap() {
   const today = new Date(); today.setHours(0,0,0,0);
   const start = new Date(today);
@@ -111,15 +115,15 @@ function renderHeatmap() {
   // Stats UI
   document.getElementById('hmStatTotal').textContent    = isTasks ? stats.total + '' : stats.total + 'h';
   document.getElementById('hmStatTotal').className      = 'hm-stat-val ' + (isTasks ? 'tasks-col' : 'focus-col');
-  document.getElementById('hmStatTotalLbl').textContent = isTasks ? 'Total tasks' : 'Total hours';
+  document.getElementById('hmStatTotalLbl').textContent = isTasks ? utils.t('statistics.total_tasks') : utils.t('statistics.total_hours');
   document.getElementById('hmStatLongest').textContent  = stats.longestStreak + ' days';
   document.getElementById('hmStatLongest').className    = 'hm-stat-val ' + (isTasks ? 'tasks-col' : 'focus-col');
   document.getElementById('hmStatCurrent').textContent  = stats.currentStreak + ' days';
   document.getElementById('hmStatCurrent').className    = 'hm-stat-val ' + (isTasks ? 'tasks-col' : 'focus-col');
   document.getElementById('hmStatBest').textContent     = isTasks ? stats.best + ' tasks' : stats.best + 'h';
   document.getElementById('hmStatBest').className       = 'hm-stat-val ' + (isTasks ? 'tasks-col' : 'focus-col');
-  document.getElementById('hmStatBestLbl').textContent  = isTasks ? 'Best day' : 'Best hours';
-  document.getElementById('hmSubtitle').textContent     = 'Last 365 days · ' + (isTasks ? 'Tasks' : 'Focus hours');
+  document.getElementById('hmStatBestLbl').textContent  = isTasks ? utils.t('statistics.best_day') : utils.t('statistics.best_hours');
+  document.getElementById('hmSubtitle').textContent     = utils.t('statistics.last_365_days') + ' · ' + (isTasks ? utils.t('statistics.tasks') : utils.t('statistics.focus_hours_short'));
 
   const badge = document.getElementById('hmStreakBadge');
   badge.textContent = stats.currentStreak + ' days';
@@ -184,14 +188,22 @@ function renderHeatmap() {
 }
 
 /* ── Tooltip ── */
-const HM_DAYS_EN   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const HM_MONTHS_EN = ['January','February','March','April','May','June',
-                      'July','August','September','October','November','December'];
+const HM_DAYS = [
+  'calendar.sun', 'calendar.mon', 'calendar.tue', 'calendar.wed',
+  'calendar.thu', 'calendar.fri', 'calendar.sat'
+];
+const HM_MONTHS = [
+  'calendar.january', 'calendar.february', 'calendar.march', 'calendar.april',
+  'calendar.may', 'calendar.june', 'calendar.july', 'calendar.august',
+  'calendar.september', 'calendar.october', 'calendar.november', 'calendar.december'
+];
 
 function hmShowTooltip(e, key, val) {
   const d   = new Date(key);
   const tip = document.getElementById('hmTooltip');
-  const dateStr = `${HM_DAYS_EN[d.getDay()]}, ${HM_MONTHS_EN[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  const dayName = utils.t(HM_DAYS[d.getDay()]);
+  const monthName = utils.t(HM_MONTHS[d.getMonth()]);
+  const dateStr = `${dayName}, ${monthName} ${d.getDate()}, ${d.getFullYear()}`;
 
   document.getElementById('hmTtDate').textContent = dateStr;
 
@@ -200,7 +212,7 @@ function hmShowTooltip(e, key, val) {
   const ttSub   = document.getElementById('hmTtSub');
 
   if (val === 0) {
-    ttVal.textContent = 'No activity';
+    ttVal.textContent = utils.t('statistics.no_activity');
     ttVal.className   = 'hm-tt-val';
     ttSub.textContent = '';
   } else {

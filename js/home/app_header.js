@@ -1,3 +1,5 @@
+import * as utils from '../../utils.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     // ========== STATE ==========
     let currentUser = {
@@ -31,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== FETCH USER DATA ==========
     async function fetchUserData() {
         try {
-            if (Config.TEST) {
+            if (utils.TEST) {
                 // Test data
                 currentUser = {
                     username: 'Admin Taskora',
@@ -40,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateUI();
                 return;
             }
-            const response = await Config.fetchWithAuth(`${Config.URL_API}/account`);
+            const response = await utils.fetchWithAuth(`${utils.URL_API}/account`);
             if (!response.ok) 
                 throw new Error('Failed to fetch user data');
             currentUser = await response.json();
@@ -95,18 +97,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const newName = nameInput.value.trim();
         
         if (!newName) {
-            Config.showWarning('Please enter a name');
+            utils.showWarning('Please enter a name');
             return;
         }
         try {
-            if (Config.TEST) {
+            if (utils.TEST) {
                 // Test mode - just update locally
                 currentUser.username = newName;
                 updateUI();
-                Config.showWarning('Name updated successfully!');
+                utils.showWarning('Name updated successfully!');
                 return;
             }
-            const response = await Config.fetchWithAuth(`${Config.URL_API}/account`, {
+            const response = await utils.fetchWithAuth(`${utils.URL_API}/account`, {
                 method: 'PATCH',
                 body: JSON.stringify({ username: newName })
             });
@@ -115,10 +117,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             currentUser.username = newName;
             updateUI();
-            Config.showWarning('Name updated successfully!');
+            utils.showWarning('Name updated successfully!');
         } catch (error) {
             console.error('Error updating name:', error);
-            Config.showWarning('Failed to update name');
+            utils.showWarning('Failed to update name');
         }
     });
 
@@ -176,21 +178,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const confirm = confirmPassword.value;
         // Validation
         if (!current || !newPass || !confirm) {
-            showWarning('Please fill in all password fields');
+            utils.showWarning('Please fill in all password fields');
             return;
         }
         if (newPass.length < 6) {
-            showWarning('New password must be at least 6 characters');
+            utils.showWarning('New password must be at least 6 characters');
             return;
         }
         if (newPass !== confirm) {
-            showWarning('New passwords do not match');
+            utils.showWarning('New passwords do not match');
             return;
         }
         try {
-            if (Config.TEST) {
+            if (utils.TEST) {
                 // Test mode - just show success
-                showWarning('Password changed successfully!');
+                utils.showWarning('Password changed successfully!');
                 currentPassword.value = '';
                 newPassword.value = '';
                 confirmPassword.value = '';
@@ -199,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const response = await Config.fetchWithAuth(`${Config.URL_API}/account/password`, {
+            const response = await utils.fetchWithAuth(`${utils.URL_API}/account/password`, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     current_password: current,
@@ -213,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(error.detail || 'Failed to change password');
             }
             
-            Config.showWarning('Password changed successfully!');
+            utils.showWarning('Password changed successfully!');
             currentPassword.value = '';
             newPassword.value = '';
             confirmPassword.value = '';
@@ -221,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
             passwordHeader.classList.remove('active');
         } catch (error) {
             console.error('Error changing password:', error);
-            Config.showWarning('Failed to change password');
+            utils.showWarning('Failed to change password');
         }
     });
 
@@ -234,9 +236,22 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordHeader.classList.remove('active');
     });
 
+    // ========== LANGUAGE TOGGLE ==========
+    const langButton = document.getElementById('langButton');
+    let currentLang = localStorage.getItem('lang');; // 'en' or 'vi'
+    langButton.textContent = currentLang === 'en' ? 'EN' : 'VI';
+
+    langButton.addEventListener('click', function() {
+        currentLang = currentLang === 'en' ? 'vi' : 'en';
+        langButton.textContent = currentLang === 'en' ? 'EN' : 'VI';
+        
+        localStorage.setItem('lang', currentLang);
+    });
+
     // ========== LOGOUT ==========
     btnLogout.addEventListener('click', function() {
         localStorage.removeItem('access_token');
+        localStorage.removeItem('lang');
         window.location.href = '/pages/account/login.html';
     });
 

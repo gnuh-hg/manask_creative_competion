@@ -1,3 +1,5 @@
+import * as utils from '../../utils.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.querySelector('.container-task');
     let projectId = null;
@@ -6,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let activeData = null;
 
     // Ẩn h1 và hiện empty state "chưa chọn project" lúc khởi tạo
-    if (!Config.TEST) {
+    if (!utils.TEST) {
         container.querySelector('h1').style.display = 'none';
         showEmptyState('noProject');
     } else {
@@ -19,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.querySelector('h1').style.display = '';
         container.querySelector('h1 p').innerHTML = nameProject;
-        if (!Config.TEST) loadData();
+        if (!utils.TEST) loadData();
     });
 
     document.addEventListener('projectUpdated', function(e) {
@@ -50,9 +52,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadData() {
         try {
-            const response = await Config.fetchWithAuth(`${Config.URL_API}/project/${projectId}/items`);
+            const response = await utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items`);
             if (!response.ok) {
-                Config.showWarning("Unable to load data");
+                utils.showWarning("Unable to load data");
                 return;
             }
             document.querySelectorAll('.task').forEach(el => el.remove());
@@ -64,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 items.forEach(item => renderItem(item));
             }
         } catch (err) {
-            Config.showWarning("Unable to load data");
+            utils.showWarning("Unable to load data");
         }
     }
 
@@ -150,6 +152,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const due = new Date(item.due_date);
         const now = new Date();
         
+        // Set start to beginning of day, due to end of day
+        start.setHours(0, 0, 0, 0);
+        due.setHours(23, 59, 59, 999);
+        
         if (isNaN(start.getTime()) || isNaN(due.getTime())) progress = 0;
         else if (now < start) progress = 0;
         else if (now > due) progress = 100;
@@ -205,15 +211,15 @@ document.addEventListener('DOMContentLoaded', function() {
             this.textContent = '✓ Done';
 
             setTimeout(async () => {
-                if (Config.TEST){
+                if (utils.TEST){
                     item.remove();
                     if (container.querySelectorAll('.task').length === 0) 
                         showEmptyState('noTask');
                     return;
                 }
                 try {
-                    const response = await Config.fetchWithAuth(
-                        `${Config.URL_API}/project/${projectId}/items/${data.id}/done`, 
+                    const response = await utils.fetchWithAuth(
+                        `${utils.URL_API}/project/${projectId}/items/${data.id}/done`, 
                         { method: 'DELETE' }
                     );
                     
@@ -223,10 +229,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (container.querySelectorAll('.task').length === 0) 
                             showEmptyState('noTask');
                     } else {
-                        Config.showWarning('Error while deleting task');
+                        utils.showWarning('Error while deleting task');
                     }
                 } catch (err) {
-                    Config.showWarning('Error while deleting task');
+                    utils.showWarning('Error while deleting task');
                 }
             }, 400);
         });
@@ -288,13 +294,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let cnt = 0;
     container.querySelector('h1 button').addEventListener('click', async (e) => {
-        if (!projectId && !Config.TEST) {
-            Config.showWarning('Please select a project first!');
+        if (!projectId && !utils.TEST) {
+            utils.showWarning('Please select a project first!');
             return;
         }
 
         try {
-            if (Config.TEST) {
+            if (utils.TEST) {
                 cnt++;
                 const pri = ['high', 'medium', 'low'];
                 const d = new Date();
@@ -310,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const response = await Config.fetchWithAuth(`${Config.URL_API}/project/${projectId}/items`, {
+            const response = await utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items`, {
                 method: 'POST', body: JSON.stringify({})
             });
 
@@ -319,10 +325,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderItem(item);
             } else {
                 const errorData = await response.json();
-                Config.showWarning(`Error creating task`);
+                utils.showWarning(`Error creating task`);
             }
         } catch (err) {
-            Config.showWarning('Error creating task');
+            utils.showWarning('Error creating task');
         }
     });
 
@@ -365,14 +371,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             activeData.name = newName;
         
-            if (Config.TEST) return;
+            if (utils.TEST) return;
         
             clearTimeout(nameDebounceTimer);
             nameDebounceTimer = setTimeout(async () => {
-                if (Config.TEST) return;
+                if (utils.TEST) return;
                 try {
-                    await Config.fetchWithAuth(
-                        `${Config.URL_API}/project/${projectId}/items/${activeData.id}`,
+                    await utils.fetchWithAuth(
+                        `${utils.URL_API}/project/${projectId}/items/${activeData.id}`,
                         { method: 'PATCH', body: JSON.stringify({ name: newName }) }
                     );
                 } catch {}
@@ -406,15 +412,15 @@ document.addEventListener('DOMContentLoaded', function() {
             priorityBadge.querySelector('span').textContent = newPriority.charAt(0).toUpperCase() + newPriority.slice(1);
             activeData.priority = newPriority;
 
-            if (Config.TEST) return;
+            if (utils.TEST) return;
 
             // Chỉ delay phần gửi backend
             clearTimeout(priorityDebounceTimer);
             priorityDebounceTimer = setTimeout(() => {
-                Config.fetchWithAuth(`${Config.URL_API}/project/${projectId}/items/${activeData.id}`, {
+                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ priority: newPriority })
-                }).catch(() => Config.showWarning("Không thể đổi độ quan trọng"));
+                }).catch(() => utils.showWarning("Không thể đổi độ quan trọng"));
             }, 500);
         });
     }
@@ -662,11 +668,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Chỉ delay phần gửi backend
             clearTimeout(notesDebounceTimer);
             notesDebounceTimer = setTimeout(() => {
-                if (Config.TEST) return;
-                Config.fetchWithAuth(`${Config.URL_API}/project/${projectId}/items/${activeData.id}`, {
+                if (utils.TEST) return;
+                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ notes: newNotes })
-                }).catch(() => Config.showWarning("Unable to save notes"));
+                }).catch(() => utils.showWarning("Unable to save notes"));
             }, 500);
         });
     }
@@ -679,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             if (!activeItem) return;
 
-            if (Config.TEST) {
+            if (utils.TEST) {
                 activeItem.remove();
                 if (container.querySelectorAll('.task').length === 0) 
                     showEmptyState('noTask');
@@ -688,8 +694,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                const response = await Config.fetchWithAuth(
-                    `${Config.URL_API}/project/${projectId}/items/${activeData.id}`, 
+                const response = await utils.fetchWithAuth(
+                    `${utils.URL_API}/project/${projectId}/items/${activeData.id}`, 
                     { method: 'DELETE' }
                 );
 
@@ -698,9 +704,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (container.querySelectorAll('.task').length === 0) 
                         showEmptyState('noTask');
                     if (panel) panel.classList.remove('active');
-                } else Config.showWarning('Error while deleting task');
+                } else utils.showWarning('Error while deleting task');
             } catch (err) {
-                Config.showWarning('Error while deleting task');
+                utils.showWarning('Error while deleting task');
             }
         });
     }
@@ -711,14 +717,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function sendReorder() {
         clearTimeout(reorderDebounceTimer);
         reorderDebounceTimer = setTimeout(async () => {
-            if (Config.TEST) return;
+            if (utils.TEST) return;
             const tasks = [...taskList.querySelectorAll('.task')];
             const body = tasks.map((el, index) => ({
                 id: parseInt(el.dataset.id),
                 position: index + 1
             }));
         
-    Config.fetchWithAuth(`${Config.URL_API}/project/${projectId}/items/reorder`, {
+    utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/reorder`, {
         method: 'PATCH',
         body: JSON.stringify(body)
     }).then(async res => {
@@ -726,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const err = await res.json();
             console.error('[REORDER]', res.status, err);
         }
-    }).catch(() => Config.showWarning("Unable to update location"));
+    }).catch(() => utils.showWarning("Unable to update location"));
         }, 500);
     }
     

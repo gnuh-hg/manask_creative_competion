@@ -1,5 +1,7 @@
 /* ── donut.js ── */
 
+import * as utils from '../../utils.js';
+
 const DONUT_R = 56;
 const DONUT_CIRC = 2 * Math.PI * DONUT_R;
 const DONUT_GAP  = (2.2 / 360) * DONUT_CIRC;
@@ -8,7 +10,7 @@ const DONUT_COLOR_OTHERS = '#3f3f46';
 let DONUT_DATA;
 
 async function initDonut() {
-  if (Config.TEST) DONUT_DATA = {
+  if (utils.TEST) DONUT_DATA = {
     week: {
       tasks: [
         { name: 'Website Redesign', value: 14, color: '#6366f1' },
@@ -84,8 +86,8 @@ async function initDonut() {
   };
   else {
     try {
-      const res = await Config.fetchWithAuth(
-        `${Config.URL_API}/statistic/donut_chart`
+      const res = await utils.fetchWithAuth(
+        `${utils.URL_API}/statistic/donut_chart`
       );
 
       if (!res.ok) throw new Error(res.status);
@@ -109,7 +111,8 @@ let donutMetric = 'tasks';
 let donutCircles  = [];
 let donutLegItems = [];
 
-setDonutPeriod(donutPeriod, document.querySelector('.donut-period-tab'));
+// Chỉ set active tab UI, KHÔNG gọi renderDonut (data chưa có)
+document.querySelector('.donut-period-tab')?.classList.add('active');
 
 function setDonutPeriod(p, btn) {
   donutPeriod = p;
@@ -125,6 +128,8 @@ function setDonutMetric(m, btn) {
   btn.classList.add(DONUT_METRIC_CLASS[m]);
   renderDonut();
 }
+
+export { initDonut, setDonutPeriod, setDonutMetric };
 
 function donutFmtVal(v) {
   return donutMetric === 'focus' ? v.toFixed(2) + 'h' : v + ' tasks';
@@ -185,6 +190,7 @@ function donutDeactivate(total) {
 }
 
 function renderDonut() {
+  if (!DONUT_DATA) return;
   const currentData = DONUT_DATA[donutPeriod][donutMetric];
   // Thay đổi 1: Tính tổng dựa trên thuộc tính .value của object
   const total = currentData.reduce((acc, item) => acc + item.value, 0);

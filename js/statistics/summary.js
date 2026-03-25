@@ -1,9 +1,11 @@
 /* ── summary.js ── */
 
+import * as utils from '../../utils.js';
+
 let SUMMARY_DATASETS;
 
 async function initSummary() {
-    if (Config.TEST) {
+    if (utils.TEST) {
         SUMMARY_DATASETS = {
           week: {
             tasks:   [5, 14, 8, 18, 11, 3, 7],
@@ -32,7 +34,7 @@ async function initSummary() {
         };
     } else {
         try {
-            const res = await Config.fetchWithAuth(`${Config.URL_API}/statistic/summary`);
+            const res = await utils.fetchWithAuth(`${utils.URL_API}/statistic/summary`);
             if (!res.ok) throw new Error(res.status);
             SUMMARY_DATASETS = await res.json();
             console.log('summary', SUMMARY_DATASETS);
@@ -53,6 +55,8 @@ function setSummaryPeriod(p, btn) {
   btn.classList.add('active');
   renderSummary();
 }
+
+export { initSummary, setSummaryPeriod };
 
 function calcDelta(curr, prev) {
   if (!prev) return { pct: 0, dir: 'neutral' };

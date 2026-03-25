@@ -1,12 +1,14 @@
 /* ── line-chart.js ── */
 
+import * as utils from '../../utils.js';
+
 const LC_H = 220, LC_PT = 16, LC_PB = 4;
 const LC_PH = LC_H - LC_PT - LC_PB, LC_STEPS = 5;
 
 let LC_DATASETS;
 
 async function initLineChart() {
-  if (Config.TEST) LC_DATASETS = {
+  if (utils.TEST) LC_DATASETS = {
   week: {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     tasks: [8, 12, 5, 18, 10, 4, 6],
@@ -18,15 +20,20 @@ async function initLineChart() {
     focus: [15.5, 19.0, 12.0, 24.5, 18.0, 22.0, 14.5],
   },
   year: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    labels: [
+      utils.t('calendar.jan'), utils.t('calendar.feb'), utils.t('calendar.mar'),
+      utils.t('calendar.apr'), utils.t('calendar.may_short'), utils.t('calendar.jun'),
+      utils.t('calendar.jul'), utils.t('calendar.aug'), utils.t('calendar.sep'),
+      utils.t('calendar.oct'), utils.t('calendar.nov'), utils.t('calendar.dec')
+    ],
     tasks: [45, 82, 60, 110, 75, 130, 85, 95, 145, 100, 120, 160],
     focus: [60, 70, 95, 80, 115, 90, 125, 110, 105, 140, 130, 155],
   },
 };
   else {
     try {
-      const res = await Config.fetchWithAuth(
-        `${Config.URL_API}/statistic/line_chart`
+      const res = await utils.fetchWithAuth(
+        `${utils.URL_API}/statistic/line_chart`
       );
       if (!res.ok) throw new Error(res.status);
       LC_DATASETS = await res.json();
@@ -102,6 +109,8 @@ function switchLcPeriod(p, btn) {
   renderLineChart();
 }
 
+export { initLineChart, switchLcPeriod };
+
 function renderLineChart() {
   const W    = lcGetWidth();
   const d    = LC_DATASETS[lcPeriod];
@@ -121,7 +130,7 @@ function renderLineChart() {
   ['lcTrendTasks','lcTrendFocus'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.textContent = '↑ vs previous period';
+    el.textContent = '↑ ' + utils.t('statistics.vs_previous_period');
     el.style.color = '#22c55e';
   });
 

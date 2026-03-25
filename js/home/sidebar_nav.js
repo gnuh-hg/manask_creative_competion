@@ -1,3 +1,5 @@
+import * as utils from '../../utils.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     // --- 1. TRUY XUẤT DOM ELEMENTS ---
     const overlay = document.querySelector('.modal-overlay');
@@ -16,13 +18,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadData() {
         try {
-            if (Config.TEST) {
+            if (utils.TEST) {
                 mainListWrapper.innerHTML = '';
                 updateEmptyState();
                 return;
             }
 
-            const response = await Config.fetchWithAuth(`${Config.URL_API}/items`);
+            const response = await utils.fetchWithAuth(`${utils.URL_API}/items`);
             
             if (!response.ok) {
                 console.error("Unable to load data");
@@ -46,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
             renderRecursive(null, mainListWrapper);
         } catch (err) {
             console.error("Lỗi khi load dữ liệu:", err);
-            if (Config.TEST) {
+            if (utils.TEST) {
                 mainListWrapper.innerHTML = '';
                 updateEmptyState();
             }
@@ -56,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let saveTimeout = null;
     async function saveAllStructure() {
-        if (Config.TEST) return;
+        if (utils.TEST) return;
 
         if (isSaving) return;
         
@@ -96,13 +98,13 @@ document.addEventListener('DOMContentLoaded', function() {
             traverse(mainListWrapper);
 
             try {
-                const response = await Config.fetchWithAuth(`${Config.URL_API}/items/save-all`, { 
+                const response = await utils.fetchWithAuth(`${utils.URL_API}/items/save-all`, { 
                     method: 'POST',
                     body: JSON.stringify(items)
                 });
                 
                 if (!response.ok) {
-                    Config.showWarning('Error saving structure');
+                    utils.showWarning('Error saving structure');
                     console.error("Error saving structure");
                 }
             } catch (err) { 
@@ -174,16 +176,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 item.querySelector('.icon-expanded').style.display = isExpanded ? 'block' : 'none';
                 item.querySelector('.icon-collapsed').style.display = isExpanded ? 'none' : 'block';
                 
-                if (Config.TEST) return;
+                if (utils.TEST) return;
 
                 try {
-                    const response = await Config.fetchWithAuth(`${Config.URL_API}/items/${item.getAttribute('data-id')}`, {
+                    const response = await utils.fetchWithAuth(`${utils.URL_API}/items/${item.getAttribute('data-id')}`, {
                         method: 'PUT',
                         body: JSON.stringify({ expanded: isExpanded })
                     });
                     
                     if (!response.ok) {
-                        Config.showWarning("Unable to update folder status");
+                        utils.showWarning("Unable to update folder status");
                         console.error("Unable to update folder status");
                     }
                 } catch (err) {
@@ -240,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const totalDepth = targetDepth + 1 + maxChildDepth;
 
             if (totalDepth > 5) {
-                Config.showWarning('Maximum nesting depth is 5 levels');
+                utils.showWarning('Maximum nesting depth is 5 levels');
                 return false;
             }
 
@@ -303,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!name) {
             input.focus();
-            Config.showWarning("Please enter your name!");
+            utils.showWarning("Please enter your name!");
             return;
         }
 
@@ -327,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const res = await Config.fetchWithAuth(`${Config.URL_API}/items`, {
+            const res = await utils.fetchWithAuth(`${utils.URL_API}/items`, {
                 method: 'POST',
                 body: JSON.stringify(newItem)
             });
@@ -340,11 +342,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeModals();
             } else {
                 const errorData = await res.json();
-                Config.showWarning(`Unable to create a new item`);
+                utils.showWarning(`Unable to create a new item`);
             }
         } catch (err) {
             console.error("Lỗi khi tạo item:", err);
-            if (Config.TEST) {
+            if (utils.TEST) {
                 cnt++;
                 const fakeItem = { ...newItem, id: `test-${cnt}` };
                 renderItem(fakeItem, mainListWrapper);
@@ -366,12 +368,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!newName) {
             modalMoreBox.querySelector('.modal-input').focus();
-            Config.showWarning("Please enter your name!");
+            utils.showWarning("Please enter your name!");
             return;
         }
 
         try {
-            if (Config.TEST) {
+            if (utils.TEST) {
                 currentSelectedItem.querySelector('p').innerText = newName;
                 const iconPath = currentSelectedItem.querySelector('.folder-icon path') || currentSelectedItem.querySelector('.project-icon circle');
                 if (iconPath) iconPath.setAttribute('fill', newColor);
@@ -386,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const res = await Config.fetchWithAuth(`${Config.URL_API}/items/${id}`, {
+            const res = await utils.fetchWithAuth(`${utils.URL_API}/items/${id}`, {
                 method: 'PUT',
                 body: JSON.stringify({ name: newName, color: newColor })
             });
@@ -404,11 +406,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 closeModals();
             } else {
-                Config.showWarning("Unable to update");
+                utils.showWarning("Unable to update");
             }
         } catch (err) {
             console.error("Lỗi khi sửa item:", err);
-            if (Config.TEST) {
+            if (utils.TEST) {
                 currentSelectedItem.querySelector('p').innerText = newName;
                 const iconPath = currentSelectedItem.querySelector('.folder-icon path') || currentSelectedItem.querySelector('.project-icon circle');
                 if (iconPath) iconPath.setAttribute('fill', newColor);
@@ -424,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const id = currentSelectedItem.getAttribute('data-id');
 
         try {
-            if (Config.TEST) {
+            if (utils.TEST) {
                 if (currentSelectedItem.classList.contains('project-item-child')) {
                     document.dispatchEvent(new CustomEvent('projectDeleted', {
                         detail: { id: currentSelectedItem.getAttribute('data-id') }
@@ -437,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const res = await Config.fetchWithAuth(`${Config.URL_API}/items/${id}`, { 
+            const res = await utils.fetchWithAuth(`${utils.URL_API}/items/${id}`, { 
                 method: 'DELETE' 
             });
             
@@ -453,11 +455,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeModals();
             } else {
                 const errorData = await res.json();
-                Config.showWarning(errorData.detail || "Không thể xóa");
+                utils.showWarning(errorData.detail || "Không thể xóa");
             }
         } catch (err) {
             console.error("Lỗi khi xóa item:", err);
-            if (Config.TEST) {
+            if (utils.TEST) {
                 currentSelectedItem.remove();
                 updateEmptyState();
                 closeModals();

@@ -1,5 +1,7 @@
+import * as utils from '../utils.js';
+
 document.addEventListener('DOMContentLoaded', async function () {
-    if (!Config.TEST){
+    if (!utils.TEST){
         const token = localStorage.getItem('access_token');
         if (!token) window.location.href = '../account/login.html';
     }
@@ -38,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!keyword) {
             const noneItem = document.createElement('div');
             noneItem.className = 'task-item task-item-none' + (selectedTask === null ? ' selected' : '');
-            noneItem.innerHTML = `<span class="task-item-dot"></span> — No task selected —`;
+            noneItem.innerHTML = `<span class="task-item-dot"></span> ${utils.t('pomodoro.no_task_selected')}`;
             noneItem.addEventListener('click', () => selectTask(null));
             taskModalList.appendChild(noneItem);
         }
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             empty.style.color = 'var(--text-tertiary)';
             empty.style.justifyContent = 'center';
             empty.style.pointerEvents = 'none';
-            empty.textContent = keyword ? 'No tasks found' : 'No tasks available';
+            empty.textContent = keyword ? utils.t('pomodoro.no_tasks_found') : utils.t('pomodoro.no_tasks_available');
             taskModalList.appendChild(empty);
             return;
         }
@@ -69,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     function selectTask(task) {
         selectedTask = task;
-        taskTriggerLabel.textContent = task ? task.name : '— Select active task —';
+        taskTriggerLabel.textContent = task ? task.name : utils.t('pomodoro.select_active_task');
         taskTriggerLabel.style.color = task ? 'var(--text-primary)' : '';
         closeTaskModal();
     }
@@ -143,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     async function patchSettings() {
-        if (Config.TEST) return;
+        if (utils.TEST) return;
         const s = getSettings();
         const body = {
             focus_duration:   s.focusDur  * 60,
@@ -155,13 +157,13 @@ document.addEventListener('DOMContentLoaded', async function () {
             auto_start_break: s.autoBreak,
         };
         try {
-            const res = await Config.fetchWithAuth(`${Config.URL_API}/pomodoro/settings`, {
+            const res = await utils.fetchWithAuth(`${utils.URL_API}/pomodoro/settings`, {
                 method: 'PATCH',
                 body: JSON.stringify(body),
             });
-            if (!res.ok) Config.showWarning('PATCH settings failed');
+            if (!res.ok) utils.showWarning('PATCH settings failed');
         } catch (err) {
-            if (err.message !== 'Unauthorized') Config.showWarning('PATCH settings error');
+            if (err.message !== 'Unauthorized') utils.showWarning('PATCH settings error');
         }
     }
     
@@ -186,19 +188,19 @@ document.addEventListener('DOMContentLoaded', async function () {
     // --- 7. API: LOAD ON STARTUP ---
 
     async function loadSettings() {
-        if (Config.TEST) return;
+        if (utils.TEST) return;
         try {
-            const res  = await Config.fetchWithAuth(`${Config.URL_API}/pomodoro/settings`);
+            const res  = await utils.fetchWithAuth(`${utils.URL_API}/pomodoro/settings`);
             if (!res.ok) return;
             const data = await res.json();
             applySettingsToUI(data);
         } catch (err) {
-            if (err.message !== 'Unauthorized') Config.showWarning('Load settings error');
+            if (err.message !== 'Unauthorized') utils.showWarning('Load settings error');
         }
     }
 
     async function loadTasks() {
-        if (Config.TEST) {
+        if (utils.TEST) {
             tasks = [
                 { id: 1, name: 'Design dashboard UI' },
                 { id: 2, name: 'Review backend API code' },
@@ -209,18 +211,18 @@ document.addEventListener('DOMContentLoaded', async function () {
             return;
         }
         try {
-            const res  = await Config.fetchWithAuth(`${Config.URL_API}/pomodoro/tasks`);
+            const res  = await utils.fetchWithAuth(`${utils.URL_API}/pomodoro/tasks`);
             if (!res.ok) return;
             tasks = await res.json();
         } catch (err) {
-            if (err.message !== 'Unauthorized') Config.showWarning('Load tasks error');
+            if (err.message !== 'Unauthorized') utils.showWarning('Load tasks error');
         }
     }
 
     // --- 8. API: POST SESSION ---
 
     async function postSession(mode, durationSeconds) {
-        if (Config.TEST) return;
+        if (utils.TEST) return;
 
         const modeMap = { focus: 'focus', short: 'short_break', long: 'long_break' };
         const body = {
@@ -230,13 +232,13 @@ document.addEventListener('DOMContentLoaded', async function () {
             completed_at: new Date().toISOString(),
         };
         try {
-            const res = await Config.fetchWithAuth(`${Config.URL_API}/pomodoro/sessions`, {
+            const res = await utils.fetchWithAuth(`${utils.URL_API}/pomodoro/sessions`, {
                 method: 'POST',
                 body: JSON.stringify(body),
             });
-            if (!res.ok) Config.showWarning('POST session failed');
+            if (!res.ok) utils.showWarning('POST session failed');
         } catch (err) {
-            if (err.message !== 'Unauthorized') Config.showWarning('POST session error');
+            if (err.message !== 'Unauthorized') utils.showWarning('POST session error');
         }
     }
 
