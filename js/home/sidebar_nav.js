@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         };
 
         try {
-            if (Config.TEST) {
+            if (utils.TEST) {
                 cnt++;
                 const fakeItem = { ...newItem, id: `test-${cnt}` };
                 renderItem(fakeItem, mainListWrapper);
