@@ -1,10 +1,12 @@
 /* ── summary.js ── */
 
 import * as utils from '../../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
 let SUMMARY_DATASETS;
 
 async function initSummary() {
+    await initI18n();
     if (utils.TEST) {
         SUMMARY_DATASETS = {
           week: {
@@ -111,14 +113,14 @@ function renderSummary() {
   document.getElementById('sumValPomo').innerHTML = totPomo;
   applyDelta('sumDeltaPomo', totPomo, d.prevPomo);
 
-  document.getElementById('sumValStreak').innerHTML = `${d.streak}<span class="unit">days</span>`;
+  document.getElementById('sumValStreak').innerHTML = `${d.streak}<span class="unit">${t('statistics.days_unit')}</span>`;
   document.getElementById('sumFooterStreak').innerHTML =
-    `<span style="color:var(--text-tertiary);font-size:11px">Longest: <span style="color:#06b6d4;font-family:'DM Mono',monospace;font-weight:600">${d.bestStreak} days</span></span>`;
+    `<span style="color:var(--text-tertiary);font-size:11px">${t('statistics.streak_longest')}: <span style="color:#06b6d4;font-family:'DM Mono',monospace;font-weight:600">${t('statistics.n_days', { n: d.bestStreak })}</span></span>`;
 
   document.getElementById('sumValRate').innerHTML = `${rate}<span class="unit">%</span>`;
   setTimeout(() => { const b = document.getElementById('sumRateBar'); if(b) b.style.width = rate + '%'; }, 50);
-  document.getElementById('sumRateCreated').textContent = d.created + ' created';
-  document.getElementById('sumRateDone').textContent    = d.done + ' completed';
+  document.getElementById('sumRateCreated').textContent = t('statistics.rate_created', { n: d.created });
+  document.getElementById('sumRateDone').textContent    = t('statistics.rate_done', { n: d.done });
 
   buildSparkline(d.tasks, 'sparkTasksLine', 'sparkTasksArea');
   buildSparkline(d.focus, 'sparkFocusLine', 'sparkFocusArea');

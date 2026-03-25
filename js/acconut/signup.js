@@ -1,6 +1,8 @@
 import * as utils from '../../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await initI18n();
     // DOM Elements
     const name_input = document.querySelector('.user-name input');
     const email_input = document.querySelector('.user-email input');
@@ -67,17 +69,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (strength < 40) {
             strength_fill.classList.add('weak');
             strength_text.classList.add('weak');
-            strength_text.textContent = 'Weak password';
+            strength_text.textContent = t('signup.strength_weak');
             return 'weak';
         } else if (strength < 80) {
             strength_fill.classList.add('medium');
             strength_text.classList.add('medium');
-            strength_text.textContent = 'Medium password';
+            strength_text.textContent = t('signup.strength_medium');
             return 'medium';
         } else {
             strength_fill.classList.add('strong');
             strength_text.classList.add('strong');
-            strength_text.textContent = 'Strong password';
+            strength_text.textContent = t('signup.strength_strong');
             return 'strong';
         }
     }
@@ -108,31 +110,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Validation functions
     function validateUsername(username) {
         if (!username || username.length < 3) {
-            return { valid: false, message: "Username must be at least 3 characters long" };
+            return { valid: false, message: t('signup.msg_username_min') };
         }
         if (username.length > 30) {
-            return { valid: false, message: "Username must not exceed 30 characters" };
+            return { valid: false, message: t('signup.msg_username_max') };
         }
         return { valid: true };
     }
 
     function validateEmail(email) {
         if (!email) {
-            return { valid: false, message: "Please enter your email" };
+            return { valid: false, message: t('signup.msg_email_empty') };
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return { valid: false, message: "Invalid email address" };
+            return { valid: false, message: t('signup.msg_invalid_email') };
         }
         return { valid: true };
     }
 
     function validatePassword(password) {
         if (!password) {
-            return { valid: false, message: "Please enter your password" };
+            return { valid: false, message: t('signup.msg_password_empty') };
         }
         if (password.length < 6) {
-            return { valid: false, message: "Password must be at least 6 characters long" };
+            return { valid: false, message: t('signup.msg_password_min') };
         }
         return { valid: true };
     }
@@ -196,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Warn if password is weak
         const passwordStrength = checkPasswordStrength(password);
         if (passwordStrength === 'weak') {
-            warning.innerHTML = "⚠ Weak password. Are you sure you want to continue?";
+            warning.innerHTML = t('signup.msg_password_weak_warn');
             // Allow user to continue anyway, just warning
         }
 
@@ -226,8 +228,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 // Success - remove loading class, show success text
                 signup_btn.classList.remove('loading');
-                signup_btn.innerHTML = '✓ SUCCESS';
-                warning.innerHTML = 'Sign up successful!';
+                signup_btn.innerHTML = t('signup.btn_success');
+                warning.innerHTML = t('signup.msg_success');
                 warning.classList.add('success');
                 localStorage.setItem('access_token', data.access_token);
                 
@@ -237,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 800);
             } else {
                 // Error from server
-                let errorMessage = "Sign up failed";
+                let errorMessage = t('signup.msg_failed');
                 
                 // Handle different error formats
                 if (Array.isArray(data.detail)) {
@@ -267,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Connection error:', error);
-            warning.innerHTML = "Cannot connect to server! Please try again";
+            warning.innerHTML = t('signup.msg_connection_error');
             
             // Remove loading state and restore button
             signup_btn.classList.remove('loading');

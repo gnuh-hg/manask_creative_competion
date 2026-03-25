@@ -1,6 +1,7 @@
 /* ── heatmap.js ── */
 
 import * as utils from '../../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
 function hmGenerateData() {
   const today = new Date(); today.setHours(0,0,0,0);
@@ -35,6 +36,7 @@ function hmDateKey(d) {
 
 let HM_DATA;
 async function initHeatmap() {
+  await initI18n();
   if (utils.TEST) HM_DATA = hmGenerateData();
   else {
     try {
@@ -115,18 +117,18 @@ function renderHeatmap() {
   // Stats UI
   document.getElementById('hmStatTotal').textContent    = isTasks ? stats.total + '' : stats.total + 'h';
   document.getElementById('hmStatTotal').className      = 'hm-stat-val ' + (isTasks ? 'tasks-col' : 'focus-col');
-  document.getElementById('hmStatTotalLbl').textContent = isTasks ? utils.t('statistics.total_tasks') : utils.t('statistics.total_hours');
-  document.getElementById('hmStatLongest').textContent  = stats.longestStreak + ' days';
+  document.getElementById('hmStatTotalLbl').textContent = isTasks ? t('statistics.total_tasks') : t('statistics.total_hours');
+  document.getElementById('hmStatLongest').textContent  = t('statistics.n_days', { n: stats.longestStreak });
   document.getElementById('hmStatLongest').className    = 'hm-stat-val ' + (isTasks ? 'tasks-col' : 'focus-col');
-  document.getElementById('hmStatCurrent').textContent  = stats.currentStreak + ' days';
+  document.getElementById('hmStatCurrent').textContent  = t('statistics.n_days', { n: stats.currentStreak });
   document.getElementById('hmStatCurrent').className    = 'hm-stat-val ' + (isTasks ? 'tasks-col' : 'focus-col');
   document.getElementById('hmStatBest').textContent     = isTasks ? stats.best + ' tasks' : stats.best + 'h';
   document.getElementById('hmStatBest').className       = 'hm-stat-val ' + (isTasks ? 'tasks-col' : 'focus-col');
-  document.getElementById('hmStatBestLbl').textContent  = isTasks ? utils.t('statistics.best_day') : utils.t('statistics.best_hours');
-  document.getElementById('hmSubtitle').textContent     = utils.t('statistics.last_365_days') + ' · ' + (isTasks ? utils.t('statistics.tasks') : utils.t('statistics.focus_hours_short'));
+  document.getElementById('hmStatBestLbl').textContent  = isTasks ? t('statistics.best_day') : t('statistics.best_hours');
+  document.getElementById('hmSubtitle').textContent     = t('statistics.last_365_days') + ' · ' + (isTasks ? t('statistics.tasks') : t('statistics.focus_hours_short'));
 
   const badge = document.getElementById('hmStreakBadge');
-  badge.textContent = stats.currentStreak + ' days';
+  badge.textContent = t('statistics.n_days', { n: stats.currentStreak });
   badge.className   = 'streak-badge' + (isTasks ? '' : ' focus-badge');
 
   // Legend colors
@@ -189,20 +191,20 @@ function renderHeatmap() {
 
 /* ── Tooltip ── */
 const HM_DAYS = [
-  'calendar.sun', 'calendar.mon', 'calendar.tue', 'calendar.wed',
-  'calendar.thu', 'calendar.fri', 'calendar.sat'
+  'home.weekday_su', 'home.weekday_mo', 'home.weekday_tu', 'home.weekday_we',
+  'home.weekday_th', 'home.weekday_fr', 'home.weekday_sa'
 ];
 const HM_MONTHS = [
-  'calendar.january', 'calendar.february', 'calendar.march', 'calendar.april',
-  'calendar.may', 'calendar.june', 'calendar.july', 'calendar.august',
-  'calendar.september', 'calendar.october', 'calendar.november', 'calendar.december'
+  'home.month_1',  'home.month_2',  'home.month_3',  'home.month_4',
+  'home.month_5',  'home.month_6',  'home.month_7',  'home.month_8',
+  'home.month_9',  'home.month_10', 'home.month_11', 'home.month_12'
 ];
 
 function hmShowTooltip(e, key, val) {
   const d   = new Date(key);
   const tip = document.getElementById('hmTooltip');
-  const dayName = utils.t(HM_DAYS[d.getDay()]);
-  const monthName = utils.t(HM_MONTHS[d.getMonth()]);
+  const dayName = t(HM_DAYS[d.getDay()]);
+  const monthName = t(HM_MONTHS[d.getMonth()]);
   const dateStr = `${dayName}, ${monthName} ${d.getDate()}, ${d.getFullYear()}`;
 
   document.getElementById('hmTtDate').textContent = dateStr;
@@ -212,16 +214,16 @@ function hmShowTooltip(e, key, val) {
   const ttSub   = document.getElementById('hmTtSub');
 
   if (val === 0) {
-    ttVal.textContent = utils.t('statistics.no_activity');
+    ttVal.textContent = t('statistics.no_activity');
     ttVal.className   = 'hm-tt-val';
     ttSub.textContent = '';
   } else {
-    ttVal.textContent = isTasks ? val + ' tasks completed' : val + 'h focused';
+    ttVal.textContent = isTasks ? t('statistics.tt_tasks_completed', { n: val }) : t('statistics.tt_focused', { n: val });
     ttVal.className   = 'hm-tt-val ' + (isTasks ? 'tasks-col' : 'focus-col');
     const other = isTasks ? HM_DATA.focus[key] : HM_DATA.tasks[key];
     ttSub.textContent = isTasks
-      ? (other ? `${other}h focused` : 'No focus time')
-      : (other ? `${other} tasks`    : 'No tasks');
+      ? (other ? t('statistics.tt_focused', { n: other })       : t('statistics.tt_no_focus'))
+      : (other ? t('statistics.tt_tasks_count', { n: other })   : t('statistics.tt_no_tasks'));
   }
 
   tip.classList.add('show');

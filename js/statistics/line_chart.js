@@ -1,6 +1,7 @@
 /* ── line-chart.js ── */
 
 import * as utils from '../../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
 const LC_H = 220, LC_PT = 16, LC_PB = 4;
 const LC_PH = LC_H - LC_PT - LC_PB, LC_STEPS = 5;
@@ -8,6 +9,7 @@ const LC_PH = LC_H - LC_PT - LC_PB, LC_STEPS = 5;
 let LC_DATASETS;
 
 async function initLineChart() {
+  await initI18n();
   if (utils.TEST) LC_DATASETS = {
   week: {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -21,10 +23,10 @@ async function initLineChart() {
   },
   year: {
     labels: [
-      utils.t('calendar.jan'), utils.t('calendar.feb'), utils.t('calendar.mar'),
-      utils.t('calendar.apr'), utils.t('calendar.may_short'), utils.t('calendar.jun'),
-      utils.t('calendar.jul'), utils.t('calendar.aug'), utils.t('calendar.sep'),
-      utils.t('calendar.oct'), utils.t('calendar.nov'), utils.t('calendar.dec')
+      t('statistics.month_jan'), t('statistics.month_feb'), t('statistics.month_mar'),
+      t('statistics.month_apr'), t('statistics.month_may'), t('statistics.month_jun'),
+      t('statistics.month_jul'), t('statistics.month_aug'), t('statistics.month_sep'),
+      t('statistics.month_oct'), t('statistics.month_nov'), t('statistics.month_dec')
     ],
     tasks: [45, 82, 60, 110, 75, 130, 85, 95, 145, 100, 120, 160],
     focus: [60, 70, 95, 80, 115, 90, 125, 110, 105, 140, 130, 155],
@@ -130,7 +132,7 @@ function renderLineChart() {
   ['lcTrendTasks','lcTrendFocus'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.textContent = '↑ ' + utils.t('statistics.vs_previous_period');
+    el.textContent = '↑ ' + t('statistics.vs_previous_period');
     el.style.color = '#22c55e';
   });
 
@@ -222,8 +224,8 @@ function lcShowTip(i, d, ptT, rT, rF) {
   rF.forEach((r,j) => r.style.opacity = j === i ? 1 : 0);
 
   document.getElementById('lcTtLabel').textContent = d.labels[i];
-  document.getElementById('lcTtTasks').textContent = d.tasks[i] + ' tasks';
-  document.getElementById('lcTtFocus').textContent = Number(d.focus[i]).toFixed(2) + 'h';
+  document.getElementById('lcTtTasks').textContent = t('statistics.tt_tasks_count', { n: d.tasks[i] });
+  document.getElementById('lcTtFocus').textContent = t('statistics.tt_focused', { n: Number(d.focus[i]).toFixed(2) });
 
   const tip  = document.getElementById('lcTooltip');
   tip.classList.add('show');

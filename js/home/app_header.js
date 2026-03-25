@@ -1,6 +1,8 @@
 import * as utils from '../../utils.js';
+import { t, setLang, getLang, initI18n } from '../../i18n.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await initI18n();
     // ========== STATE ==========
     let currentUser = {
         username: 'Guest',
@@ -97,15 +99,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const newName = nameInput.value.trim();
         
         if (!newName) {
-            utils.showWarning('Please enter a name');
+            utils.showWarning(t('home.profile_name_placeholder')); // "Please enter a name"
             return;
         }
         try {
             if (utils.TEST) {
-                // Test mode - just update locally
                 currentUser.username = newName;
                 updateUI();
-                utils.showWarning('Name updated successfully!');
+                utils.showWarning(t('home.msg_name_updated'));
                 return;
             }
             const response = await utils.fetchWithAuth(`${utils.URL_API}/account`, {
@@ -117,10 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             currentUser.username = newName;
             updateUI();
-            utils.showWarning('Name updated successfully!');
+            utils.showWarning(t('home.msg_name_updated'));
         } catch (error) {
-            console.error('Error updating name:', error);
-            utils.showWarning('Failed to update name');
+            utils.showWarning(t('home.msg_name_failed'));
         }
     });
 
@@ -176,23 +176,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const current = currentPassword.value;
         const newPass = newPassword.value;
         const confirm = confirmPassword.value;
-        // Validation
+
         if (!current || !newPass || !confirm) {
-            utils.showWarning('Please fill in all password fields');
+            utils.showWarning(t('home.msg_password_fill_all'));
             return;
         }
         if (newPass.length < 6) {
-            utils.showWarning('New password must be at least 6 characters');
+            utils.showWarning(t('home.msg_password_min_length'));
             return;
         }
         if (newPass !== confirm) {
-            utils.showWarning('New passwords do not match');
+            utils.showWarning(t('home.msg_password_mismatch'));
             return;
         }
         try {
             if (utils.TEST) {
-                // Test mode - just show success
-                utils.showWarning('Password changed successfully!');
+                utils.showWarning(t('home.msg_password_changed'));
                 currentPassword.value = '';
                 newPassword.value = '';
                 confirmPassword.value = '';
@@ -215,15 +214,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(error.detail || 'Failed to change password');
             }
             
-            utils.showWarning('Password changed successfully!');
+            utils.showWarning(t('home.msg_password_changed'));
             currentPassword.value = '';
             newPassword.value = '';
             confirmPassword.value = '';
             passwordContent.classList.remove('active');
             passwordHeader.classList.remove('active');
         } catch (error) {
-            console.error('Error changing password:', error);
-            utils.showWarning('Failed to change password');
+            utils.showWarning(t('home.msg_password_failed'));
         }
     });
 
@@ -238,21 +236,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ========== LANGUAGE TOGGLE ==========
     const langButton = document.getElementById('langButton');
-    let currentLang = localStorage.getItem('lang');; // 'en' or 'vi'
-    langButton.textContent = currentLang === 'en' ? 'EN' : 'VI';
+    langButton.textContent = getLang().toUpperCase();
 
     langButton.addEventListener('click', function() {
-        currentLang = currentLang === 'en' ? 'vi' : 'en';
-        langButton.textContent = currentLang === 'en' ? 'EN' : 'VI';
-        
-        localStorage.setItem('lang', currentLang);
+        const next = getLang() === 'en' ? 'vi' : 'en';
+        setLang(next);
+        langButton.textContent = next.toUpperCase();
     });
 
     // ========== LOGOUT ==========
     btnLogout.addEventListener('click', function() {
         localStorage.removeItem('access_token');
-        localStorage.removeItem('lang');
-        window.location.href = '/pages/account/login.html';
+        window.location.href = '/pages/login.html';
     });
 
     // ========== INITIALIZE ==========

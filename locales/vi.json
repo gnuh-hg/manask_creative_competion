@@ -1,144 +1,370 @@
 {
-  "nav": {
-    "pomodoro": "Pomodoro",
-    "statistics": "Thống kê",
-    "about": "Về chúng tôi"
-  },
-  "profile": {
-    "change_display_name": "Thay đổi tên hiển thị",
-    "enter_new_name": "Nhập tên mới",
-    "cancel": "Hủy",
-    "save": "Lưu",
-    "change_password": "Thay đổi mật khẩu",
-    "current_password": "Mật khẩu hiện tại",
-    "enter_current_password": "Nhập mật khẩu hiện tại",
-    "new_password": "Mật khẩu mới",
-    "enter_new_password": "Nhập mật khẩu mới",
-    "confirm_new_password": "Xác nhận mật khẩu mới",
-    "re_enter_new_password": "Nhập lại mật khẩu mới",
-    "at_least_6_characters": "Ít nhất 6 ký tự",
-    "change_password_button": "Thay đổi mật khẩu",
-    "logout": "Đăng xuất"
-  },
-  "sidebar": {
-    "create_new": "Tạo mới",
-    "create_folder": "Tạo thư mục",
-    "name_folder": "Đặt tên thư mục",
-    "create_project": "Tạo dự án",
-    "name_project": "Đặt tên dự án",
-    "accept": "Chấp nhận",
-    "delete": "Xóa",
-    "new_name": "Tên mới"
-  },
-  "task_manager": {
-    "task_manager": "Quản lý công việc",
-    "new_task": "Công việc mới",
-    "task_details": "Chi tiết công việc",
-    "task_name": "Tên công việc",
-    "priority": "Ưu tiên",
-    "high": "Cao",
-    "start_date": "Ngày bắt đầu",
-    "set_date": "Đặt ngày",
-    "due_date": "Ngày đến hạn",
-    "time_spent": "Thời gian đã dùng",
-    "notes": "Ghi chú",
-    "add_notes": "Thêm ghi chú...",
-    "delete_task": "Xóa công việc",
-    "clear": "Xóa",
-    "today": "Hôm nay"
-  },
-  "calendar": {
-    "january": "Tháng 1",
-    "february": "Tháng 2",
-    "march": "Tháng 3",
-    "april": "Tháng 4",
-    "may": "Tháng 5",
-    "june": "Tháng 6",
-    "july": "Tháng 7",
-    "august": "Tháng 8",
-    "september": "Tháng 9",
-    "october": "Tháng 10",
-    "november": "Tháng 11",
-    "december": "Tháng 12",
-    "su": "CN",
-    "mo": "T2",
-    "tu": "T3",
-    "we": "T4",
-    "th": "T5",
-    "fr": "T6",
-    "sa": "T7"
+  "home": {
+    "nav_pomodoro": "Pomodoro",
+    "nav_statistics": "Thống kê",
+    "nav_about": "Về chúng tôi",
+    "profile_change_name": "Đổi tên hiển thị",
+    "profile_name_placeholder": "Nhập tên mới",
+    "profile_change_password": "Đổi mật khẩu",
+    "password_current": "Mật khẩu hiện tại",
+    "password_current_placeholder": "Nhập mật khẩu hiện tại",
+    "password_new": "Mật khẩu mới",
+    "password_new_placeholder": "Nhập mật khẩu mới",
+    "password_hint": "Ít nhất 6 ký tự",
+    "password_confirm": "Xác nhận mật khẩu mới",
+    "password_confirm_placeholder": "Nhập lại mật khẩu mới",
+    "btn_cancel": "Hủy",
+    "btn_save": "Lưu",
+    "btn_accept": "Xác nhận",
+    "btn_delete": "Xóa",
+    "btn_logout": "Đăng xuất",
+    "sidebar_create_new": "Tạo mới",
+    "sidebar_toggle_label": "Mở/đóng thanh bên",
+    "sidebar_close_label": "Đóng thanh bên",
+    "modal_create_folder": "Tạo thư mục",
+    "modal_create_project": "Tạo dự án",
+    "modal_folder_name_placeholder": "Tên thư mục",
+    "modal_project_name_placeholder": "Tên dự án",
+    "modal_new_name_placeholder": "Tên mới",
+    "task_manager_title": "Quản lý công việc",
+    "task_new": "Thêm công việc",
+    "task_detail_title": "Chi tiết công việc",
+    "task_name_placeholder": "Tên công việc",
+    "task_priority": "Độ ưu tiên",
+    "task_start_date": "Ngày bắt đầu",
+    "task_due_date": "Ngày hết hạn",
+    "task_time_spent": "Thời gian đã dùng",
+    "task_notes": "Ghi chú",
+    "task_notes_placeholder": "Thêm ghi chú...",
+    "task_delete": "Xóa công việc",
+    "priority_high": "Cao",
+    "priority_medium": "Trung bình",
+    "priority_low": "Thấp",
+    "date_set": "Chọn ngày",
+    "calendar_clear": "Xóa",
+    "calendar_today": "Hôm nay",
+    "month_1": "Tháng 1",
+    "month_2": "Tháng 2",
+    "month_3": "Tháng 3",
+    "month_4": "Tháng 4",
+    "month_5": "Tháng 5",
+    "month_6": "Tháng 6",
+    "month_7": "Tháng 7",
+    "month_8": "Tháng 8",
+    "month_9": "Tháng 9",
+    "month_10": "Tháng 10",
+    "month_11": "Tháng 11",
+    "month_12": "Tháng 12",
+    "weekday_su": "CN",
+    "weekday_mo": "T2",
+    "weekday_tu": "T3",
+    "weekday_we": "T4",
+    "weekday_th": "T5",
+    "weekday_fr": "T6",
+    "weekday_sa": "T7",
+    "msg_name_updated": "Cập nhật tên thành công!",
+    "msg_name_failed": "Cập nhật tên thất bại",
+    "msg_password_fill_all": "Vui lòng điền đầy đủ các trường mật khẩu",
+    "msg_password_min_length": "Mật khẩu mới phải có ít nhất 6 ký tự",
+    "msg_password_mismatch": "Mật khẩu mới không khớp",
+    "msg_password_changed": "Đổi mật khẩu thành công!",
+    "msg_password_failed": "Đổi mật khẩu thất bại",
+    "empty_no_project_title": "Chưa chọn dự án",
+    "empty_no_project_desc": "Chọn một dự án từ thanh bên trái để bắt đầu",
+    "empty_no_task_title": "Chưa có nhiệm vụ nào",
+    "empty_no_task_desc": "Nhấn \"Nhiệm vụ mới\" ở trên để tạo nhiệm vụ đầu tiên",
+    "btn_done": "Hoàn thành",
+    "btn_done_check": "✓ Xong",
+    "task_due_prefix": "Hạn:",
+    "msg_select_project": "Vui lòng chọn một dự án trước!",
+    "msg_task_create_error": "Lỗi khi tạo nhiệm vụ",
+    "msg_task_delete_error": "Lỗi khi xóa nhiệm vụ",
+    "msg_load_error": "Không thể tải dữ liệu",
+    "msg_notes_error": "Không thể lưu ghi chú",
+    "msg_priority_error": "Không thể đổi độ ưu tiên",
+    "msg_reorder_error": "Không thể cập nhật thứ tự",
+    "sidebar_empty_title": "Chưa có thư mục hay dự án nào",
+    "sidebar_empty_desc": "Nhấn \"Tạo mới\" bên dưới để bắt đầu",
+    "msg_max_depth": "Độ sâu lồng nhau tối đa là 5 cấp",
+    "msg_enter_name": "Vui lòng nhập tên!",
+    "msg_create_error": "Không thể tạo mục mới",
+    "msg_update_error": "Không thể cập nhật",
+    "msg_delete_error": "Không thể xóa",
+    "msg_folder_status_error": "Không thể cập nhật trạng thái thư mục"
   },
   "login": {
-    "email": "EMAIL",
-    "password": "MẬT KHẨU",
-    "login": "ĐĂNG NHẬP",
-    "dont_have_account": "Chưa có tài khoản?",
-    "sign_up_now": "Đăng ký ngay"
+    "label": {
+      "email": "EMAIL",
+      "password": "MẬT KHẨU"
+    },
+    "placeholder": {
+      "email": "example@email.com",
+      "password": "••••••••"
+    },
+    "button": {
+      "login": "ĐĂNG NHẬP"
+    },
+    "signup": {
+      "prompt": "Chưa có tài khoản?",
+      "link": "Đăng ký ngay"
+    },
+    "msg_fill_all": "Vui lòng nhập đầy đủ thông tin",
+    "msg_invalid_email": "Địa chỉ email không hợp lệ",
+    "btn_success": "✓ THÀNH CÔNG",
+    "msg_failed": "Đăng nhập thất bại",
+    "msg_connection_error": "Lỗi kết nối! Vui lòng thử lại"
   },
   "signup": {
-    "username": "TÊN NGƯỜI DÙNG",
-    "email": "EMAIL",
-    "password": "MẬT KHẨU",
-    "sign_up": "ĐĂNG KÝ",
-    "already_have_account": "Đã có tài khoản?",
-    "login_now": "Đăng nhập ngay"
-  },
-  "pomodoro": {
-    "pomodoro": "Pomodoro",
-    "short_break": "Nghỉ ngắn",
-    "long_break": "Nghỉ dài",
-    "focus": "Tập trung",
-    "select_active_task": "— Chọn công việc đang làm —",
-    "start": "Bắt đầu",
-    "settings": "CÀI ĐẶT",
-    "duration_minutes": "Thời lượng (phút)",
-    "long_break": "Nghỉ dài",
-    "no_task_selected": "— Chưa chọn công việc —",
-    "no_tasks_found": "Không tìm thấy công việc",
-    "no_tasks_available": "Không có công việc nào"
-  },
-  "statistics": {
-    "statistics": "Thống kê",
-    "close_statistics": "Đóng Thống kê",
-    "overview": "Tổng quan",
-    "week": "Tuần",
-    "month": "Tháng",
-    "year": "Năm",
-    "tasks_completed": "Công việc hoàn thành",
-    "vs_previous_period": "so với kỳ trước",
-    "focus_hours": "Giờ tập trung",
-    "pomodoros": "Pomodoro",
-    "current_streak": "Chuỗi hiện tại",
-    "completion_rate": "Tỷ lệ hoàn thành",
-    "work_productivity": "Năng suất công việc",
-    "tasks_completed_focus_hours": "Công việc hoàn thành & Giờ tập trung",
-    "tasks": "Công việc",
-    "focus_hours_short": "Giờ tập trung"
+    "label": {
+      "username": "TÊN NGƯỜI DÙNG",
+      "email": "EMAIL",
+      "password": "MẬT KHẨU"
+    },
+    "placeholder": {
+      "username": "johndoe",
+      "email": "example@email.com",
+      "password": "••••••••"
+    },
+    "button": {
+      "signup": "ĐĂNG KÝ"
+    },
+    "login": {
+      "prompt": "Đã có tài khoản?",
+      "link": "Đăng nhập ngay"
+    },
+    "strength_weak": "Mật khẩu yếu",
+    "strength_medium": "Mật khẩu trung bình",
+    "strength_strong": "Mật khẩu mạnh",
+    "msg_username_min": "Tên người dùng phải có ít nhất 3 ký tự",
+    "msg_username_max": "Tên người dùng không được vượt quá 30 ký tự",
+    "msg_email_empty": "Vui lòng nhập email của bạn",
+    "msg_invalid_email": "Địa chỉ email không hợp lệ",
+    "msg_password_empty": "Vui lòng nhập mật khẩu của bạn",
+    "msg_password_min": "Mật khẩu phải có ít nhất 6 ký tự",
+    "msg_password_weak_warn": "⚠ Mật khẩu yếu. Bạn có chắc muốn tiếp tục?",
+    "btn_success": "✓ THÀNH CÔNG",
+    "msg_success": "Đăng ký thành công!",
+    "msg_failed": "Đăng ký thất bại",
+    "msg_connection_error": "Không thể kết nối đến máy chủ! Vui lòng thử lại"
   },
   "about": {
-    "about_us": "Về chúng tôi - Manask",
-    "problem": "Vấn đề",
-    "features": "Tính năng",
-    "team": "Đội ngũ",
-    "competition": "Cuộc thi",
-    "about_us_badge": "✦ Về chúng tôi",
-    "more_organized": "có tổ chức hơn mỗi ngày",
-    "management_levels": "Cấp quản lý",
-    "core_features": "Core Features",
-    "team": "Team",
-    "why_manask": "Tại sao cần Manask?",
-    "problem_description": "Sinh viên, nhân viên văn phòng và freelancer đều đang đối mặt với cùng một bài toán chưa được giải quyết triệt để.",
-    "disorganized_lists": "Danh sách rời rạc, thiếu cấu trúc",
-    "disorganized_description": "Ghi chú giấy, app to-do đơn giản hay note điện thoại đều không đủ khi số lượng công việc tăng lên. Mọi thứ trộn lẫn, khó phân loại và dễ bỏ sót.",
-    "no_priority": "Không biết nên ưu tiên việc gì",
-    "no_priority_description": "Khi mọi task trông quan trọng như nhau, người dùng dễ rơi vào trạng thái bận rộn nhưng không hiệu quả - làm nhiều nhưng hoàn thành ít.",
-    "scattered_tools": "Công cụ rời rạc, phải dùng nhiều app",
-    "scattered_description": "To-do list ở một nơi, Pomodoro timer ở nơi khác, habit tracker ở chỗ khác nữa. Chuyển qua lại giữa các app làm mất tập trung và mất thời gian.",
-    "mission": "Sứ mệnh"
+    "nav": {
+      "problem": "Vấn đề",
+      "features": "Tính năng",
+      "team": "Đội ngũ",
+      "competition": "Cuộc thi"
+    },
+    "hero": {
+      "badge": "✦ Về chúng tôi",
+      "titleLine1": "Quản lý công việc",
+      "titleLine2": "có tổ chức hơn mỗi ngày",
+      "subtitle": "Manask là ứng dụng web quản lý công việc theo cấu trúc Folder → Project → Task, kết hợp Pomodoro timer và thống kê hiệu suất chi tiết - giúp bạn làm việc có tổ chức hơn mỗi ngày.",
+      "stat1": "Cấp quản lý",
+      "stat2": "Core Features",
+      "stat3": "Team"
+    },
+    "problem": {
+      "tag": "Vấn đề",
+      "title": "Tại sao cần Manask?",
+      "desc": "Sinh viên, nhân viên văn phòng và freelancer đều đang đối mặt với cùng một bài toán chưa được giải quyết triệt để.",
+      "card1": {
+        "title": "Danh sách rời rạc, thiếu cấu trúc",
+        "desc": "Ghi chú giấy, app to-do đơn giản hay note điện thoại đều không đủ khi số lượng công việc tăng lên. Mọi thứ trộn lẫn, khó phân loại và dễ bỏ sót."
+      },
+      "card2": {
+        "title": "Không biết nên ưu tiên việc gì",
+        "desc": "Khi mọi task trông quan trọng như nhau, người dùng dễ rơi vào trạng thái bận rộn nhưng không hiệu quả - làm nhiều nhưng hoàn thành ít."
+      },
+      "card3": {
+        "title": "Công cụ rời rạc, phải dùng nhiều app",
+        "desc": "To-do list ở một nơi, Pomodoro timer ở nơi khác, habit tracker ở chỗ khác nữa. Chuyển qua lại giữa các app làm mất tập trung và mất thời gian."
+      }
+    },
+    "mission": {
+      "tag": "Sứ mệnh",
+      "title": "Manask ra đời để giải quyết điều đó",
+      "desc1": "Thay vì một danh sách phẳng, Manask cho phép phân cấp công việc theo 3 tầng rõ ràng: Folder → Project → Task. Mỗi task được gắn đầy đủ thuộc tính: mức độ ưu tiên, ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư.",
+      "desc2": "Kỹ thuật Pomodoro được tích hợp trực tiếp vào luồng làm việc - không cần chuyển app, người dùng chọn task đang làm rồi bắt đầu tập trung ngay.",
+      "desc3": "Toàn bộ hoạt động được ghi nhận và hiển thị qua hệ thống thống kê trực quan: heatmap, line chart, donut chart - giúp nhìn lại và cải thiện hiệu suất theo thời gian."
+    },
+    "features": {
+      "tag": "Tính năng",
+      "title": "Mọi thứ bạn cần trong một nơi",
+      "desc": "Không cần 3 app riêng lẻ. Manask hợp nhất tổ chức công việc, tập trung và thống kê vào một giao diện duy nhất.",
+      "f1": { "title": "Folder → Project → Task", "desc": "Cấu trúc 3 cấp giúp mọi công việc có chỗ đứng rõ ràng. Folder nhóm dự án lớn, Project quản lý từng mục tiêu, Task là các việc cụ thể cần làm." },
+      "f2": { "title": "Task chi tiết đầy đủ", "desc": "Mỗi task có: mức độ ưu tiên (High / Medium / Low), ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư (time spent) - đủ để đánh giá chính xác nỗ lực thực tế." },
+      "f3": { "title": "Pomodoro tích hợp", "desc": "Chọn task đang làm, bật đồng hồ, tập trung. Tùy chỉnh thời lượng Focus, Short Break và Long Break. Không cần chuyển app, mọi thứ ngay trong Manask." },
+      "f4": { "title": "Thống kê trực quan", "desc": "Heatmap hoạt động 365 ngày, Donut chart phân bổ theo project, Line chart xu hướng theo 7 ngày / 30 ngày / 12 tháng. Nhìn lại hiệu suất và điều chỉnh kế hoạch." },
+      "f5": { "title": "Tài khoản cá nhân", "desc": "Đăng ký, đăng nhập và lưu trữ toàn bộ dữ liệu an toàn. Mọi folder, project và task đều được đồng bộ riêng theo từng tài khoản." },
+      "f6": { "title": "Lightweight & No install", "desc": "Ứng dụng web chạy thẳng trên trình duyệt, không cần cài đặt. Dark mode mặc định, responsive hoàn toàn - dùng được trên mọi thiết bị." }
+    },
+    "how": {
+      "tag": "Cách sử dụng",
+      "title": "Bắt đầu chỉ trong 4 bước",
+      "desc": "Không cần hướng dẫn dài dòng. Manask được thiết kế để ai cũng có thể dùng ngay.",
+      "step1": { "title": "Tạo Folder & Project", "desc": "Tạo Folder để nhóm các dự án liên quan (ví dụ: \"Học kỳ 2\", \"Công việc\"). Bên trong tạo Project cho từng mục tiêu cụ thể." },
+      "step2": { "title": "Thêm Task chi tiết", "desc": "Tạo task với tên, mức ưu tiên, ngày bắt đầu, ngày hoàn thành và ghi chú. Mọi thứ được tổ chức rõ ràng, không bị lẫn lộn." },
+      "step3": { "title": "Bật Pomodoro & làm việc", "desc": "Chọn task đang thực hiện, bật timer và tập trung theo chu kỳ. Nghỉ ngắn giữa các phiên để duy trì năng lượng." },
+      "step4": { "title": "Xem thống kê & cải thiện", "desc": "Nhìn lại heatmap hoạt động, chart xu hướng và streak. Hiểu rõ thói quen làm việc của mình và điều chỉnh kế hoạch tuần/tháng." }
+    },
+    "screens": {
+      "tag": "Giao diện",
+      "title": "Được thiết kế để dễ dùng",
+      "desc": "Dark mode, responsive hoàn toàn, mỗi màn hình đều được tối ưu cho trải nghiệm người dùng tốt nhất."
+    },
+    "team": {
+      "tag": "Đội ngũ",
+      "title": "Những người đứng sau Manask",
+      "desc": "Team 2T - Plain Sailing, hai học sinh với một mục tiêu: làm cho việc quản lý công việc trở nên thực sự có tổ chức.",
+      "member1": { "name": "Nguyễn Mạnh Hùng", "role": "Frontend Developer", "bio": "Chịu trách nhiệm thiết kế và xây dựng toàn bộ giao diện người dùng - từ layout, animation đến trải nghiệm tương tác mượt mà." },
+      "member2": { "name": "Nguyễn Phú Bình", "role": "Backend Developer", "bio": "Xây dựng hệ thống server, API RESTful và cơ sở dữ liệu - đảm bảo mọi tính năng hoạt động ổn định, bảo mật và hiệu quả." }
+    },
+    "competition": {
+      "tag": "Cuộc thi",
+      "title": "AI Young Guru by FPT",
+      "quote": "\"Chúng tôi tham gia AI Young Guru không chỉ để tranh giải, mà để chứng minh rằng một công cụ quản lý công việc đơn giản, có tổ chức thực sự tạo ra sự khác biệt trong năng suất hằng ngày.\"",
+      "chip1": "AI Young Guru - FPT Corporation",
+      "chip2": "Web Application Track",
+      "chip3": "Team 2T - Plain Sailing"
+    },
+    "footer": {
+      "copy": "© 2026 Manask — Team 2T - Plain Sailing",
+      "builtFor": "Built for AI Young Guru · FPT"
+    }
   },
-  "common": {
-    "connecting": "Đang kết nối...",
-    "retry_after": "Thử lại {0}/{1} sau {2}s...",
-    "loading": "Đang tải..."
+  "pomodoro": {
+    "tabs": {
+      "pomodoro": "Pomodoro",
+      "shortBreak": "Nghỉ ngắn",
+      "longBreak": "Nghỉ dài"
+    },
+    "mode": {
+      "focus": "Tập trung",
+      "shortBreak": "Nghỉ ngắn",
+      "longBreak": "Nghỉ dài"
+    },
+    "task": {
+      "selectPlaceholder": "— Chọn nhiệm vụ —",
+      "modalHeader": "Chọn nhiệm vụ",
+      "searchPlaceholder": "Tìm kiếm nhiệm vụ..."
+    },
+    "controls": {
+      "start": "Bắt đầu",
+      "pause": "Tạm dừng",
+      "reset": "Đặt lại",
+      "skip": "Bỏ qua"
+    },
+    "settings": {
+      "title": "CÀI ĐẶT",
+      "durationLabel": "Thời lượng (phút)",
+      "longBreakAfter": "Nghỉ dài sau",
+      "behaviorLabel": "Hành vi",
+      "disableBreaks": "Tắt giờ nghỉ",
+      "autoStartPomodoro": "Tự động bắt đầu Pomodoro",
+      "autoStartBreaks": "Tự động bắt đầu giờ nghỉ",
+      "close": "Đóng Pomodoro",
+      "closeWarning": "Thoát sẽ huỷ phiên pomodoro hiện tại!"
+    },
+    "btn_start": "Bắt đầu",
+    "btn_pause": "Tạm dừng",
+    "mode_focus": "Tập trung",
+    "mode_short": "Nghỉ ngắn",
+    "mode_long": "Nghỉ dài",
+    "no_task_selected": "Chưa chọn nhiệm vụ",
+    "no_tasks_found": "Không tìm thấy nhiệm vụ",
+    "no_tasks_available": "Không có nhiệm vụ nào",
+    "select_active_task": "Chọn nhiệm vụ đang làm"
+  },
+  "statistics": {
+    "page": {
+      "title": "Thống kê",
+      "close": "Đóng thống kê"
+    },
+    "period": {
+      "week": "Tuần",
+      "month": "Tháng",
+      "year": "Năm"
+    },
+    "common": {
+      "tasks": "Nhiệm vụ",
+      "focus": "Tập trung",
+      "focusHours": "Giờ tập trung",
+      "hours": "Giờ"
+    },
+    "summary": {
+      "overview": "Tổng quan",
+      "tasksCompleted": "Nhiệm vụ hoàn thành",
+      "focusHours": "Giờ tập trung",
+      "pomodoros": "Pomodoro",
+      "currentStreak": "Chuỗi hiện tại",
+      "completionRate": "Tỷ lệ hoàn thành",
+      "vsPrevious": "so với kỳ trước"
+    },
+    "line": {
+      "title": "Năng suất làm việc",
+      "subtitle": "Nhiệm vụ hoàn thành & Giờ tập trung",
+      "totalTasks": "Tổng nhiệm vụ",
+      "totalFocusHours": "Tổng giờ tập trung"
+    },
+    "donut": {
+      "title": "Phân bổ theo dự án",
+      "total": "Tổng",
+      "period": {
+        "week": "7 ngày",
+        "month": "30 ngày",
+        "year": "12 tháng"
+      }
+    },
+    "heatmap": {
+      "title": "Hoạt động",
+      "totalTasks": "Tổng nhiệm vụ",
+      "longestStreak": "Chuỗi dài nhất",
+      "currentStreak": "Chuỗi hiện tại",
+      "bestDay": "Ngày tốt nhất",
+      "streak": "Chuỗi",
+      "less": "Ít hơn",
+      "more": "Nhiều hơn"
+    },
+    "donut_period_week": "7 ngày qua",
+    "donut_period_month": "30 ngày qua",
+    "donut_period_year": "12 tháng qua",
+    "donut_metric_tasks": "Nhiệm vụ",
+    "donut_metric_focus": "Giờ",
+    "donut_unit_tasks": " nhiệm vụ",
+    "donut_unit_focus": "g",
+    "donut_others": "Khác ({{n}})",
+    "donut_others_label": "Khác",
+    "donut_total": "Tổng",
+    "total_tasks": "Tổng nhiệm vụ",
+    "total_hours": "Tổng giờ tập trung",
+    "best_day": "Ngày tốt nhất",
+    "best_hours": "Ngày tốt nhất (tập trung)",
+    "last_365_days": "365 ngày qua",
+    "tasks": "Nhiệm vụ",
+    "focus_hours_short": "Giờ tập trung",
+    "no_activity": "Không có hoạt động",
+    "n_days": "{{n}} ngày",
+    "tt_tasks_completed": "Hoàn thành {{n}} nhiệm vụ",
+    "tt_focused": "Tập trung {{n}}g",
+    "tt_no_focus": "Không có thời gian tập trung",
+    "tt_tasks_count": "{{n}} nhiệm vụ",
+    "tt_no_tasks": "Không có nhiệm vụ",
+    "vs_previous_period": "so với kỳ trước",
+    "month_jan": "Th1",
+    "month_feb": "Th2",
+    "month_mar": "Th3",
+    "month_apr": "Th4",
+    "month_may": "Th5",
+    "month_jun": "Th6",
+    "month_jul": "Th7",
+    "month_aug": "Th8",
+    "month_sep": "Th9",
+    "month_oct": "Th10",
+    "month_nov": "Th11",
+    "month_dec": "Th12",
+    "days_unit": "ngày",
+    "streak_longest": "Dài nhất",
+    "rate_created": "{{n}} đã tạo",
+    "rate_done": "{{n}} hoàn thành"
   }
 }

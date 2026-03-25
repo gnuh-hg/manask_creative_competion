@@ -1,6 +1,7 @@
 /* ── donut.js ── */
 
 import * as utils from '../../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
 const DONUT_R = 56;
 const DONUT_CIRC = 2 * Math.PI * DONUT_R;
@@ -10,6 +11,7 @@ const DONUT_COLOR_OTHERS = '#3f3f46';
 let DONUT_DATA;
 
 async function initDonut() {
+  await initI18n();
   if (utils.TEST) DONUT_DATA = {
     week: {
       tasks: [
@@ -101,9 +103,19 @@ async function initDonut() {
   if (DONUT_DATA) renderDonut();
 };
 
-const DONUT_PERIOD_LABEL = { week: 'Last 7 days', month: 'Last 30 days', year: 'Last 12 months' };
-const DONUT_METRIC_LABEL = { tasks: 'Tasks', focus: 'Hours' };
-const DONUT_METRIC_UNIT  = { tasks: ' tasks', focus: 'h' };
+const DONUT_PERIOD_LABEL = () => ({
+  week:  t('statistics.donut_period_week'),
+  month: t('statistics.donut_period_month'),
+  year:  t('statistics.donut_period_year'),
+});
+const DONUT_METRIC_LABEL = () => ({
+  tasks: t('statistics.donut_metric_tasks'),
+  focus: t('statistics.donut_metric_focus'),
+});
+const DONUT_METRIC_UNIT  = () => ({
+  tasks: t('statistics.donut_unit_tasks'),
+  focus: t('statistics.donut_unit_focus'),
+});
 const DONUT_METRIC_CLASS = { tasks: 'active-tasks', focus: 'active-focus' };
 
 let donutPeriod = 'week';
@@ -132,11 +144,15 @@ function setDonutMetric(m, btn) {
 export { initDonut, setDonutPeriod, setDonutMetric };
 
 function donutFmtVal(v) {
-  return donutMetric === 'focus' ? v.toFixed(2) + 'h' : v + ' tasks';
+  return donutMetric === 'focus'
+    ? v.toFixed(2) + DONUT_METRIC_UNIT().focus
+    : v + DONUT_METRIC_UNIT().tasks;
 }
 
 function donutSetCenter(num, color) {
-  const unit = donutMetric === 'focus' ? 'hours' : 'tasks';
+  const unit = donutMetric === 'focus'
+    ? t('statistics.donut_unit_focus')
+    : t('statistics.donut_unit_tasks');
   const el   = document.getElementById('donutCenterValue');
   el.innerHTML = `${num}<span class="unit">${unit}</span>`;
   el.style.color = color || '';
@@ -153,7 +169,7 @@ function donutBuildSegments(dataArray) {
   const segs = top.map(item => ({ ...item, isOthers: false }));
   
   segs.push({
-    name: `Others (${rest.length})`,
+    name: t('statistics.donut_others', { n: rest.length }),
     value: rest.reduce((a, b) => a + b.value, 0),
     color: DONUT_COLOR_OTHERS,
     isOthers: true,
@@ -170,7 +186,7 @@ function donutActivate(i, segs) {
   donutCircles[i].classList.add('hovered');
   const num = donutMetric === 'focus' ? seg.value.toFixed(2) : seg.value;
   donutSetCenter(num, seg.color);
-  document.getElementById('donutCenterLabel').textContent = seg.isOthers ? 'Others' : seg.name;
+  document.getElementById('donutCenterLabel').textContent = seg.isOthers ? t('statistics.donut_others_label') : seg.name;
   donutLegItems.forEach((el,j) => {
     el.classList.toggle('active', j === i);
     el.querySelector('.donut-legend-dot').style.boxShadow = j === i ? `0 0 8px ${seg.color}` : 'none';
@@ -182,7 +198,7 @@ function donutDeactivate(total) {
   donutCircles.forEach(c => c.classList.remove('hovered'));
   const num = donutMetric === 'focus' ? total.toFixed(2) : total;
   donutSetCenter(num, '');
-  document.getElementById('donutCenterLabel').textContent = 'Total';
+  document.getElementById('donutCenterLabel').textContent = t('statistics.donut_total');
   donutLegItems.forEach(el => {
     el.classList.remove('active');
     el.querySelector('.donut-legend-dot').style.boxShadow = 'none';
@@ -200,12 +216,12 @@ function renderDonut() {
   const svg   = document.getElementById('donutSvg');
   const legEl = document.getElementById('donutLegend');
 
-  document.getElementById('donutSubtitle').textContent    = `${DONUT_PERIOD_LABEL[donutPeriod]} · ${DONUT_METRIC_LABEL[donutMetric]}`;
+  document.getElementById('donutSubtitle').textContent    = `${DONUT_PERIOD_LABEL()[donutPeriod]} · ${DONUT_METRIC_LABEL()[donutMetric]}`;
   document.getElementById('donutFooterValue').textContent = donutFmtVal(total);
   document.getElementById('donutFooterValue').style.color = donutMetric === 'tasks' ? '#818cf8' : 'var(--accent-green)';
 
   donutSetCenter(donutMetric === 'focus' ? total.toFixed(2) : total, '');
-  document.getElementById('donutCenterLabel').textContent = 'Total';
+  document.getElementById('donutCenterLabel').textContent = t('statistics.donut_total');
 
   donutCircles.forEach(c => c.remove());
   donutCircles  = [];

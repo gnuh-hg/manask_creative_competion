@@ -1,6 +1,8 @@
 import * as utils from '../../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await initI18n();
     const container = document.querySelector('.container-task');
     let projectId = null;
     let nameProject = null;
@@ -54,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items`);
             if (!response.ok) {
-                utils.showWarning("Unable to load data");
+                utils.showWarning(t('home.msg_load_error'));
                 return;
             }
             document.querySelectorAll('.task').forEach(el => el.remove());
@@ -66,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 items.forEach(item => renderItem(item));
             }
         } catch (err) {
-            utils.showWarning("Unable to load data");
+            utils.showWarning(t('home.msg_load_error'));
         }
     }
 
@@ -75,8 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const cfg = type === 'noProject'
             ? {
-                title: 'No project selected',
-                desc: 'Select a project from the left sidebar to get started',
+                title: t('home.empty_no_project_title'),
+                desc: t('home.empty_no_project_desc'),
                 svg: `
                     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -103,8 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </svg>`
             }
             : {
-                title: 'No tasks yet',
-                desc: 'Click "New task" above to create your first task',
+                title: t('home.empty_no_task_title'),
+                desc: t('home.empty_no_task_desc'),
                 svg: `
                     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -169,9 +171,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="task ${item.priority}" data-id="${item.id}">
               <div class="task-header">
                 <div class="task-name">${item.name}</div>
-                <button class="btn-done">Done</button>
+                <button class="btn-done">${t('home.btn_done')}</button>
               </div>
-
               <div class="task-deadline">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="4" y="5" width="16" height="16" rx="2" stroke="#6B7280" stroke-width="2" fill="white"/>
@@ -179,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <line x1="8" y1="3" x2="8" y2="6" stroke="#6B7280" stroke-width="2" stroke-linecap="round"/>
                   <line x1="16" y1="3" x2="16" y2="6" stroke="#6B7280" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                <span>Due: ${showDate(item.due_date)}</span>
+                <span>${t('home.task_due_prefix')} ${showDate(item.due_date)}</span>
               </div>
 
               <div class="task-progress">
@@ -208,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (progressBar) progressBar.style.width = '100%';
             if (progressPercent) progressPercent.textContent = '100%';
 
-            this.textContent = '✓ Done';
+            this.textContent = t('home.btn_done_check');
 
             setTimeout(async () => {
                 if (utils.TEST){
@@ -229,10 +230,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (container.querySelectorAll('.task').length === 0) 
                             showEmptyState('noTask');
                     } else {
-                        utils.showWarning('Error while deleting task');
+                        utils.showWarning(t('home.msg_task_delete_error'));
                     }
                 } catch (err) {
-                    utils.showWarning('Error while deleting task');
+                    utils.showWarning(t('home.msg_task_delete_error'));
                 }
             }, 400);
         });
@@ -257,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
             name.value = data.name;
             priority.classList.remove('low', 'medium', 'high');
             priority.classList.add(data.priority);
-            priority_text.innerHTML = data.priority[0].toUpperCase() + data.priority.slice(1);
+            priority_text.innerHTML = t(`home.priority_${data.priority}`);
         
             // Start date
             if (data.start_date) {
@@ -266,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 start_date_btn.classList.add('has-date');
                 taskDatePicker.startDate = new Date(data.start_date); // đồng bộ với picker
             } else {
-                start_date_text.textContent = 'Set date';
+                start_date_text.textContent = t('home.date_set');
                 start_date_text.classList.add('placeholder');
                 start_date_btn.classList.remove('has-date');
                 taskDatePicker.startDate = null;
@@ -279,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 due_date_btn.classList.add('has-date');
                 taskDatePicker.dueDate = new Date(data.due_date); // đồng bộ với picker
             } else {
-                due_date_text.textContent = 'Set date';
+                due_date_text.textContent = t('home.date_set');
                 due_date_text.classList.add('placeholder');
                 due_date_btn.classList.remove('has-date');
                 taskDatePicker.dueDate = null;
@@ -295,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let cnt = 0;
     container.querySelector('h1 button').addEventListener('click', async (e) => {
         if (!projectId && !utils.TEST) {
-            utils.showWarning('Please select a project first!');
+            utils.showWarning(t('home.msg_select_project'));
             return;
         }
 
@@ -325,10 +326,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderItem(item);
             } else {
                 const errorData = await response.json();
-                utils.showWarning(`Error creating task`);
+                utils.showWarning(t('home.msg_task_create_error'));
             }
         } catch (err) {
-            utils.showWarning('Error creating task');
+            utils.showWarning(t('home.msg_task_create_error'));
         }
     });
 
@@ -409,7 +410,8 @@ document.addEventListener('DOMContentLoaded', function() {
             item.classList.remove('low', 'medium', 'high');
             priorityBadge.classList.add(newPriority);
             item.classList.add(newPriority);
-            priorityBadge.querySelector('span').textContent = newPriority.charAt(0).toUpperCase() + newPriority.slice(1);
+            priorityBadge.querySelector('span').textContent =
+            t(`home.priority_${newPriority}`);
             activeData.priority = newPriority;
 
             if (utils.TEST) return;
@@ -420,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ priority: newPriority })
-                }).catch(() => utils.showWarning("Không thể đổi độ quan trọng"));
+                }).catch(() => utils.showWarning(t('home.msg_priority_error')))
             }, 500);
         });
     }
@@ -595,7 +597,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const btn = document.getElementById('dueDateBtn');
                 const text = document.getElementById('dueDateText');
                 const item = document.querySelector(`.task[data-id="${activeData.id}"]`);
-                item.querySelector('.task-deadline span').innerHTML = `Due: ${formatted}`;
+                item.querySelector('.task-deadline span').textContent =
+                    `${t('home.task_due_prefix')} ${formatted}`;
                 text.textContent = formatted;
                 text.classList.remove('placeholder');
                 btn.classList.add('has-date');
@@ -634,13 +637,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         clearDate() {
+            const placeholder = t('home.date_set');
             if (this.activeTarget === 'start') {
+                document.getElementById('startDateText').textContent = placeholder;
                 this.startDate = null;
                 const text = document.getElementById('startDateText');
                 text.textContent = 'Set date';
                 text.classList.add('placeholder');
                 document.getElementById('startDateBtn').classList.remove('has-date');
             } else {
+                document.getElementById('dueDateText').textContent = placeholder;
                 this.dueDate = null;
                 const text = document.getElementById('dueDateText');
                 text.textContent = 'Set date';
@@ -672,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ notes: newNotes })
-                }).catch(() => utils.showWarning("Unable to save notes"));
+                }).catch(() => utils.showWarning(t('home.msg_notes_error')));
             }, 500);
         });
     }
@@ -704,9 +710,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (container.querySelectorAll('.task').length === 0) 
                         showEmptyState('noTask');
                     if (panel) panel.classList.remove('active');
-                } else utils.showWarning('Error while deleting task');
+                } else utils.showWarning(t('home.msg_task_delete_error'));
             } catch (err) {
-                utils.showWarning('Error while deleting task');
+                utils.showWarning(t('home.msg_task_delete_error'));
             }
         });
     }
@@ -732,7 +738,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const err = await res.json();
             console.error('[REORDER]', res.status, err);
         }
-    }).catch(() => utils.showWarning("Unable to update location"));
+    }).catch(() => utils.showWarning(t('home.msg_reorder_error')));
         }, 500);
     }
     
@@ -754,4 +760,71 @@ document.addEventListener('DOMContentLoaded', function() {
         const y = date.getFullYear();
         return `${d}/${m}/${y}`;
     }
+
+    window.addEventListener('langChanged', function() {
+        const h1 = container.querySelector('h1');
+        if (h1 && h1.style.display !== 'none') {
+            h1.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = t(el.getAttribute('data-i18n'));
+            });
+        }
+        const emptyState = container.querySelector('.empty-state');
+        if (emptyState) {
+            if (!projectId && !utils.TEST) {
+                showEmptyState('noProject');
+            } else if (container.querySelectorAll('.task').length === 0) {
+                showEmptyState('noTask');
+            }
+        }
+    
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            el.textContent = t(el.getAttribute('data-i18n'));
+        });
+    
+        container.querySelectorAll('.task').forEach(taskEl => {
+            const taskId = taskEl.dataset.id;
+            const deadlineSpan = taskEl.querySelector('.task-deadline span');
+            if (deadlineSpan) {
+                const currentText = deadlineSpan.textContent;
+                const datePart = currentText.includes(':') ? currentText.split(':').pop().trim() : currentText.split(' ').pop().trim();
+                deadlineSpan.textContent = `${t('home.task_due_prefix')} ${datePart}`;
+            }
+        
+            const btnDone = taskEl.querySelector('.btn-done');
+            if (btnDone) {
+                btnDone.textContent = taskEl.classList.contains('completed') ? t('home.btn_done_check') : t('home.btn_done');
+            }
+        });
+    
+        const panel = document.querySelector('.task-detail-panel');
+        if (panel && panel.classList.contains('active') && activeData) {
+            
+            const priority_text = panel.querySelector('.priority-badge span');
+            if (priority_text) {
+                priority_text.textContent = t(`home.priority_${activeData.priority}`);
+            }
+        
+            const startText = document.getElementById('startDateText');
+            if (startText) {
+                if (activeData.start_date) {
+                    startText.textContent = showDate(activeData.start_date);
+                    startText.classList.remove('placeholder');
+                } else {
+                    startText.textContent = t('home.date_set');
+                    startText.classList.add('placeholder');
+                }
+            }
+        
+            const dueText = document.getElementById('dueDateText');
+            if (dueText) {
+                if (activeData.due_date) {
+                    dueText.textContent = showDate(activeData.due_date);
+                    dueText.classList.remove('placeholder');
+                } else {
+                    dueText.textContent = t('home.date_set');
+                    dueText.classList.add('placeholder');
+                }
+            }
+        }
+    });
 });

@@ -1,6 +1,8 @@
 import * as utils from '../../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await initI18n();
     // --- 1. TRUY XUẤT DOM ELEMENTS ---
     const overlay = document.querySelector('.modal-overlay');
     const modalBox = document.querySelector('.modal-box');
@@ -185,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     
                     if (!response.ok) {
-                        utils.showWarning("Unable to update folder status");
+                        utils.showWarning(t('home.msg_folder_status_error'));
                         console.error("Unable to update folder status");
                     }
                 } catch (err) {
@@ -242,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const totalDepth = targetDepth + 1 + maxChildDepth;
 
             if (totalDepth > 5) {
-                utils.showWarning('Maximum nesting depth is 5 levels');
+                utils.showWarning(t('home.msg_max_depth'));
                 return false;
             }
 
@@ -305,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!name) {
             input.focus();
-            utils.showWarning("Please enter your name!");
+            utils.showWarning(t('home.msg_enter_name'));
             return;
         }
 
@@ -342,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeModals();
             } else {
                 const errorData = await res.json();
-                utils.showWarning(`Unable to create a new item`);
+                utils.showWarning(t('home.msg_create_error'));
             }
         } catch (err) {
             console.error("Lỗi khi tạo item:", err);
@@ -368,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!newName) {
             modalMoreBox.querySelector('.modal-input').focus();
-            utils.showWarning("Please enter your name!");
+            utils.showWarning(t('home.msg_enter_name'));
             return;
         }
 
@@ -406,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 closeModals();
             } else {
-                utils.showWarning("Unable to update");
+                utils.showWarning(t('home.msg_update_error'));
             }
         } catch (err) {
             console.error("Lỗi khi sửa item:", err);
@@ -455,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeModals();
             } else {
                 const errorData = await res.json();
-                utils.showWarning(errorData.detail || "Không thể xóa");
+                utils.showWarning(errorData.detail || t('home.msg_delete_error'));
             }
         } catch (err) {
             console.error("Lỗi khi xóa item:", err);
@@ -557,8 +559,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <line x1="128" y1="106" x2="128" y2="124" stroke="white" stroke-width="3" stroke-linecap="round"/>
                         <line x1="119" y1="115" x2="137" y2="115" stroke="white" stroke-width="3" stroke-linecap="round"/>
                     </svg>
-                    <h3>No folders or projects yet</h3>
-                    <p>Click "Add folder" below to get started</p>
+                    <h3>${t('home.sidebar_empty_title')}</h3>
+                    <p>${t('home.sidebar_empty_desc')}</p>
                 </div>
             `;
             mainListWrapper.insertAdjacentHTML('beforeend', emptyStateHTML);
@@ -613,6 +615,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             if (sidebarToggleBtn) sidebarToggleBtn.style.display = 'flex';
         }
+    });
+
+    window.addEventListener('langChanged', () => {
+        updateEmptyState();
     });
 
     loadData();

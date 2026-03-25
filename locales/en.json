@@ -1,144 +1,370 @@
 {
-  "nav": {
-    "pomodoro": "Pomodoro",
-    "statistics": "Statistics",
-    "about": "About Us"
-  },
-  "profile": {
-    "change_display_name": "Change display name",
-    "enter_new_name": "Enter new name",
-    "cancel": "Cancel",
-    "save": "Save",
-    "change_password": "Change password",
-    "current_password": "Current password",
-    "enter_current_password": "Enter current password",
-    "new_password": "New password",
-    "enter_new_password": "Enter new password",
-    "confirm_new_password": "Confirm new password",
-    "re_enter_new_password": "Re-enter new password",
-    "at_least_6_characters": "At least 6 characters",
-    "change_password_button": "Change password",
-    "logout": "Logout"
-  },
-  "sidebar": {
-    "create_new": "Create new",
-    "create_folder": "Create folder",
-    "name_folder": "Name folder",
-    "create_project": "Create project",
-    "name_project": "Name project",
-    "accept": "Accept",
-    "delete": "Delete",
-    "new_name": "New name"
-  },
-  "task_manager": {
-    "task_manager": "Task Manager",
-    "new_task": "New task",
-    "task_details": "Task Details",
-    "task_name": "Task name",
-    "priority": "Priority",
-    "high": "High",
-    "start_date": "Start date",
-    "set_date": "Set date",
-    "due_date": "Due date",
-    "time_spent": "Time spent",
-    "notes": "Notes",
-    "add_notes": "Add notes...",
-    "delete_task": "Delete task",
-    "clear": "Clear",
-    "today": "Today"
-  },
-  "calendar": {
-    "january": "January",
-    "february": "February",
-    "march": "March",
-    "april": "April",
-    "may": "May",
-    "june": "June",
-    "july": "July",
-    "august": "August",
-    "september": "September",
-    "october": "October",
-    "november": "November",
-    "december": "December",
-    "su": "Su",
-    "mo": "Mo",
-    "tu": "Tu",
-    "we": "We",
-    "th": "Th",
-    "fr": "Fr",
-    "sa": "Sa"
+  "home": {
+    "nav_pomodoro": "Pomodoro",
+    "nav_statistics": "Statistics",
+    "nav_about": "About Us",
+    "profile_change_name": "Change display name",
+    "profile_name_placeholder": "Enter new name",
+    "profile_change_password": "Change password",
+    "password_current": "Current password",
+    "password_current_placeholder": "Enter current password",
+    "password_new": "New password",
+    "password_new_placeholder": "Enter new password",
+    "password_hint": "At least 6 characters",
+    "password_confirm": "Confirm new password",
+    "password_confirm_placeholder": "Re-enter new password",
+    "btn_cancel": "Cancel",
+    "btn_save": "Save",
+    "btn_accept": "Accept",
+    "btn_delete": "Delete",
+    "btn_logout": "Logout",
+    "sidebar_create_new": "Create new",
+    "sidebar_toggle_label": "Toggle sidebar",
+    "sidebar_close_label": "Close sidebar",
+    "modal_create_folder": "Create folder",
+    "modal_create_project": "Create project",
+    "modal_folder_name_placeholder": "Name folder",
+    "modal_project_name_placeholder": "Name project",
+    "modal_new_name_placeholder": "New name",
+    "task_manager_title": "Task Manager",
+    "task_new": "New task",
+    "task_detail_title": "Task Details",
+    "task_name_placeholder": "Task name",
+    "task_priority": "Priority",
+    "task_start_date": "Start date",
+    "task_due_date": "Due date",
+    "task_time_spent": "Time spent",
+    "task_notes": "Notes",
+    "task_notes_placeholder": "Add notes...",
+    "task_delete": "Delete task",
+    "priority_high": "High",
+    "priority_medium": "Medium",
+    "priority_low": "Low",
+    "date_set": "Set date",
+    "calendar_clear": "Clear",
+    "calendar_today": "Today",
+    "month_1": "January",
+    "month_2": "February",
+    "month_3": "March",
+    "month_4": "April",
+    "month_5": "May",
+    "month_6": "June",
+    "month_7": "July",
+    "month_8": "August",
+    "month_9": "September",
+    "month_10": "October",
+    "month_11": "November",
+    "month_12": "December",
+    "weekday_su": "Su",
+    "weekday_mo": "Mo",
+    "weekday_tu": "Tu",
+    "weekday_we": "We",
+    "weekday_th": "Th",
+    "weekday_fr": "Fr",
+    "weekday_sa": "Sa",
+    "msg_name_updated": "Name updated successfully!",
+    "msg_name_failed": "Failed to update name",
+    "msg_password_fill_all": "Please fill in all password fields",
+    "msg_password_min_length": "New password must be at least 6 characters",
+    "msg_password_mismatch": "New passwords do not match",
+    "msg_password_changed": "Password changed successfully!",
+    "msg_password_failed": "Failed to change password",
+    "empty_no_project_title": "No project selected",
+    "empty_no_project_desc": "Select a project from the left sidebar to get started",
+    "empty_no_task_title": "No tasks yet",
+    "empty_no_task_desc": "Click \"New task\" above to create your first task",
+    "btn_done": "Done",
+    "btn_done_check": "✓ Done",
+    "task_due_prefix": "Due:",
+    "msg_select_project": "Please select a project first!",
+    "msg_task_create_error": "Error creating task",
+    "msg_task_delete_error": "Error while deleting task",
+    "msg_load_error": "Unable to load data",
+    "msg_notes_error": "Unable to save notes",
+    "msg_priority_error": "Unable to change priority",
+    "msg_reorder_error": "Unable to update order",
+    "sidebar_empty_title": "No folders or projects yet",
+    "sidebar_empty_desc": "Click \"Create new\" below to get started",
+    "msg_max_depth": "Maximum nesting depth is 5 levels",
+    "msg_enter_name": "Please enter a name!",
+    "msg_create_error": "Unable to create a new item",
+    "msg_update_error": "Unable to update",
+    "msg_delete_error": "Unable to delete",
+    "msg_folder_status_error": "Unable to update folder status"
   },
   "login": {
-    "email": "EMAIL",
-    "password": "PASSWORD",
-    "login": "LOGIN",
-    "dont_have_account": "Don't have an account?",
-    "sign_up_now": "Sign up now"
+    "label": {
+      "email": "EMAIL",
+      "password": "PASSWORD"
+    },
+    "placeholder": {
+      "email": "example@email.com",
+      "password": "••••••••"
+    },
+    "button": {
+      "login": "LOGIN"
+    },
+    "signup": {
+      "prompt": "Don't have an account?",
+      "link": "Sign up now"
+    },
+    "msg_fill_all": "Please enter all required information",
+    "msg_invalid_email": "Invalid email address",
+    "btn_success": "✓ SUCCESS",
+    "msg_failed": "Login failed",
+    "msg_connection_error": "Connection error! Please try again"
   },
   "signup": {
-    "username": "USERNAME",
-    "email": "EMAIL",
-    "password": "PASSWORD",
-    "sign_up": "SIGN UP",
-    "already_have_account": "Already have an account?",
-    "login_now": "Login now"
-  },
-  "pomodoro": {
-    "pomodoro": "Pomodoro",
-    "short_break": "Short Break",
-    "long_break": "Long Break",
-    "focus": "Focus",
-    "select_active_task": "— Select active task —",
-    "start": "Start",
-    "settings": "SETTINGS",
-    "duration_minutes": "Duration (minutes)",
-    "long_break": "Long Break",
-    "no_task_selected": "— No task selected —",
-    "no_tasks_found": "No tasks found",
-    "no_tasks_available": "No tasks available"
-  },
-  "statistics": {
-    "statistics": "Statistics",
-    "close_statistics": "Close Statistics",
-    "overview": "Overview",
-    "week": "Week",
-    "month": "Month",
-    "year": "Year",
-    "tasks_completed": "Tasks completed",
-    "vs_previous_period": "vs previous period",
-    "focus_hours": "Focus hours",
-    "pomodoros": "Pomodoros",
-    "current_streak": "Current streak",
-    "completion_rate": "Completion rate",
-    "work_productivity": "Work Productivity",
-    "tasks_completed_focus_hours": "Tasks completed & Focus hours",
-    "tasks": "Tasks",
-    "focus_hours_short": "Focus hours"
+    "label": {
+      "username": "USERNAME",
+      "email": "EMAIL",
+      "password": "PASSWORD"
+    },
+    "placeholder": {
+      "username": "johndoe",
+      "email": "example@email.com",
+      "password": "••••••••"
+    },
+    "button": {
+      "signup": "SIGN UP"
+    },
+    "login": {
+      "prompt": "Already have an account?",
+      "link": "Login now"
+    },
+    "strength_weak": "Weak password",
+    "strength_medium": "Medium password",
+    "strength_strong": "Strong password",
+    "msg_username_min": "Username must be at least 3 characters long",
+    "msg_username_max": "Username must not exceed 30 characters",
+    "msg_email_empty": "Please enter your email",
+    "msg_invalid_email": "Invalid email address",
+    "msg_password_empty": "Please enter your password",
+    "msg_password_min": "Password must be at least 6 characters long",
+    "msg_password_weak_warn": "⚠ Weak password. Are you sure you want to continue?",
+    "btn_success": "✓ SUCCESS",
+    "msg_success": "Sign up successful!",
+    "msg_failed": "Sign up failed",
+    "msg_connection_error": "Cannot connect to server! Please try again"
   },
   "about": {
-    "about_us": "About Us - Manask",
-    "problem": "Problem",
-    "features": "Features",
-    "team": "Team",
-    "competition": "Competition",
-    "about_us_badge": "✦ About us",
-    "more_organized": "more organized every day",
-    "management_levels": "Management levels",
-    "core_features": "Core Features",
-    "team": "Team",
-    "why_manask": "Why Manask?",
-    "problem_description": "Students, office workers and freelancers all face the same unsolved problem.",
-    "disorganized_lists": "Disorganized lists, lack of structure",
-    "disorganized_description": "Paper notes, simple to-do apps or phone notes are not enough when the number of tasks increases. Everything gets mixed up, hard to categorize and easy to miss.",
-    "no_priority": "Don't know what to prioritize",
-    "no_priority_description": "When every task looks equally important, users easily fall into a busy but ineffective state - doing a lot but completing little.",
-    "scattered_tools": "Scattered tools, have to use multiple apps",
-    "scattered_description": "To-do list in one place, Pomodoro timer in another, habit tracker elsewhere. Switching between apps loses focus and time.",
-    "mission": "Mission"
+    "nav": {
+      "problem": "Problem",
+      "features": "Features",
+      "team": "Team",
+      "competition": "Competition"
+    },
+    "hero": {
+      "badge": "✦ About Us",
+      "titleLine1": "Manage your work",
+      "titleLine2": "more organized every day",
+      "subtitle": "Manask is a web-based task management app structured around Folder → Project → Task, with an integrated Pomodoro timer and detailed performance statistics — helping you work more organized every day.",
+      "stat1": "Management levels",
+      "stat2": "Core Features",
+      "stat3": "Team"
+    },
+    "problem": {
+      "tag": "Problem",
+      "title": "Why Manask?",
+      "desc": "Students, office workers, and freelancers all face the same unsolved problem.",
+      "card1": {
+        "title": "Scattered lists, no structure",
+        "desc": "Paper notes, simple to-do apps, or phone notes aren't enough as tasks pile up. Everything gets mixed together, hard to categorize, and easy to miss."
+      },
+      "card2": {
+        "title": "No idea what to prioritize",
+        "desc": "When every task looks equally important, users easily fall into being busy but unproductive — doing a lot but finishing little."
+      },
+      "card3": {
+        "title": "Fragmented tools, too many apps",
+        "desc": "To-do list in one place, Pomodoro timer elsewhere, habit tracker somewhere else. Switching between apps breaks focus and wastes time."
+      }
+    },
+    "mission": {
+      "tag": "Mission",
+      "title": "Manask was built to solve that",
+      "desc1": "Instead of a flat list, Manask lets you organize work in 3 clear tiers: Folder → Project → Task. Each task comes with full attributes: priority level, start date, due date, notes, and time spent.",
+      "desc2": "The Pomodoro technique is built directly into the workflow — no need to switch apps, just pick the task you're working on and start focusing.",
+      "desc3": "All activity is recorded and displayed through a visual statistics system: heatmap, line chart, donut chart — helping you review and improve your performance over time."
+    },
+    "features": {
+      "tag": "Features",
+      "title": "Everything you need in one place",
+      "desc": "No need for 3 separate apps. Manask unifies task organization, focus, and statistics into a single interface.",
+      "f1": { "title": "Folder → Project → Task", "desc": "A 3-tier structure gives every task a clear place. Folders group major projects, Projects manage each goal, Tasks are the specific things to do." },
+      "f2": { "title": "Detailed task attributes", "desc": "Each task has: priority level (High / Medium / Low), start date, due date, notes, and time spent — enough to accurately assess real effort." },
+      "f3": { "title": "Integrated Pomodoro", "desc": "Pick the task you're working on, start the timer, focus. Customize Focus, Short Break, and Long Break durations. No app switching — everything is right in Manask." },
+      "f4": { "title": "Visual statistics", "desc": "365-day activity heatmap, project distribution donut chart, trend line chart for 7 days / 30 days / 12 months. Review your performance and adjust your plan." },
+      "f5": { "title": "Personal account", "desc": "Sign up, log in, and store all your data securely. Every folder, project, and task is synced individually per account." },
+      "f6": { "title": "Lightweight & No install", "desc": "A web app that runs directly in the browser — no installation needed. Dark mode by default, fully responsive — works on any device." }
+    },
+    "how": {
+      "tag": "How it works",
+      "title": "Get started in just 4 steps",
+      "desc": "No lengthy tutorials needed. Manask is designed so anyone can use it right away.",
+      "step1": { "title": "Create Folders & Projects", "desc": "Create Folders to group related projects (e.g. \"Semester 2\", \"Work\"). Inside, create Projects for each specific goal." },
+      "step2": { "title": "Add detailed Tasks", "desc": "Create tasks with a name, priority, start date, due date, and notes. Everything is organized clearly with no overlap." },
+      "step3": { "title": "Start Pomodoro & work", "desc": "Select the task you're working on, start the timer, and focus in cycles. Take short breaks between sessions to maintain energy." },
+      "step4": { "title": "Review stats & improve", "desc": "Look back at your activity heatmap, trend charts, and streak. Understand your work habits and adjust your weekly/monthly plan." }
+    },
+    "screens": {
+      "tag": "Interface",
+      "title": "Designed to be easy to use",
+      "desc": "Dark mode, fully responsive — every screen is optimized for the best user experience."
+    },
+    "team": {
+      "tag": "Team",
+      "title": "The people behind Manask",
+      "desc": "Team 2T - Plain Sailing, two students with one goal: making task management truly organized.",
+      "member1": { "name": "Nguyễn Mạnh Hùng", "role": "Frontend Developer", "bio": "Responsible for designing and building the entire user interface — from layout and animations to smooth interactive experiences." },
+      "member2": { "name": "Nguyễn Phú Bình", "role": "Backend Developer", "bio": "Builds the server system, RESTful API, and database — ensuring every feature runs stably, securely, and efficiently." }
+    },
+    "competition": {
+      "tag": "Competition",
+      "title": "AI Young Guru by FPT",
+      "quote": "\"We joined AI Young Guru not just to compete, but to prove that a simple, well-organized task management tool truly makes a difference in daily productivity.\"",
+      "chip1": "AI Young Guru - FPT Corporation",
+      "chip2": "Web Application Track",
+      "chip3": "Team 2T - Plain Sailing"
+    },
+    "footer": {
+      "copy": "© 2026 Manask — Team 2T - Plain Sailing",
+      "builtFor": "Built for AI Young Guru · FPT"
+    }
   },
-  "common": {
-    "connecting": "Connecting...",
-    "retry_after": "Retry {0}/{1} sau {2}s...",
-    "loading": "Loading..."
+  "pomodoro": {
+    "tabs": {
+      "pomodoro": "Pomodoro",
+      "shortBreak": "Short Break",
+      "longBreak": "Long Break"
+    },
+    "mode": {
+      "focus": "Focus",
+      "shortBreak": "Short Break",
+      "longBreak": "Long Break"
+    },
+    "task": {
+      "selectPlaceholder": "— Select active task —",
+      "modalHeader": "Select Active Task",
+      "searchPlaceholder": "Search tasks..."
+    },
+    "controls": {
+      "start": "Start",
+      "pause": "Pause",
+      "reset": "Reset",
+      "skip": "Skip"
+    },
+    "settings": {
+      "title": "SETTINGS",
+      "durationLabel": "Duration (minutes)",
+      "longBreakAfter": "Long Break After",
+      "behaviorLabel": "Behavior",
+      "disableBreaks": "Disable Breaks",
+      "autoStartPomodoro": "Auto-start Pomodoro",
+      "autoStartBreaks": "Auto-start Breaks",
+      "close": "Close Pomodoro",
+      "closeWarning": "Exit will discard current pomodoro!"
+    },
+    "btn_start": "Start",
+    "btn_pause": "Pause",
+    "mode_focus": "Focus",
+    "mode_short": "Short Break",
+    "mode_long": "Long Break",
+    "no_task_selected": "No task selected",
+    "no_tasks_found": "No tasks found",
+    "no_tasks_available": "No tasks available",
+    "select_active_task": "Select active task"
+  },
+  "statistics": {
+    "page": {
+      "title": "Statistics",
+      "close": "Close Statistics"
+    },
+    "period": {
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    },
+    "common": {
+      "tasks": "Tasks",
+      "focus": "Focus",
+      "focusHours": "Focus hours",
+      "hours": "Hours"
+    },
+    "summary": {
+      "overview": "Overview",
+      "tasksCompleted": "Tasks completed",
+      "focusHours": "Focus hours",
+      "pomodoros": "Pomodoros",
+      "currentStreak": "Current streak",
+      "completionRate": "Completion rate",
+      "vsPrevious": "vs previous period"
+    },
+    "line": {
+      "title": "Work Productivity",
+      "subtitle": "Tasks completed & Focus hours",
+      "totalTasks": "Total tasks",
+      "totalFocusHours": "Total focus hours"
+    },
+    "donut": {
+      "title": "Distribution by Project",
+      "total": "Total",
+      "period": {
+        "week": "7 days",
+        "month": "30 days",
+        "year": "12 months"
+      }
+    },
+    "heatmap": {
+      "title": "Activity",
+      "totalTasks": "Total tasks",
+      "longestStreak": "Longest streak",
+      "currentStreak": "Current streak",
+      "bestDay": "Best day",
+      "streak": "Streak",
+      "less": "Less",
+      "more": "More"
+    },
+    "donut_period_week": "Last 7 days",
+    "donut_period_month": "Last 30 days",
+    "donut_period_year": "Last 12 months",
+    "donut_metric_tasks": "Tasks",
+    "donut_metric_focus": "Hours",
+    "donut_unit_tasks": " tasks",
+    "donut_unit_focus": "h",
+    "donut_others": "Others ({{n}})",
+    "donut_others_label": "Others",
+    "donut_total": "Total",
+    "total_tasks": "Total tasks",
+    "total_hours": "Total hours",
+    "best_day": "Best day",
+    "best_hours": "Best day (focus)",
+    "last_365_days": "Last 365 days",
+    "tasks": "Tasks",
+    "focus_hours_short": "Focus hours",
+    "no_activity": "No activity",
+    "n_days": "{{n}} days",
+    "tt_tasks_completed": "{{n}} tasks completed",
+    "tt_focused": "{{n}}h focused",
+    "tt_no_focus": "No focus time",
+    "tt_tasks_count": "{{n}} tasks",
+    "tt_no_tasks": "No tasks",
+    "vs_previous_period": "vs previous period",
+    "month_jan": "Jan",
+    "month_feb": "Feb",
+    "month_mar": "Mar",
+    "month_apr": "Apr",
+    "month_may": "May",
+    "month_jun": "Jun",
+    "month_jul": "Jul",
+    "month_aug": "Aug",
+    "month_sep": "Sep",
+    "month_oct": "Oct",
+    "month_nov": "Nov",
+    "month_dec": "Dec",
+    "days_unit": "days",
+    "streak_longest": "Longest",
+    "rate_created": "{{n}} created",
+    "rate_done": "{{n}} completed"
   }
 }

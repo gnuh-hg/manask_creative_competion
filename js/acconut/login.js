@@ -1,6 +1,8 @@
 import * as utils from '../../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await initI18n();
     const email_input = document.querySelector('.user-email input');
     const password_input = document.querySelector('.user-password input');
     const warning = document.querySelector('.warning');
@@ -66,14 +68,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Validation
         if (!email || !password) {
-            warning.innerHTML = "Please enter all required information";
+            warning.innerHTML = t('login.msg_fill_all');
             return;
         }
 
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            warning.innerHTML = "Invalid email address";
+            warning.innerHTML = t('login.msg_invalid_email');
             return;
         }
 
@@ -102,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 // Success - remove loading class, show success text
                 login_btn.classList.remove('loading');
-                login_btn.innerHTML = '✓ SUCCESS';
+                login_btn.innerHTML = t('login.btn_success');
                 localStorage.setItem('access_token', data.access_token);
                 
                 // Delay redirect for better UX
@@ -111,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 500);
             } else {
                 // Error from server
-                warning.innerHTML = data.detail || "Login failed";
+                warning.innerHTML = data.detail || t('login.msg_failed');
                 
                 // Remove loading state and restore button
                 login_btn.classList.remove('loading');
@@ -121,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error:', error);
-            warning.innerHTML = "Connection error! Please try again";
+            warning.innerHTML = t('login.msg_connection_error');
             
             // Remove loading state and restore button
             login_btn.classList.remove('loading');

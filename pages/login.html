@@ -16,14 +16,14 @@
             </div>
             
             <div class="user-email">
-                <label for="email-input">EMAIL</label>
-                <input type="email" id="email-input" placeholder="example@email.com" class="modal-input" autocomplete="email">
+                <label for="email-input" data-i18n="login.label.email">EMAIL</label>
+                <input type="email" id="email-input" placeholder="example@email.com" class="modal-input" autocomplete="email" data-i18n-placeholder="login.placeholder.email">
             </div>
             
             <div class="user-password">
-                <label for="password-input">PASSWORD</label>
+                <label for="password-input" data-i18n="login.label.password">PASSWORD</label>
                 <div class="password-field">
-                    <input type="password" id="password-input" placeholder="••••••••" class="modal-input" autocomplete="current-password">
+                    <input type="password" id="password-input" placeholder="••••••••" class="modal-input" autocomplete="current-password" data-i18n-placeholder="login.placeholder.password">
                     <button type="button" class="toggle-password" tabindex="-1">
                         <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -33,11 +33,11 @@
                 </div>
             </div>
             
-            <p class="login">LOGIN</p>
+            <p class="login" data-i18n="login.button.login">LOGIN</p>
             <p class="warning"></p>
             
             <a href="./signup.html">
-                <p class="signup">Don't have an account? <span>Sign up now</span></p>
+                <p class="signup" data-i18n="login.signup.prompt">Don't have an account? <span data-i18n="login.signup.link">Sign up now</span></p>
             </a>
         </div>
     </body>

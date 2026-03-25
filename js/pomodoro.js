@@ -1,6 +1,8 @@
 import * as utils from '../utils.js';
+import { t, initI18n } from '../i18n.js';
 
 document.addEventListener('DOMContentLoaded', async function () {
+    await initI18n();
     if (!utils.TEST){
         const token = localStorage.getItem('access_token');
         if (!token) window.location.href = '../account/login.html';
@@ -40,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!keyword) {
             const noneItem = document.createElement('div');
             noneItem.className = 'task-item task-item-none' + (selectedTask === null ? ' selected' : '');
-            noneItem.innerHTML = `<span class="task-item-dot"></span> ${utils.t('pomodoro.no_task_selected')}`;
+            noneItem.innerHTML = `<span class="task-item-dot"></span> ${t('pomodoro.no_task_selected')}`;
             noneItem.addEventListener('click', () => selectTask(null));
             taskModalList.appendChild(noneItem);
         }
@@ -55,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             empty.style.color = 'var(--text-tertiary)';
             empty.style.justifyContent = 'center';
             empty.style.pointerEvents = 'none';
-            empty.textContent = keyword ? utils.t('pomodoro.no_tasks_found') : utils.t('pomodoro.no_tasks_available');
+            empty.textContent = keyword ? t('pomodoro.no_tasks_found') : t('pomodoro.no_tasks_available');
             taskModalList.appendChild(empty);
             return;
         }
@@ -71,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     function selectTask(task) {
         selectedTask = task;
-        taskTriggerLabel.textContent = task ? task.name : utils.t('pomodoro.select_active_task');
+        taskTriggerLabel.textContent = task ? task.name : t('pomodoro.select_active_task');
         taskTriggerLabel.style.color = task ? 'var(--text-primary)' : '';
         closeTaskModal();
     }
@@ -269,11 +271,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     function updateStartBtn() {
         if (running) {
             startIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-            startLabel.textContent = 'Pause';
+            startLabel.textContent = t('pomodoro.btn_pause');
             startBtn.classList.add('pulsing');
         } else {
             startIcon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
-            startLabel.textContent = 'Start';
+            startLabel.textContent = t('pomodoro.btn_start');
             startBtn.classList.remove('pulsing');
         }
     }
@@ -285,8 +287,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
         if (tabEl) tabEl.classList.add('active');
 
-        const modeNames = { focus: 'Focus', short: 'Short Break', long: 'Long Break' };
-        modeLabel.textContent = modeNames[mode];
+        modeLabel.textContent = t(`pomodoro.mode_${mode}`);
 
         totalSeconds     = getDuration(mode);
         remainingSeconds = totalSeconds;
