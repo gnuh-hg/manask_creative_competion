@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.querySelector('h1').style.display = '';
         container.querySelector('h1 p').innerHTML = nameProject;
-        loadData();
+        if (!Config.TEST) loadData();
     });
 
     document.addEventListener('projectUpdated', function(e) {

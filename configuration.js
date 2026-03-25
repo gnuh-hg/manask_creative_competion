@@ -1,7 +1,7 @@
 /* ── configuration.js ── */
 window.Config = {
     URL_API: "https://backend-u1p2.onrender.com",
-    TEST: false,
+    TEST: true,
     _lastWarningTime: 0,
     _loadingCount: 0,
     _loadingTimer: null,
@@ -125,7 +125,7 @@ window.Config = {
 
                 if (response.status === 401) {
                     localStorage.removeItem('access_token');
-                    window.location.href = "/account/login.html";
+                    window.location.href = "/pages/login.html";
                     throw new Error("Unauthorized");
                 }
 
@@ -138,7 +138,7 @@ window.Config = {
                     safeHideLoading();
                     this.showWarning("Connection error");
                     localStorage.removeItem('access_token');
-                    window.location.href = "/account/login.html";
+                    window.location.href = "/pages/login.html";
                     throw error;
                 }
 

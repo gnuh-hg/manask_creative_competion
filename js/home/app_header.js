@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== LOGOUT ==========
     btnLogout.addEventListener('click', function() {
         localStorage.removeItem('access_token');
-        window.location.href = './account/login.html';
+        window.location.href = '/pages/account/login.html';
     });
 
     // ========== INITIALIZE ==========
