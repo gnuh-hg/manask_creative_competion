@@ -1,9 +1,11 @@
 /* ═══════════════════════════════════════
    about.js — Manask About Us
    ═══════════════════════════════════════ */
+import * as utils from '../utils.js';
+import { t, initI18n } from '../../i18n.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-
+document.addEventListener('DOMContentLoaded', async () => {
+  await initI18n();
   // ── SCROLL REVEAL ──
   const revealEls = document.querySelectorAll('.reveal');
   const revealObserver = new IntersectionObserver((entries) => {

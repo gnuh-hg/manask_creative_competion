@@ -152,84 +152,107 @@
       "problem": "Problem",
       "features": "Features",
       "team": "Team",
-      "competition": "Competition"
+      "competition": "Contest"
     },
     "hero": {
       "badge": "✦ About Us",
-      "titleLine1": "Manage your work",
-      "titleLine2": "more organized every day",
-      "subtitle": "Manask is a web-based task management app structured around Folder → Project → Task, with an integrated Pomodoro timer and detailed performance statistics — helping you work more organized every day.",
-      "stat1": "Management levels",
-      "stat2": "Core Features",
-      "stat3": "Team"
+      "title_line1": "Task management",
+      "title_line2": "more organized every day",
+      "subtitle": "Manask is a web-based task management app structured around Folder → Project → Task, combined with a Pomodoro timer and detailed performance statistics — helping you work more organized every day.",
+      "stat_levels_number": "3",
+      "stat_levels_label": "Management Levels",
+      "stat_features_number": "5+",
+      "stat_features_label": "Core Features",
+      "stat_members_number": "3",
+      "stat_members_label": "Members"
     },
     "problem": {
       "tag": "Problem",
-      "title": "Why Manask?",
-      "desc": "Students, office workers, and freelancers all face the same unsolved problem.",
-      "card1": {
-        "title": "Scattered lists, no structure",
-        "desc": "Paper notes, simple to-do apps, or phone notes aren't enough as tasks pile up. Everything gets mixed together, hard to categorize, and easy to miss."
-      },
-      "card2": {
-        "title": "No idea what to prioritize",
-        "desc": "When every task looks equally important, users easily fall into being busy but unproductive — doing a lot but finishing little."
-      },
-      "card3": {
-        "title": "Fragmented tools, too many apps",
-        "desc": "To-do list in one place, Pomodoro timer elsewhere, habit tracker somewhere else. Switching between apps breaks focus and wastes time."
-      }
+      "title": "Why do you need Manask?",
+      "desc": "Students, office workers, and freelancers all face the same challenge that hasn't been fully solved.",
+      "card1_title": "Scattered lists, no structure",
+      "card1_desc": "Paper notes, simple to-do apps, or phone notes are all insufficient when the number of tasks grows. Everything mixes together, hard to categorize and easy to miss.",
+      "card2_title": "Not knowing what to prioritize",
+      "card2_desc": "When every task looks equally important, users easily fall into a state of busyness without effectiveness — doing a lot but finishing little.",
+      "card3_title": "Fragmented tools, multiple apps needed",
+      "card3_desc": "To-do list in one place, Pomodoro timer elsewhere, habit tracker somewhere else. Switching between apps breaks focus and wastes time."
     },
     "mission": {
       "tag": "Mission",
       "title": "Manask was built to solve that",
-      "desc1": "Instead of a flat list, Manask lets you organize work in 3 clear tiers: Folder → Project → Task. Each task comes with full attributes: priority level, start date, due date, notes, and time spent.",
-      "desc2": "The Pomodoro technique is built directly into the workflow — no need to switch apps, just pick the task you're working on and start focusing.",
-      "desc3": "All activity is recorded and displayed through a visual statistics system: heatmap, line chart, donut chart — helping you review and improve your performance over time."
+      "desc1": "Instead of a flat list, Manask allows task hierarchy across 3 clear levels: <strong style=\"color:var(--text-primary)\">Folder → Project → Task</strong>. Each task is fully attributed: priority level, start date, due date, notes, and time spent.",
+      "desc2": "The <strong style=\"color:var(--text-primary)\">Pomodoro</strong> technique is integrated directly into the workflow — no app switching needed. Users simply select the active task and start focusing immediately.",
+      "desc3": "All activity is recorded and displayed through a <strong style=\"color:var(--text-primary)\">visual statistics system</strong>: heatmap, line chart, donut chart — helping you review and improve performance over time."
     },
     "features": {
       "tag": "Features",
       "title": "Everything you need in one place",
       "desc": "No need for 3 separate apps. Manask unifies task organization, focus, and statistics into a single interface.",
-      "f1": { "title": "Folder → Project → Task", "desc": "A 3-tier structure gives every task a clear place. Folders group major projects, Projects manage each goal, Tasks are the specific things to do." },
-      "f2": { "title": "Detailed task attributes", "desc": "Each task has: priority level (High / Medium / Low), start date, due date, notes, and time spent — enough to accurately assess real effort." },
-      "f3": { "title": "Integrated Pomodoro", "desc": "Pick the task you're working on, start the timer, focus. Customize Focus, Short Break, and Long Break durations. No app switching — everything is right in Manask." },
-      "f4": { "title": "Visual statistics", "desc": "365-day activity heatmap, project distribution donut chart, trend line chart for 7 days / 30 days / 12 months. Review your performance and adjust your plan." },
-      "f5": { "title": "Personal account", "desc": "Sign up, log in, and store all your data securely. Every folder, project, and task is synced individually per account." },
-      "f6": { "title": "Lightweight & No install", "desc": "A web app that runs directly in the browser — no installation needed. Dark mode by default, fully responsive — works on any device." }
+      "card1_title": "Folder → Project → Task",
+      "card1_desc": "A 3-level structure gives every task a clear place. Folders group large projects, Projects manage individual goals, Tasks are the specific things to do.",
+      "card2_title": "Detailed task attributes",
+      "card2_desc": "Each task has: priority level (High / Medium / Low), start date, due date, notes, and time spent — enough to accurately assess actual effort.",
+      "card3_title": "Built-in Pomodoro",
+      "card3_desc": "Select the active task, start the timer, and focus. Customize Focus, Short Break, and Long Break durations. No app switching — everything is right inside Manask.",
+      "card4_title": "Visual statistics",
+      "card4_desc": "365-day activity heatmap, Donut chart by project distribution, Line chart trends for 7 days / 30 days / 12 months. Review performance and adjust your plan.",
+      "card5_title": "Personal account",
+      "card5_desc": "Sign up, log in, and store all data securely. Every folder, project, and task is synced separately per account.",
+      "card6_title": "Lightweight & No install",
+      "card6_desc": "Web app that runs directly in the browser, no installation needed. Dark mode by default, fully responsive — works on any device."
     },
     "how": {
       "tag": "How it works",
       "title": "Get started in just 4 steps",
-      "desc": "No lengthy tutorials needed. Manask is designed so anyone can use it right away.",
-      "step1": { "title": "Create Folders & Projects", "desc": "Create Folders to group related projects (e.g. \"Semester 2\", \"Work\"). Inside, create Projects for each specific goal." },
-      "step2": { "title": "Add detailed Tasks", "desc": "Create tasks with a name, priority, start date, due date, and notes. Everything is organized clearly with no overlap." },
-      "step3": { "title": "Start Pomodoro & work", "desc": "Select the task you're working on, start the timer, and focus in cycles. Take short breaks between sessions to maintain energy." },
-      "step4": { "title": "Review stats & improve", "desc": "Look back at your activity heatmap, trend charts, and streak. Understand your work habits and adjust your weekly/monthly plan." }
+      "desc": "No lengthy instructions needed. Manask is designed so anyone can start using it right away.",
+      "step1_title": "Create Folders & Projects",
+      "step1_desc": "Create Folders to group related projects (e.g. \"Semester 2\", \"Work\"). Inside, create Projects for each specific goal.",
+      "step2_title": "Add detailed Tasks",
+      "step2_desc": "Create tasks with a name, priority level, start date, due date, and notes. Everything is organized clearly, no mixing up.",
+      "step3_title": "Start Pomodoro & work",
+      "step3_desc": "Select the active task, start the timer, and focus in cycles. Take short breaks between sessions to maintain energy.",
+      "step4_title": "Review statistics & improve",
+      "step4_desc": "Look back at activity heatmaps, trend charts, and streaks. Understand your work habits and adjust your weekly/monthly plan."
     },
-    "screens": {
+    "screenshots": {
       "tag": "Interface",
       "title": "Designed to be easy to use",
-      "desc": "Dark mode, fully responsive — every screen is optimized for the best user experience."
+      "desc": "Dark mode, fully responsive, every screen is optimized for the best user experience."
     },
     "team": {
       "tag": "Team",
       "title": "The people behind Manask",
-      "desc": "Team 2T - Plain Sailing, two students with one goal: making task management truly organized.",
-      "member1": { "name": "Nguyễn Mạnh Hùng", "role": "Frontend Developer", "bio": "Responsible for designing and building the entire user interface — from layout and animations to smooth interactive experiences." },
-      "member2": { "name": "Nguyễn Phú Bình", "role": "Backend Developer", "bio": "Builds the server system, RESTful API, and database — ensuring every feature runs stably, securely, and efficiently." }
+      "desc": "Three students with one common goal: making task management truly organized.",
+      "member1_name": "Nguyễn Mạnh Hùng",
+      "member1_role": "Frontend Developer",
+      "member1_bio": "Responsible for designing and building the entire user interface — from layout and animations to smooth interactive experiences.",
+      "member2_name": "Nguyễn Phú Bình",
+      "member2_role": "Backend Developer",
+      "member2_bio": "Builds the server system, RESTful API, and database — ensuring every feature runs stably, securely, and efficiently.",
+      "member3_name": "Nguyễn Bùi Nguyên",
+      "member3_role": "Designer",
+      "member3_bio": "Responsible for the entire visual direction and user experience — from UX research and wireframes to a consistent design system."
     },
     "competition": {
-      "tag": "Competition",
-      "title": "AI Young Guru by FPT",
-      "quote": "\"We joined AI Young Guru not just to compete, but to prove that a simple, well-organized task management tool truly makes a difference in daily productivity.\"",
-      "chip1": "AI Young Guru - FPT Corporation",
-      "chip2": "Web Application Track",
-      "chip3": "Team 2T - Plain Sailing"
+      "tag": "Contest",
+      "title": "Hanoi Youth Innovation Contest – 22nd Edition 2026",
+      "quote": "\"Manask was developed to compete in the city-level contest organized under the direction of the Hanoi People's Committee — an annual intellectual playground to spark creative thinking and nurture the future inventors of the capital.\"",
+      "detail1_label": "Organizing body",
+      "detail1_value": "Hanoi People's Committee",
+      "detail1_sub": "In coordination with: Hanoi Union of Science & Technology Associations, Department of Education & Training, Department of Science & Technology, Hanoi Youth Union",
+      "detail2_label": "Participating field",
+      "detail2_value": "IT Software & Digital Transformation",
+      "detail2_sub": "1 of 5 key fields promoting technology applications in practice",
+      "detail3_label": "Higher goal",
+      "detail3_value": "Representing Hanoi nationally",
+      "detail3_sub": "Outstanding products will be selected to participate in the 22nd National Youth Innovation Contest",
+      "chip1": "<span>City</span> level · Hanoi",
+      "chip2": "Year <span>2026</span> · 22nd edition",
+      "chip3": "Team of <span>3 members</span>"
     },
     "footer": {
-      "copy": "© 2026 Manask — Team 2T - Plain Sailing",
-      "builtFor": "Built for AI Young Guru · FPT"
+      "copyright": "© 2026 <strong>Manask</strong>",
+      "contest": "Competing in <strong>Hanoi Youth Innovation Contest · 22nd Edition</strong>"
     }
   },
   "pomodoro": {

@@ -20,10 +20,10 @@
     </a>
     <div class="nav-right">
       <ul class="nav-links">
-        <li><a href="#problem">Vấn đề</a></li>
-        <li><a href="#features">Tính năng</a></li>
-        <li><a href="#team">Đội ngũ</a></li>
-        <li><a href="#competition">Cuộc thi</a></li>
+        <li><a href="#problem" data-i18n="about.nav.problem">Vấn đề</a></li>
+        <li><a href="#features" data-i18n="about.nav.features">Tính năng</a></li>
+        <li><a href="#team" data-i18n="about.nav.team">Đội ngũ</a></li>
+        <li><a href="#competition" data-i18n="about.nav.competition">Cuộc thi</a></li>
       </ul>
     </div>
   </nav>
@@ -34,18 +34,27 @@
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
     <div class="hero-inner">
-      <div class="hero-badge">✦ Về chúng tôi</div>
+      <div class="hero-badge" data-i18n="about.hero.badge">✦ Về chúng tôi</div>
       <h1 class="hero-title">
-        Quản lý công việc<br/>
-        <span class="gradient-text">có tổ chức hơn mỗi ngày</span>
+        <span data-i18n="about.hero.title_line1">Quản lý công việc</span><br/>
+        <span class="gradient-text" data-i18n="about.hero.title_line2">có tổ chức hơn mỗi ngày</span>
       </h1>
-      <p class="hero-subtitle">
+      <p class="hero-subtitle" data-i18n="about.hero.subtitle">
         Manask là ứng dụng web quản lý công việc theo cấu trúc Folder → Project → Task, kết hợp Pomodoro timer và thống kê hiệu suất chi tiết - giúp bạn làm việc có tổ chức hơn mỗi ngày.
       </p>
       <div class="hero-stats">
-        <div class="stat-item"><span class="stat-number">3</span><span class="stat-label">Cấp quản lý</span></div>
-        <div class="stat-item"><span class="stat-number">5+</span><span class="stat-label">Core Features</span></div>
-        <div class="stat-item"><span class="stat-number">2T</span><span class="stat-label">Team</span></div>
+        <div class="stat-item">
+          <span class="stat-number" data-i18n="about.hero.stat_levels_number">3</span>
+          <span class="stat-label" data-i18n="about.hero.stat_levels_label">Cấp quản lý</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" data-i18n="about.hero.stat_features_number">5+</span>
+          <span class="stat-label" data-i18n="about.hero.stat_features_label">Core Features</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" data-i18n="about.hero.stat_members_number">3</span>
+          <span class="stat-label" data-i18n="about.hero.stat_members_label">Thành viên</span>
+        </div>
       </div>
     </div>
   </section>
@@ -54,9 +63,9 @@
   <section id="problem" style="background: var(--bg-card);">
     <div style="max-width:1100px; margin:0 auto;">
       <div style="text-align:center; max-width:680px; margin:0 auto 64px;" class="reveal">
-        <span class="section-tag">Vấn đề</span>
-        <h2 class="section-title">Tại sao cần Manask?</h2>
-        <p class="section-desc" style="margin:0 auto;">Sinh viên, nhân viên văn phòng và freelancer đều đang đối mặt với cùng một bài toán chưa được giải quyết triệt để.</p>
+        <span class="section-tag" data-i18n="about.problem.tag">Vấn đề</span>
+        <h2 class="section-title" data-i18n="about.problem.title">Tại sao cần Manask?</h2>
+        <p class="section-desc" style="margin:0 auto;" data-i18n="about.problem.desc">Sinh viên, nhân viên văn phòng và freelancer đều đang đối mặt với cùng một bài toán chưa được giải quyết triệt để.</p>
       </div>
 
       <div class="problem-grid">
@@ -64,22 +73,22 @@
           <div class="problem-icon" style="background: rgba(239,68,68,.12);">
             <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           </div>
-          <div class="problem-title">Danh sách rời rạc, thiếu cấu trúc</div>
-          <div class="problem-desc">Ghi chú giấy, app to-do đơn giản hay note điện thoại đều không đủ khi số lượng công việc tăng lên. Mọi thứ trộn lẫn, khó phân loại và dễ bỏ sót.</div>
+          <div class="problem-title" data-i18n="about.problem.card1_title">Danh sách rời rạc, thiếu cấu trúc</div>
+          <div class="problem-desc" data-i18n="about.problem.card1_desc">Ghi chú giấy, app to-do đơn giản hay note điện thoại đều không đủ khi số lượng công việc tăng lên. Mọi thứ trộn lẫn, khó phân loại và dễ bỏ sót.</div>
         </div>
         <div class="problem-card reveal" style="transition-delay:.1s">
           <div class="problem-icon" style="background: rgba(245,158,11,.12);">
             <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
-          <div class="problem-title">Không biết nên ưu tiên việc gì</div>
-          <div class="problem-desc">Khi mọi task trông quan trọng như nhau, người dùng dễ rơi vào trạng thái bận rộn nhưng không hiệu quả - làm nhiều nhưng hoàn thành ít.</div>
+          <div class="problem-title" data-i18n="about.problem.card2_title">Không biết nên ưu tiên việc gì</div>
+          <div class="problem-desc" data-i18n="about.problem.card2_desc">Khi mọi task trông quan trọng như nhau, người dùng dễ rơi vào trạng thái bận rộn nhưng không hiệu quả - làm nhiều nhưng hoàn thành ít.</div>
         </div>
         <div class="problem-card reveal" style="transition-delay:.2s">
           <div class="problem-icon" style="background: rgba(99,102,241,.12);">
             <svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           </div>
-          <div class="problem-title">Công cụ rời rạc, phải dùng nhiều app</div>
-          <div class="problem-desc">To-do list ở một nơi, Pomodoro timer ở nơi khác, habit tracker ở chỗ khác nữa. Chuyển qua lại giữa các app làm mất tập trung và mất thời gian.</div>
+          <div class="problem-title" data-i18n="about.problem.card3_title">Công cụ rời rạc, phải dùng nhiều app</div>
+          <div class="problem-desc" data-i18n="about.problem.card3_desc">To-do list ở một nơi, Pomodoro timer ở nơi khác, habit tracker ở chỗ khác nữa. Chuyển qua lại giữa các app làm mất tập trung và mất thời gian.</div>
         </div>
       </div>
     </div>
@@ -89,15 +98,15 @@
   <section id="mission">
     <div class="mission-grid">
       <div class="mission-content reveal">
-        <span class="section-tag">Sứ mệnh</span>
-        <h2 class="section-title">Manask ra đời để giải quyết điều đó</h2>
-        <p class="section-desc" style="margin-bottom:20px;">
+        <span class="section-tag" data-i18n="about.mission.tag">Sứ mệnh</span>
+        <h2 class="section-title" data-i18n="about.mission.title">Manask ra đời để giải quyết điều đó</h2>
+        <p class="section-desc" style="margin-bottom:20px;" data-i18n-html="about.mission.desc1">
           Thay vì một danh sách phẳng, Manask cho phép phân cấp công việc theo 3 tầng rõ ràng: <strong style="color:var(--text-primary)">Folder → Project → Task</strong>. Mỗi task được gắn đầy đủ thuộc tính: mức độ ưu tiên, ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư.
         </p>
-        <p class="section-desc" style="margin-bottom:20px;">
+        <p class="section-desc" style="margin-bottom:20px;" data-i18n-html="about.mission.desc2">
           Kỹ thuật <strong style="color:var(--text-primary)">Pomodoro</strong> được tích hợp trực tiếp vào luồng làm việc - không cần chuyển app, người dùng chọn task đang làm rồi bắt đầu tập trung ngay.
         </p>
-        <p class="section-desc">
+        <p class="section-desc" data-i18n-html="about.mission.desc3">
           Toàn bộ hoạt động được ghi nhận và hiển thị qua <strong style="color:var(--text-primary)">hệ thống thống kê trực quan</strong>: heatmap, line chart, donut chart - giúp nhìn lại và cải thiện hiệu suất theo thời gian.
         </p>
       </div>
@@ -164,9 +173,9 @@
   <!-- FEATURES -->
   <section class="features-section" id="features">
     <div class="features-header reveal">
-      <span class="section-tag">Tính năng</span>
-      <h2 class="section-title">Mọi thứ bạn cần trong một nơi</h2>
-      <p class="section-desc" style="margin:0 auto;">Không cần 3 app riêng lẻ. Manask hợp nhất tổ chức công việc, tập trung và thống kê vào một giao diện duy nhất.</p>
+      <span class="section-tag" data-i18n="about.features.tag">Tính năng</span>
+      <h2 class="section-title" data-i18n="about.features.title">Mọi thứ bạn cần trong một nơi</h2>
+      <p class="section-desc" style="margin:0 auto;" data-i18n="about.features.desc">Không cần 3 app riêng lẻ. Manask hợp nhất tổ chức công việc, tập trung và thống kê vào một giao diện duy nhất.</p>
     </div>
     <div class="features-grid">
 
@@ -174,48 +183,48 @@
         <div class="feature-icon icon-indigo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         </div>
-        <div class="feature-title">Folder → Project → Task</div>
-        <div class="feature-desc">Cấu trúc 3 cấp giúp mọi công việc có chỗ đứng rõ ràng. Folder nhóm dự án lớn, Project quản lý từng mục tiêu, Task là các việc cụ thể cần làm.</div>
+        <div class="feature-title" data-i18n="about.features.card1_title">Folder → Project → Task</div>
+        <div class="feature-desc" data-i18n="about.features.card1_desc">Cấu trúc 3 cấp giúp mọi công việc có chỗ đứng rõ ràng. Folder nhóm dự án lớn, Project quản lý từng mục tiêu, Task là các việc cụ thể cần làm.</div>
       </div>
 
       <div class="feature-card cyan reveal" style="transition-delay:.1s">
         <div class="feature-icon icon-cyan">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="16" x2="9.01" y2="16"/><line x1="15" y1="16" x2="15.01" y2="16"/></svg>
         </div>
-        <div class="feature-title">Task chi tiết đầy đủ</div>
-        <div class="feature-desc">Mỗi task có: mức độ ưu tiên (High / Medium / Low), ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư (time spent) - đủ để đánh giá chính xác nỗ lực thực tế.</div>
+        <div class="feature-title" data-i18n="about.features.card2_title">Task chi tiết đầy đủ</div>
+        <div class="feature-desc" data-i18n="about.features.card2_desc">Mỗi task có: mức độ ưu tiên (High / Medium / Low), ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư (time spent) - đủ để đánh giá chính xác nỗ lực thực tế.</div>
       </div>
 
       <div class="feature-card amber reveal" style="transition-delay:.2s">
         <div class="feature-icon icon-amber">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <div class="feature-title">Pomodoro tích hợp</div>
-        <div class="feature-desc">Chọn task đang làm, bật đồng hồ, tập trung. Tùy chỉnh thời lượng Focus, Short Break và Long Break. Không cần chuyển app, mọi thứ ngay trong Manask.</div>
+        <div class="feature-title" data-i18n="about.features.card3_title">Pomodoro tích hợp</div>
+        <div class="feature-desc" data-i18n="about.features.card3_desc">Chọn task đang làm, bật đồng hồ, tập trung. Tùy chỉnh thời lượng Focus, Short Break và Long Break. Không cần chuyển app, mọi thứ ngay trong Manask.</div>
       </div>
 
       <div class="feature-card green reveal" style="transition-delay:.1s">
         <div class="feature-icon icon-green">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
         </div>
-        <div class="feature-title">Thống kê trực quan</div>
-        <div class="feature-desc">Heatmap hoạt động 365 ngày, Donut chart phân bổ theo project, Line chart xu hướng theo 7 ngày / 30 ngày / 12 tháng. Nhìn lại hiệu suất và điều chỉnh kế hoạch.</div>
+        <div class="feature-title" data-i18n="about.features.card4_title">Thống kê trực quan</div>
+        <div class="feature-desc" data-i18n="about.features.card4_desc">Heatmap hoạt động 365 ngày, Donut chart phân bổ theo project, Line chart xu hướng theo 7 ngày / 30 ngày / 12 tháng. Nhìn lại hiệu suất và điều chỉnh kế hoạch.</div>
       </div>
 
       <div class="feature-card violet reveal" style="transition-delay:.2s">
         <div class="feature-icon icon-violet">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <div class="feature-title">Tài khoản cá nhân</div>
-        <div class="feature-desc">Đăng ký, đăng nhập và lưu trữ toàn bộ dữ liệu an toàn. Mọi folder, project và task đều được đồng bộ riêng theo từng tài khoản.</div>
+        <div class="feature-title" data-i18n="about.features.card5_title">Tài khoản cá nhân</div>
+        <div class="feature-desc" data-i18n="about.features.card5_desc">Đăng ký, đăng nhập và lưu trữ toàn bộ dữ liệu an toàn. Mọi folder, project và task đều được đồng bộ riêng theo từng tài khoản.</div>
       </div>
 
       <div class="feature-card red reveal" style="transition-delay:.3s">
         <div class="feature-icon icon-red">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
-        <div class="feature-title">Lightweight &amp; No install</div>
-        <div class="feature-desc">Ứng dụng web chạy thẳng trên trình duyệt, không cần cài đặt. Dark mode mặc định, responsive hoàn toàn - dùng được trên mọi thiết bị.</div>
+        <div class="feature-title" data-i18n="about.features.card6_title">Lightweight &amp; No install</div>
+        <div class="feature-desc" data-i18n="about.features.card6_desc">Ứng dụng web chạy thẳng trên trình duyệt, không cần cài đặt. Dark mode mặc định, responsive hoàn toàn - dùng được trên mọi thiết bị.</div>
       </div>
 
     </div>
@@ -225,30 +234,30 @@
   <section id="how" style="background: var(--bg-card);">
     <div style="max-width:1100px; margin:0 auto;">
       <div style="text-align:center; max-width:680px; margin:0 auto 64px;" class="reveal">
-        <span class="section-tag">Cách sử dụng</span>
-        <h2 class="section-title">Bắt đầu chỉ trong 4 bước</h2>
-        <p class="section-desc" style="margin:0 auto;">Không cần hướng dẫn dài dòng. Manask được thiết kế để ai cũng có thể dùng ngay.</p>
+        <span class="section-tag" data-i18n="about.how.tag">Cách sử dụng</span>
+        <h2 class="section-title" data-i18n="about.how.title">Bắt đầu chỉ trong 4 bước</h2>
+        <p class="section-desc" style="margin:0 auto;" data-i18n="about.how.desc">Không cần hướng dẫn dài dòng. Manask được thiết kế để ai cũng có thể dùng ngay.</p>
       </div>
       <div class="steps-grid">
         <div class="step-card reveal">
           <div class="step-num">01</div>
-          <div class="step-title">Tạo Folder & Project</div>
-          <div class="step-desc">Tạo Folder để nhóm các dự án liên quan (ví dụ: "Học kỳ 2", "Công việc"). Bên trong tạo Project cho từng mục tiêu cụ thể.</div>
+          <div class="step-title" data-i18n="about.how.step1_title">Tạo Folder & Project</div>
+          <div class="step-desc" data-i18n="about.how.step1_desc">Tạo Folder để nhóm các dự án liên quan (ví dụ: "Học kỳ 2", "Công việc"). Bên trong tạo Project cho từng mục tiêu cụ thể.</div>
         </div>
         <div class="step-card reveal" style="transition-delay:.1s">
           <div class="step-num">02</div>
-          <div class="step-title">Thêm Task chi tiết</div>
-          <div class="step-desc">Tạo task với tên, mức ưu tiên, ngày bắt đầu, ngày hoàn thành và ghi chú. Mọi thứ được tổ chức rõ ràng, không bị lẫn lộn.</div>
+          <div class="step-title" data-i18n="about.how.step2_title">Thêm Task chi tiết</div>
+          <div class="step-desc" data-i18n="about.how.step2_desc">Tạo task với tên, mức ưu tiên, ngày bắt đầu, ngày hoàn thành và ghi chú. Mọi thứ được tổ chức rõ ràng, không bị lẫn lộn.</div>
         </div>
         <div class="step-card reveal" style="transition-delay:.2s">
           <div class="step-num">03</div>
-          <div class="step-title">Bật Pomodoro & làm việc</div>
-          <div class="step-desc">Chọn task đang thực hiện, bật timer và tập trung theo chu kỳ. Nghỉ ngắn giữa các phiên để duy trì năng lượng.</div>
+          <div class="step-title" data-i18n="about.how.step3_title">Bật Pomodoro & làm việc</div>
+          <div class="step-desc" data-i18n="about.how.step3_desc">Chọn task đang thực hiện, bật timer và tập trung theo chu kỳ. Nghỉ ngắn giữa các phiên để duy trì năng lượng.</div>
         </div>
         <div class="step-card reveal" style="transition-delay:.3s">
           <div class="step-num">04</div>
-          <div class="step-title">Xem thống kê & cải thiện</div>
-          <div class="step-desc">Nhìn lại heatmap hoạt động, chart xu hướng và streak. Hiểu rõ thói quen làm việc của mình và điều chỉnh kế hoạch tuần/tháng.</div>
+          <div class="step-title" data-i18n="about.how.step4_title">Xem thống kê & cải thiện</div>
+          <div class="step-desc" data-i18n="about.how.step4_desc">Nhìn lại heatmap hoạt động, chart xu hướng và streak. Hiểu rõ thói quen làm việc của mình và điều chỉnh kế hoạch tuần/tháng.</div>
         </div>
       </div>
     </div>
@@ -257,9 +266,9 @@
   <!-- SCREENSHOTS MARQUEE -->
   <section style="background:var(--bg-base);overflow:hidden;">
     <div style="text-align:center;max-width:700px;margin:0 auto 56px;" class="reveal">
-      <span class="section-tag">Giao diện</span>
-      <h2 class="section-title">Được thiết kế để dễ dùng</h2>
-      <p class="section-desc" style="margin:0 auto;">Dark mode, responsive hoàn toàn, mỗi màn hình đều được tối ưu cho trải nghiệm người dùng tốt nhất.</p>
+      <span class="section-tag" data-i18n="about.screenshots.tag">Giao diện</span>
+      <h2 class="section-title" data-i18n="about.screenshots.title">Được thiết kế để dễ dùng</h2>
+      <p class="section-desc" style="margin:0 auto;" data-i18n="about.screenshots.desc">Dark mode, responsive hoàn toàn, mỗi màn hình đều được tối ưu cho trải nghiệm người dùng tốt nhất.</p>
     </div>
     <div class="screens-marquee-wrap">
       <div class="screens-marquee">
@@ -345,22 +354,28 @@
   <section id="team" style="background: var(--bg-card);">
     <div class="team-section">
       <div class="team-header reveal">
-        <span class="section-tag">Đội ngũ</span>
-        <h2 class="section-title">Những người đứng sau Manask</h2>
-        <p class="section-desc" style="margin:0 auto;">Team <strong style="color:var(--text-primary)">2T - Plain Sailing</strong>, hai học sinh với một mục tiêu: làm cho việc quản lý công việc trở nên thực sự có tổ chức.</p>
+        <span class="section-tag" data-i18n="about.team.tag">Đội ngũ</span>
+        <h2 class="section-title" data-i18n="about.team.title">Những người đứng sau Manask</h2>
+        <p class="section-desc" style="margin:0 auto;" data-i18n="about.team.desc">Ba học sinh với một mục tiêu chung: làm cho việc quản lý công việc trở nên thực sự có tổ chức.</p>
       </div>
-      <div class="team-grid">
+      <div class="team-grid team-grid-3">
         <div class="team-card reveal">
           <div class="team-avatar">H</div>
-          <div class="team-name">Nguyễn Mạnh Hùng</div>
-          <div class="team-role role-frontend">Frontend Developer</div>
-          <div class="team-bio">Chịu trách nhiệm thiết kế và xây dựng toàn bộ giao diện người dùng - từ layout, animation đến trải nghiệm tương tác mượt mà.</div>
+          <div class="team-name" data-i18n="about.team.member1_name">Nguyễn Mạnh Hùng</div>
+          <div class="team-role role-frontend" data-i18n="about.team.member1_role">Frontend Developer</div>
+          <div class="team-bio" data-i18n="about.team.member1_bio">Chịu trách nhiệm thiết kế và xây dựng toàn bộ giao diện người dùng - từ layout, animation đến trải nghiệm tương tác mượt mà.</div>
         </div>
         <div class="team-card reveal" style="transition-delay:.15s">
           <div class="team-avatar" style="background:linear-gradient(135deg,var(--accent-cyan),var(--accent-primary));">B</div>
-          <div class="team-name">Nguyễn Phú Bình</div>
-          <div class="team-role role-backend">Backend Developer</div>
-          <div class="team-bio">Xây dựng hệ thống server, API RESTful và cơ sở dữ liệu - đảm bảo mọi tính năng hoạt động ổn định, bảo mật và hiệu quả.</div>
+          <div class="team-name" data-i18n="about.team.member2_name">Nguyễn Phú Bình</div>
+          <div class="team-role role-backend" data-i18n="about.team.member2_role">Backend Developer</div>
+          <div class="team-bio" data-i18n="about.team.member2_bio">Xây dựng hệ thống server, API RESTful và cơ sở dữ liệu - đảm bảo mọi tính năng hoạt động ổn định, bảo mật và hiệu quả.</div>
+        </div>
+        <div class="team-card reveal" style="transition-delay:.3s">
+          <div class="team-avatar" style="background:linear-gradient(135deg,#ec4899,#f97316);">N</div>
+          <div class="team-name" data-i18n="about.team.member3_name">Nguyễn Bùi Nguyên</div>
+          <div class="team-role role-design" data-i18n="about.team.member3_role">Designer</div>
+          <div class="team-bio" data-i18n="about.team.member3_bio">Phụ trách toàn bộ định hướng thị giác và trải nghiệm người dùng - từ nghiên cứu UX, wireframe đến hệ thống thiết kế nhất quán.</div>
         </div>
       </div>
     </div>
@@ -369,26 +384,63 @@
   <!-- COMPETITION -->
   <section class="competition-section" id="competition">
     <div class="competition-inner reveal">
-      <div class="competition-logo">FPT</div>
-      <span class="section-tag" style="display:block;margin-bottom:16px;">Cuộc thi</span>
-      <h2 class="section-title" style="margin-bottom:20px;">AI Young Guru by FPT</h2>
-      <p class="competition-quote">
-        "Chúng tôi tham gia AI Young Guru không chỉ để tranh giải, mà để chứng minh rằng một công cụ quản lý công việc đơn giản, có tổ chức thực sự tạo ra sự khác biệt trong năng suất hằng ngày."
+      <div class="competition-logo">HN</div>
+      <span class="section-tag" style="display:block;margin-bottom:16px;" data-i18n="about.competition.tag">Cuộc thi</span>
+      <h2 class="section-title" style="margin-bottom:20px;" data-i18n="about.competition.title">Cuộc thi Sáng tạo Thanh Thiếu Niên Hà Nội lần thứ 22 năm 2026</h2>
+      <p class="competition-quote" data-i18n="about.competition.quote">
+        "Manask được phát triển để tham dự cuộc thi cấp Thành phố do UBND Hà Nội chỉ đạo tổ chức - một sân chơi trí tuệ thường niên nhằm khơi dậy tư duy sáng tạo và nuôi dưỡng những nhà sáng chế tương lai của Thủ đô."
       </p>
-      <div class="competition-meta">
-        <div class="comp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg> <span>AI Young Guru</span> - FPT Corporation</div>
-        <div class="comp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> <span>Web Application</span> Track</div>
-        <div class="comp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Team <span>2T - Plain Sailing</span></div>
+
+      <div class="comp-details-grid">
+        <div class="comp-detail-card">
+          <div class="comp-detail-icon" style="background:rgba(99,102,241,.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="comp-detail-label" data-i18n="about.competition.detail1_label">Cơ quan tổ chức</div>
+          <div class="comp-detail-value" data-i18n="about.competition.detail1_value">UBND Thành phố Hà Nội</div>
+          <div class="comp-detail-sub" data-i18n="about.competition.detail1_sub">Phối hợp: Liên hiệp các Hội KH&KT Hà Nội, Sở GD&ĐT, Sở KH&CN, Thành đoàn Hà Nội</div>
+        </div>
+        <div class="comp-detail-card">
+          <div class="comp-detail-icon" style="background:rgba(6,182,212,.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="comp-detail-label" data-i18n="about.competition.detail2_label">Lĩnh vực tham gia</div>
+          <div class="comp-detail-value" data-i18n="about.competition.detail2_value">Phần mềm tin học &amp; Chuyển đổi số</div>
+          <div class="comp-detail-sub" data-i18n="about.competition.detail2_sub">1 trong 5 lĩnh vực trọng tâm thúc đẩy ứng dụng công nghệ vào thực tiễn</div>
+        </div>
+        <div class="comp-detail-card">
+          <div class="comp-detail-icon" style="background:rgba(245,158,11,.12);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+          </div>
+          <div class="comp-detail-label" data-i18n="about.competition.detail3_label">Mục tiêu cao hơn</div>
+          <div class="comp-detail-value" data-i18n="about.competition.detail3_value">Đại diện Hà Nội toàn quốc</div>
+          <div class="comp-detail-sub" data-i18n="about.competition.detail3_sub">Sản phẩm xuất sắc sẽ được lựa chọn tham gia Cuộc thi Sáng tạo Thanh Thiếu Niên toàn quốc lần thứ 22</div>
+        </div>
+      </div>
+
+      <div class="competition-meta" style="margin-top:32px;">
+        <div class="comp-chip" data-i18n-html="about.competition.chip1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+          Cấp <span>Thành phố</span> · Hà Nội
+        </div>
+        <div class="comp-chip" data-i18n-html="about.competition.chip2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Năm <span>2026</span> · Lần thứ 22
+        </div>
+        <div class="comp-chip" data-i18n-html="about.competition.chip3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Nhóm <span>3 thành viên</span>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- FOOTER -->
   <footer>
-    <div>© 2026 <strong>Manask</strong> — Team 2T - Plain Sailing</div>
-    <div>Built for <strong>AI Young Guru · FPT</strong></div>
+    <div data-i18n-html="about.footer.copyright">© 2026 <strong>Manask</strong></div>
+    <div data-i18n-html="about.footer.contest">Tham dự <strong>Cuộc thi Sáng tạo Thanh Thiếu Niên Hà Nội · Lần thứ 22</strong></div>
   </footer>
 
-  <script src="../js/about.js"></script>
+  <script type="module" src="../js/about.js"></script>
 </body>
 </html>

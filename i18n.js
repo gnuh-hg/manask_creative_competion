@@ -35,6 +35,12 @@ function applyDOM() {
         const val = t(el.getAttribute('data-i18n'));
         if (val) el.textContent = val;
     });
+    
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const val = t(el.getAttribute('data-i18n-html'));
+        if (val) el.innerHTML = val;
+    });
+
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const val = t(el.getAttribute('data-i18n-placeholder'));
         if (val) el.placeholder = val;

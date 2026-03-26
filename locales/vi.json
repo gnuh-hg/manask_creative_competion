@@ -156,58 +156,65 @@
     },
     "hero": {
       "badge": "✦ Về chúng tôi",
-      "titleLine1": "Quản lý công việc",
-      "titleLine2": "có tổ chức hơn mỗi ngày",
+      "title_line1": "Quản lý công việc",
+      "title_line2": "có tổ chức hơn mỗi ngày",
       "subtitle": "Manask là ứng dụng web quản lý công việc theo cấu trúc Folder → Project → Task, kết hợp Pomodoro timer và thống kê hiệu suất chi tiết - giúp bạn làm việc có tổ chức hơn mỗi ngày.",
-      "stat1": "Cấp quản lý",
-      "stat2": "Core Features",
-      "stat3": "Team"
+      "stat_levels_number": "3",
+      "stat_levels_label": "Cấp quản lý",
+      "stat_features_number": "5+",
+      "stat_features_label": "Core Features",
+      "stat_members_number": "3",
+      "stat_members_label": "Thành viên"
     },
     "problem": {
       "tag": "Vấn đề",
       "title": "Tại sao cần Manask?",
       "desc": "Sinh viên, nhân viên văn phòng và freelancer đều đang đối mặt với cùng một bài toán chưa được giải quyết triệt để.",
-      "card1": {
-        "title": "Danh sách rời rạc, thiếu cấu trúc",
-        "desc": "Ghi chú giấy, app to-do đơn giản hay note điện thoại đều không đủ khi số lượng công việc tăng lên. Mọi thứ trộn lẫn, khó phân loại và dễ bỏ sót."
-      },
-      "card2": {
-        "title": "Không biết nên ưu tiên việc gì",
-        "desc": "Khi mọi task trông quan trọng như nhau, người dùng dễ rơi vào trạng thái bận rộn nhưng không hiệu quả - làm nhiều nhưng hoàn thành ít."
-      },
-      "card3": {
-        "title": "Công cụ rời rạc, phải dùng nhiều app",
-        "desc": "To-do list ở một nơi, Pomodoro timer ở nơi khác, habit tracker ở chỗ khác nữa. Chuyển qua lại giữa các app làm mất tập trung và mất thời gian."
-      }
+      "card1_title": "Danh sách rời rạc, thiếu cấu trúc",
+      "card1_desc": "Ghi chú giấy, app to-do đơn giản hay note điện thoại đều không đủ khi số lượng công việc tăng lên. Mọi thứ trộn lẫn, khó phân loại và dễ bỏ sót.",
+      "card2_title": "Không biết nên ưu tiên việc gì",
+      "card2_desc": "Khi mọi task trông quan trọng như nhau, người dùng dễ rơi vào trạng thái bận rộn nhưng không hiệu quả - làm nhiều nhưng hoàn thành ít.",
+      "card3_title": "Công cụ rời rạc, phải dùng nhiều app",
+      "card3_desc": "To-do list ở một nơi, Pomodoro timer ở nơi khác, habit tracker ở chỗ khác nữa. Chuyển qua lại giữa các app làm mất tập trung và mất thời gian."
     },
     "mission": {
       "tag": "Sứ mệnh",
       "title": "Manask ra đời để giải quyết điều đó",
-      "desc1": "Thay vì một danh sách phẳng, Manask cho phép phân cấp công việc theo 3 tầng rõ ràng: Folder → Project → Task. Mỗi task được gắn đầy đủ thuộc tính: mức độ ưu tiên, ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư.",
-      "desc2": "Kỹ thuật Pomodoro được tích hợp trực tiếp vào luồng làm việc - không cần chuyển app, người dùng chọn task đang làm rồi bắt đầu tập trung ngay.",
-      "desc3": "Toàn bộ hoạt động được ghi nhận và hiển thị qua hệ thống thống kê trực quan: heatmap, line chart, donut chart - giúp nhìn lại và cải thiện hiệu suất theo thời gian."
+      "desc1": "Thay vì một danh sách phẳng, Manask cho phép phân cấp công việc theo 3 tầng rõ ràng: <strong style=\"color:var(--text-primary)\">Folder → Project → Task</strong>. Mỗi task được gắn đầy đủ thuộc tính: mức độ ưu tiên, ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư.",
+      "desc2": "Kỹ thuật <strong style=\"color:var(--text-primary)\">Pomodoro</strong> được tích hợp trực tiếp vào luồng làm việc - không cần chuyển app, người dùng chọn task đang làm rồi bắt đầu tập trung ngay.",
+      "desc3": "Toàn bộ hoạt động được ghi nhận và hiển thị qua <strong style=\"color:var(--text-primary)\">hệ thống thống kê trực quan</strong>: heatmap, line chart, donut chart - giúp nhìn lại và cải thiện hiệu suất theo thời gian."
     },
     "features": {
       "tag": "Tính năng",
       "title": "Mọi thứ bạn cần trong một nơi",
       "desc": "Không cần 3 app riêng lẻ. Manask hợp nhất tổ chức công việc, tập trung và thống kê vào một giao diện duy nhất.",
-      "f1": { "title": "Folder → Project → Task", "desc": "Cấu trúc 3 cấp giúp mọi công việc có chỗ đứng rõ ràng. Folder nhóm dự án lớn, Project quản lý từng mục tiêu, Task là các việc cụ thể cần làm." },
-      "f2": { "title": "Task chi tiết đầy đủ", "desc": "Mỗi task có: mức độ ưu tiên (High / Medium / Low), ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư (time spent) - đủ để đánh giá chính xác nỗ lực thực tế." },
-      "f3": { "title": "Pomodoro tích hợp", "desc": "Chọn task đang làm, bật đồng hồ, tập trung. Tùy chỉnh thời lượng Focus, Short Break và Long Break. Không cần chuyển app, mọi thứ ngay trong Manask." },
-      "f4": { "title": "Thống kê trực quan", "desc": "Heatmap hoạt động 365 ngày, Donut chart phân bổ theo project, Line chart xu hướng theo 7 ngày / 30 ngày / 12 tháng. Nhìn lại hiệu suất và điều chỉnh kế hoạch." },
-      "f5": { "title": "Tài khoản cá nhân", "desc": "Đăng ký, đăng nhập và lưu trữ toàn bộ dữ liệu an toàn. Mọi folder, project và task đều được đồng bộ riêng theo từng tài khoản." },
-      "f6": { "title": "Lightweight & No install", "desc": "Ứng dụng web chạy thẳng trên trình duyệt, không cần cài đặt. Dark mode mặc định, responsive hoàn toàn - dùng được trên mọi thiết bị." }
+      "card1_title": "Folder → Project → Task",
+      "card1_desc": "Cấu trúc 3 cấp giúp mọi công việc có chỗ đứng rõ ràng. Folder nhóm dự án lớn, Project quản lý từng mục tiêu, Task là các việc cụ thể cần làm.",
+      "card2_title": "Task chi tiết đầy đủ",
+      "card2_desc": "Mỗi task có: mức độ ưu tiên (High / Medium / Low), ngày bắt đầu, ngày hoàn thành, ghi chú và thời gian đã đầu tư (time spent) - đủ để đánh giá chính xác nỗ lực thực tế.",
+      "card3_title": "Pomodoro tích hợp",
+      "card3_desc": "Chọn task đang làm, bật đồng hồ, tập trung. Tùy chỉnh thời lượng Focus, Short Break và Long Break. Không cần chuyển app, mọi thứ ngay trong Manask.",
+      "card4_title": "Thống kê trực quan",
+      "card4_desc": "Heatmap hoạt động 365 ngày, Donut chart phân bổ theo project, Line chart xu hướng theo 7 ngày / 30 ngày / 12 tháng. Nhìn lại hiệu suất và điều chỉnh kế hoạch.",
+      "card5_title": "Tài khoản cá nhân",
+      "card5_desc": "Đăng ký, đăng nhập và lưu trữ toàn bộ dữ liệu an toàn. Mọi folder, project và task đều được đồng bộ riêng theo từng tài khoản.",
+      "card6_title": "Lightweight & No install",
+      "card6_desc": "Ứng dụng web chạy thẳng trên trình duyệt, không cần cài đặt. Dark mode mặc định, responsive hoàn toàn - dùng được trên mọi thiết bị."
     },
     "how": {
       "tag": "Cách sử dụng",
       "title": "Bắt đầu chỉ trong 4 bước",
       "desc": "Không cần hướng dẫn dài dòng. Manask được thiết kế để ai cũng có thể dùng ngay.",
-      "step1": { "title": "Tạo Folder & Project", "desc": "Tạo Folder để nhóm các dự án liên quan (ví dụ: \"Học kỳ 2\", \"Công việc\"). Bên trong tạo Project cho từng mục tiêu cụ thể." },
-      "step2": { "title": "Thêm Task chi tiết", "desc": "Tạo task với tên, mức ưu tiên, ngày bắt đầu, ngày hoàn thành và ghi chú. Mọi thứ được tổ chức rõ ràng, không bị lẫn lộn." },
-      "step3": { "title": "Bật Pomodoro & làm việc", "desc": "Chọn task đang thực hiện, bật timer và tập trung theo chu kỳ. Nghỉ ngắn giữa các phiên để duy trì năng lượng." },
-      "step4": { "title": "Xem thống kê & cải thiện", "desc": "Nhìn lại heatmap hoạt động, chart xu hướng và streak. Hiểu rõ thói quen làm việc của mình và điều chỉnh kế hoạch tuần/tháng." }
+      "step1_title": "Tạo Folder & Project",
+      "step1_desc": "Tạo Folder để nhóm các dự án liên quan (ví dụ: \"Học kỳ 2\", \"Công việc\"). Bên trong tạo Project cho từng mục tiêu cụ thể.",
+      "step2_title": "Thêm Task chi tiết",
+      "step2_desc": "Tạo task với tên, mức ưu tiên, ngày bắt đầu, ngày hoàn thành và ghi chú. Mọi thứ được tổ chức rõ ràng, không bị lẫn lộn.",
+      "step3_title": "Bật Pomodoro & làm việc",
+      "step3_desc": "Chọn task đang thực hiện, bật timer và tập trung theo chu kỳ. Nghỉ ngắn giữa các phiên để duy trì năng lượng.",
+      "step4_title": "Xem thống kê & cải thiện",
+      "step4_desc": "Nhìn lại heatmap hoạt động, chart xu hướng và streak. Hiểu rõ thói quen làm việc của mình và điều chỉnh kế hoạch tuần/tháng."
     },
-    "screens": {
+    "screenshots": {
       "tag": "Giao diện",
       "title": "Được thiết kế để dễ dùng",
       "desc": "Dark mode, responsive hoàn toàn, mỗi màn hình đều được tối ưu cho trải nghiệm người dùng tốt nhất."
@@ -215,21 +222,37 @@
     "team": {
       "tag": "Đội ngũ",
       "title": "Những người đứng sau Manask",
-      "desc": "Team 2T - Plain Sailing, hai học sinh với một mục tiêu: làm cho việc quản lý công việc trở nên thực sự có tổ chức.",
-      "member1": { "name": "Nguyễn Mạnh Hùng", "role": "Frontend Developer", "bio": "Chịu trách nhiệm thiết kế và xây dựng toàn bộ giao diện người dùng - từ layout, animation đến trải nghiệm tương tác mượt mà." },
-      "member2": { "name": "Nguyễn Phú Bình", "role": "Backend Developer", "bio": "Xây dựng hệ thống server, API RESTful và cơ sở dữ liệu - đảm bảo mọi tính năng hoạt động ổn định, bảo mật và hiệu quả." }
+      "desc": "Ba học sinh với một mục tiêu chung: làm cho việc quản lý công việc trở nên thực sự có tổ chức.",
+      "member1_name": "Nguyễn Mạnh Hùng",
+      "member1_role": "Frontend Developer",
+      "member1_bio": "Chịu trách nhiệm thiết kế và xây dựng toàn bộ giao diện người dùng - từ layout, animation đến trải nghiệm tương tác mượt mà.",
+      "member2_name": "Nguyễn Phú Bình",
+      "member2_role": "Backend Developer",
+      "member2_bio": "Xây dựng hệ thống server, API RESTful và cơ sở dữ liệu - đảm bảo mọi tính năng hoạt động ổn định, bảo mật và hiệu quả.",
+      "member3_name": "Nguyễn Bùi Nguyên",
+      "member3_role": "Designer",
+      "member3_bio": "Phụ trách toàn bộ định hướng thị giác và trải nghiệm người dùng - từ nghiên cứu UX, wireframe đến hệ thống thiết kế nhất quán."
     },
     "competition": {
       "tag": "Cuộc thi",
-      "title": "AI Young Guru by FPT",
-      "quote": "\"Chúng tôi tham gia AI Young Guru không chỉ để tranh giải, mà để chứng minh rằng một công cụ quản lý công việc đơn giản, có tổ chức thực sự tạo ra sự khác biệt trong năng suất hằng ngày.\"",
-      "chip1": "AI Young Guru - FPT Corporation",
-      "chip2": "Web Application Track",
-      "chip3": "Team 2T - Plain Sailing"
+      "title": "Cuộc thi Sáng tạo Thanh Thiếu Niên Hà Nội lần thứ 22 năm 2026",
+      "quote": "\"Manask được phát triển để tham dự cuộc thi cấp Thành phố do UBND Hà Nội chỉ đạo tổ chức - một sân chơi trí tuệ thường niên nhằm khơi dậy tư duy sáng tạo và nuôi dưỡng những nhà sáng chế tương lai của Thủ đô.\"",
+      "detail1_label": "Cơ quan tổ chức",
+      "detail1_value": "UBND Thành phố Hà Nội",
+      "detail1_sub": "Phối hợp: Liên hiệp các Hội KH&KT Hà Nội, Sở GD&ĐT, Sở KH&CN, Thành đoàn Hà Nội",
+      "detail2_label": "Lĩnh vực tham gia",
+      "detail2_value": "Phần mềm tin học & Chuyển đổi số",
+      "detail2_sub": "1 trong 5 lĩnh vực trọng tâm thúc đẩy ứng dụng công nghệ vào thực tiễn",
+      "detail3_label": "Mục tiêu cao hơn",
+      "detail3_value": "Đại diện Hà Nội toàn quốc",
+      "detail3_sub": "Sản phẩm xuất sắc sẽ được lựa chọn tham gia Cuộc thi Sáng tạo Thanh Thiếu Niên toàn quốc lần thứ 22",
+      "chip1": "Cấp <span>Thành phố</span> · Hà Nội",
+      "chip2": "Năm <span>2026</span> · Lần thứ 22",
+      "chip3": "Nhóm <span>3 thành viên</span>"
     },
     "footer": {
-      "copy": "© 2026 Manask — Team 2T - Plain Sailing",
-      "builtFor": "Built for AI Young Guru · FPT"
+      "copyright": "© 2026 <strong>Manask</strong>",
+      "contest": "Tham dự <strong>Cuộc thi Sáng tạo Thanh Thiếu Niên Hà Nội · Lần thứ 22</strong>"
     }
   },
   "pomodoro": {
