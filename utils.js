@@ -178,10 +178,21 @@ export async function fetchWithAuth(url, options = {}, retries = 4) {
                 safeHideLoading();
                 // Nếu lỗi mạng và là tác vụ thay đổi dữ liệu (PATCH/POST/DELETE)
                 if (options.method && options.method !== 'GET') {
-                    const bodyData = options.body ? JSON.parse(options.body) : {};
-                    await addToOfflineQueue(url, options.method, bodyData);
-                    showWarning("Saved offline. Will sync when online.");
-                    return { ok: true, status: 202, json: async () => ({ message: "Offline" }) };
+                    let bodyData = options.body;
+                    if (typeof bodyData === 'string') {
+                        try { bodyData = JSON.parse(bodyData); } catch(e) { /* giữ nguyên */ }
+                    }
+                    try {
+                        await addToOfflineQueue(url, options.method, bodyData);
+                        showWarning("Saved offline. Will sync when online.");
+                    } catch (queueError) {
+                        console.error("Failed to save to offline queue:", queueError);
+                    }
+                    // trả về response giả nhưng an toàn hơn
+                    return new Response(JSON.stringify({ message: "Offline" }), {
+                        status: 202,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
                 }
                 showWarning("Connection error");
                 throw error;
