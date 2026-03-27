@@ -1,8 +1,64 @@
 const URL_API = "https://backend-u1p2.onrender.com";
 const TEST = false;
+const DB_NAME = 'AppOfflineDB';
+const STORE_NAME = 'sync_queue';
 let _lastWarningTime = 0;
 let _loadingCount = 0;
 let _loadingTimer = null;
+
+// --- INDEXEDDB CORE (Dùng cho Offline-first) ---
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+export async function addToOfflineQueue(url, method, body) {
+    try {
+        const db = await openDB();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.add({ url, method, body, timestamp: Date.now() });
+        console.log(`[Offline] Đã lưu vào IndexedDB: ${method} ${url}`);
+    } catch (e) { console.error("IndexedDB Error:", e); }
+}
+
+export async function syncOfflineData() {
+    if (!navigator.onLine) return;
+    try {
+        const db = await openDB();
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const queue = await new Promise(res => {
+            const req = tx.objectStore(STORE_NAME).getAll();
+            req.onsuccess = () => res(req.result);
+        });
+
+        if (queue.length === 0) return;
+
+        for (const item of queue) {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch(item.url, {
+                    method: item.method,
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item.body)
+                });
+                if (res.ok) {
+                    const delTx = db.transaction(STORE_NAME, 'readwrite');
+                    await delTx.objectStore(STORE_NAME).delete(item.id);
+                }
+            } catch (err) { break; }
+        }
+    } catch (e) { console.error("Sync Error:", e); }
+}
 
 // --- LOADING ---
 export function showLoading() {
@@ -91,21 +147,10 @@ export async function fetchWithRetry(url, options = {}, retries = 4) {
 export async function fetchWithAuth(url, options = {}, retries = 4) {
     showLoading();
     let didHideLoading = false;
-
-    const safeHideLoading = () => {
-        if (!didHideLoading) {
-            didHideLoading = true;
-            hideLoading();
-        }
-    };
+    const safeHideLoading = () => { if (!didHideLoading) { didHideLoading = true; hideLoading(); } };
 
     for (let i = 0; i < retries; i++) {
         const token = localStorage.getItem('access_token');
-        const defaultHeaders = {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        };
-
         const controller = new AbortController();
         const timeoutMs = i === 0 ? 10000 : 60000;
         const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -113,7 +158,7 @@ export async function fetchWithAuth(url, options = {}, retries = 4) {
         try {
             const response = await fetch(url, {
                 ...options,
-                headers: { ...defaultHeaders, ...options.headers },
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', ...options.headers },
                 signal: controller.signal
             });
             clearTimeout(timer);
@@ -124,7 +169,6 @@ export async function fetchWithAuth(url, options = {}, retries = 4) {
                 window.location.href = "/pages/login.html";
                 throw new Error("Unauthorized");
             }
-
             return response;
         } catch (error) {
             clearTimeout(timer);
@@ -132,15 +176,17 @@ export async function fetchWithAuth(url, options = {}, retries = 4) {
 
             if (i === retries - 1) {
                 safeHideLoading();
+                // Nếu lỗi mạng và là tác vụ thay đổi dữ liệu (PATCH/POST/DELETE)
+                if (options.method && options.method !== 'GET') {
+                    const bodyData = options.body ? JSON.parse(options.body) : {};
+                    await addToOfflineQueue(url, options.method, bodyData);
+                    showWarning("Saved offline. Will sync when online.");
+                    return { ok: true, status: 202, json: async () => ({ message: "Offline" }) };
+                }
                 showWarning("Connection error");
-                localStorage.removeItem('access_token');
-                window.location.href = "/pages/login.html";
                 throw error;
             }
-
-            const delay = 1000 * Math.pow(2, i);
-            console.warn(`Retry ${i + 1}/${retries} sau ${delay / 1000}s...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise(res => setTimeout(res, 1000 * Math.pow(2, i)));
         }
     }
 }
@@ -169,6 +215,12 @@ export function showWarning(...args) {
     `;
     document.body.appendChild(warning);
     setTimeout(() => warning.remove(), 3000);
+}
+
+// Tự động kích hoạt khi có mạng hoặc load trang
+if (typeof window !== 'undefined') {
+    window.addEventListener('online', syncOfflineData);
+    window.addEventListener('load', syncOfflineData);
 }
 
 export { URL_API, TEST };
