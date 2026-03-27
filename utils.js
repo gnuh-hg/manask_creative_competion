@@ -26,7 +26,30 @@ export async function addToOfflineQueue(url, method, body) {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
-        store.add({ url, method, body, timestamp: Date.now() });
+
+        const allItemsReq = store.getAll();
+        
+        await new Promise((resolve) => {
+            allItemsReq.onsuccess = () => {
+                const existingQueue = allItemsReq.result;
+                const duplicate = existingQueue.find(item => item.url === url && item.method === method);
+
+                if (duplicate) {
+                    store.delete(duplicate.id);
+                    console.log(`[sync] Ghi đè lệnh cũ cho: ${url}`);
+                }
+
+                store.add({
+                    url,
+                    method,
+                    body,
+                    timestamp: Date.now()
+                });
+
+                resolve();
+            };
+        });
+
         console.log(`[Offline] Đã lưu vào IndexedDB: ${method} ${url}`);
     } catch (e) { console.error("IndexedDB Error:", e); }
 }
@@ -58,6 +81,40 @@ export async function syncOfflineData() {
             } catch (err) { break; }
         }
     } catch (e) { console.error("Sync Error:", e); }
+}
+
+export async function updatePendingPostBody(tempId, newData) {
+    const db = await openDB();
+    const tx = db.transaction('sync_queue', 'readwrite');
+    const store = tx.objectStore('sync_queue');
+    
+    const allRequests = await store.getAll();
+    
+    const target = allRequests.find(req => 
+        req.method === 'POST' && req.body && String(req.body.id) === String(tempId)
+    );
+
+    if (target) {
+        target.body = { ...target.body, ...newData };
+        await store.put(target); 
+    }
+    
+    await tx.done;
+}
+
+export async function removeFromOfflineQueue(tempId) {
+    const db = await openDB();
+    const tx = db.transaction('sync_queue', 'readwrite');
+    const store = tx.objectStore('sync_queue');
+    const all = await store.getAll();
+
+    // Tìm và xóa lệnh POST của item này khỏi hàng đợi
+    const target = all.find(req => req.method === 'POST' && req.body && req.body.id === tempId);
+    if (target) {
+        await store.delete(target.id);
+        console.log(`[Sync] Cancelled pending POST for ${tempId}`);
+    }
+    await tx.done;
 }
 
 // --- LOADING ---
