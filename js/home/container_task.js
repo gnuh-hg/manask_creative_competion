@@ -202,11 +202,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             e.stopPropagation();
             if (item.classList.contains('completed')) return;
 
-            const nextSibling = item.nextElementSibling;
-            const parent = item.parentElement;
-            const oddItem = item; // Nên đổi tên thành originalItem cho rõ nghĩa
-
-            // --- OPTIMISTIC UI ---
             item.classList.add('completed');
             const progressBar = item.querySelector('.progress-bar-fill');
             const progressPercent = item.querySelector('.progress-percent');
@@ -217,48 +212,28 @@ document.addEventListener('DOMContentLoaded', async function() {
             this.textContent = t('home.btn_done_check');
 
             setTimeout(async () => {
-                item.remove();
-                if (parent.querySelectorAll('.task').length === 0) 
-                    showEmptyState('noTask');
-
-                if (utils.TEST) return;
-
-                // --- KIỂM TRA TEMP ID Ở ĐÂY ---
-                const currentId = data.id; // Hoặc item.getAttribute('data-id')
-                const isTemp = String(currentId).startsWith('temp-');
-
-                if (isTemp) {
-                    // Nếu là hàng tạm: Chỉ cần hủy lệnh POST trong hàng đợi (nếu có)
-                    // và không cần gửi lệnh DELETE lên server.
-                    await utils.removeFromOfflineQueue(currentId);
+                if (utils.TEST){
+                    item.remove();
+                    if (container.querySelectorAll('.task').length === 0) 
+                        showEmptyState('noTask');
                     return;
                 }
-
-                // --- NẾU LÀ ID THẬT: GỬI LỆNH XÓA ---
                 try {
                     const response = await utils.fetchWithAuth(
-                        `${utils.URL_API}/project/${projectId}/items/${currentId}/done`, 
+                        `${utils.URL_API}/project/${projectId}/items/${data.id}/done`, 
                         { method: 'DELETE' }
                     );
-
-                    if (response.status == 202) return; // Đã vào hàng đợi Offline
-
-                    if (!response.ok) throw new Error("Server rejected");
-
+                    
+                    if (response.ok) {
+                        item.remove();
+                        // Nếu không còn task nào thì hiện empty state
+                        if (container.querySelectorAll('.task').length === 0) 
+                            showEmptyState('noTask');
+                    } else {
+                        utils.showWarning(t('home.msg_task_delete_error'));
+                    }
                 } catch (err) {
-                    // --- ROLLBACK ---
                     utils.showWarning(t('home.msg_task_delete_error'));
-
-                    // Khôi phục lại trạng thái ban đầu
-                    item.classList.remove('completed');
-                    this.textContent = t('home.btn_done'); // Giả sử text cũ là btn_done
-                    if (progressBar) progressBar.style.width = '0%';
-
-                    // Chèn lại vào đúng vị trí cũ
-                    if (nextSibling) parent.insertBefore(oddItem, nextSibling);
-                    else parent.appendChild(oddItem);
-
-                    hideEmptyState();
                 }
             }, 400);
         });
@@ -318,48 +293,43 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
+    let cnt = 0;
     container.querySelector('h1 button').addEventListener('click', async (e) => {
         if (!projectId && !utils.TEST) {
             utils.showWarning(t('home.msg_select_project'));
             return;
         }
 
-        const currentTasks = container.querySelectorAll('.task');
-        const newPosition = currentTasks.length + 1;
-
-        const d = new Date();
-        const tempID = `temp-${Date.now()}`;
-        const tempItem = {
-            id: tempID,
-            position: newPosition,
-            name: `Task ${newPosition}`,
-            priority: 'low',
-            start_date: new Date(d.setHours(0,0,0,0)).toISOString(),
-            due_date: new Date(d.setHours(23,59,59,999)).toISOString(),
-            time_spent: 0,
-            note: ""
-        };
-        renderItem(tempItem);
-
-        if (utils.TEST) return;
-
         try {
+            if (utils.TEST) {
+                cnt++;
+                const pri = ['high', 'medium', 'low'];
+                const d = new Date();
+                const item = {
+                    id: cnt, position: cnt, name: `Task ${cnt}`,
+                    priority: pri[Math.ceil(Math.random() * 10) % 3],
+                    start_date: new Date(d.setHours(0,0,0,0)).toISOString(),
+                    due_date: new Date(d.setHours(23,59,59,999)).toISOString(),
+                    time_spent: 0,
+                    note: ""
+                };
+                renderItem(item);
+                return;
+            }
+
             const response = await utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items`, {
                 method: 'POST', body: JSON.stringify({})
             });
 
-            if (response.status == 202) return;
-
             if (response.ok) {
                 const item = await response.json();
-                const el = document.querySelector(`[data-id="${tempID}]`);
-
-                if (el) el.setAttribute('data-id', item.id);
-            } else throw new Error("Add failed");
+                renderItem(item);
+            } else {
+                const errorData = await response.json();
+                utils.showWarning(t('home.msg_task_create_error'));
+            }
         } catch (err) {
             utils.showWarning(t('home.msg_task_create_error'));
-            const el = document.querySelector(`[data-id="${tempID}]`);
-            if (el) el.remove();
         }
     });
 
@@ -391,9 +361,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const nameInput = document.querySelector('.detail-task-name');
     let nameDebounceTimer = null;
     
-
     if (nameInput) {
-        let originalName = "";
         nameInput.addEventListener('input', function () {
             const newName = nameInput.value.trim();
             if (!newName || !activeData) return;
@@ -408,30 +376,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         
             clearTimeout(nameDebounceTimer);
             nameDebounceTimer = setTimeout(async () => {
-                const isTemp = String(activeData.id).startsWith('temp-');
-
-                if (isTemp) {
-                    await utils.updatePendingPostBody(activeData.id, {name: newName});
-                    return;
-                }
-
+                if (utils.TEST) return;
                 try {
-                    const response = await utils.fetchWithAuth(
+                    await utils.fetchWithAuth(
                         `${utils.URL_API}/project/${projectId}/items/${activeData.id}`,
                         { method: 'PATCH', body: JSON.stringify({ name: newName }) }
                     );
-
-                    if (response.status == 202) return;
-                    if (!response.ok) throw new Error("update failed");
-                    originalName = newName;
-                } catch (err) {
-                    utils.showLoading(t('home.msg_name_failed'));
-                    activeData.name = originalName;
-                    nameInput.value = originalName;
-
-                    if (activeItem) activeItem.querySelector('.task-name').textContent = originalName;
-                }
-            }, 800);
+                } catch {}
+            }, 500);
         });
     }
 
@@ -442,16 +394,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     let priorityDebounceTimer = null;
 
     if (priorityBadge) {
-        let originalPriority = "";
-
-        priorityBadge.addEventListener('click', async function(e) {
+        priorityBadge.addEventListener('click', function(e) {
             e.stopPropagation();
 
             const item = document.querySelector(`.task[data-id="${activeData.id}"]`);
-            if (!item) return;
-
-            originalPriority = activeData.priority;
-
             if (priorityBadge.classList.contains('low')) currentPriorityIndex = 0;
             if (priorityBadge.classList.contains('medium')) currentPriorityIndex = 1;
             if (priorityBadge.classList.contains('high')) currentPriorityIndex = 2;
@@ -472,33 +418,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             // Chỉ delay phần gửi backend
             clearTimeout(priorityDebounceTimer);
-            priorityDebounceTimer = setTimeout(async () => {
-                const isTemp = String(activeData.id).startsWith('temp-');
-
-                if (isTemp) {
-                    await utils.updatePendingPostBody(activeData.id, {priority: newPriority});
-                    return;
-                }
-
-                try {
-                    const response = utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
-                        method: 'PATCH',
-                        body: JSON.stringify({ priority: newPriority })
-                    });
-
-                    if (response.status == 202) return;
-
-                    if (!response.ok) throw new Error("Update priority failed");
-                } catch (err) {
-                    utils.showWarning(t('home.msg_priority_error'));
-
-                    activeData.priority = originalPriority;
-                    priorityBadge.classList.remove('low', 'medium', 'high');
-                    item.classList.remove('low', 'medium', 'high');
-                    priorityBadge.classList.add(originalPriority);
-                    item.classList.add(originalPriority);
-                    priorityBadge.querySelector('span').textContent = t(`home.priority_${originalPriority}`);
-                }
+            priorityDebounceTimer = setTimeout(() => {
+                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ priority: newPriority })
+                }).catch(() => utils.showWarning(t('home.msg_priority_error')))
             }, 500);
         });
     }
@@ -739,72 +663,39 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ========== NOTES ==========
     const notesTextarea = document.querySelector('.notes-textarea');
     let notesDebounceTimer = null;
-    let originalNotes = "";
 
     if (notesTextarea) {
-        notesTextarea.addEventListener('focus', () => {
-            originalNotes = notesTextarea.value;
-        });
-
         notesTextarea.addEventListener('input', function () {
             const newNotes = notesTextarea.value;
 
+            // Cập nhật UI ngay
             activeData.notes = newNotes;
 
-            if (utils.TEST) return;
-
+            // Chỉ delay phần gửi backend
             clearTimeout(notesDebounceTimer);
-            notesDebounceTimer = setTimeout(async () => {
-                const isTemp = String(activeData.id).startsWith('temp-');
-
-                if (isTemp) {
-                    await utils.updatePendingPostBody(activeData.id, { notes: newNotes });
-                    return;
-                }
-
-                try {
-                    const response = await utils.fetchWithAuth(
-                        `${utils.URL_API}/project/${projectId}/items/${activeData.id}`, 
-                        { method: 'PATCH', body: JSON.stringify({ notes: newNotes }) }
-                    );
-
-                    if (response.status === 202) return;
-
-                    if (!response.ok) throw new Error("Update notes failed");
-
-                    originalNotes = newNotes;
-
-                } catch (err) {
-                    utils.showWarning(t('home.msg_notes_error'));
-                    activeData.notes = originalNotes;
-                    notesTextarea.value = originalNotes;
-                }
-            }, 800);
+            notesDebounceTimer = setTimeout(() => {
+                if (utils.TEST) return;
+                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ notes: newNotes })
+                }).catch(() => utils.showWarning(t('home.msg_notes_error')));
+            }, 500);
         });
     }
 
     // ========== DELETE TASK ==========
     const btnDeleteTask = document.querySelector('.btn-delete-task');
     const panel = document.querySelector('.task-detail-panel');
-
     if (btnDeleteTask) {
         btnDeleteTask.addEventListener('click', async function(e) {
             e.stopPropagation();
-            if (!activeItem || !activeData) return;
+            if (!activeItem) return;
 
-            const itemToUndo = activeItem;
-            const nextSibling = activeItem.nextElementSibling;
-            const parent = activeItem.parentElement;
-            const isTemp = String(activeData.id).startsWith('temp-');
-
-            activeItem.remove();
-            if (container.querySelectorAll('.task').length === 0) showEmptyState('noTask');
-            if (panel) panel.classList.remove('active');
-
-            if (utils.TEST) return;
-
-            if (isTemp) {
-                await utils.removeFromOfflineQueue(activeData.id);
+            if (utils.TEST) {
+                activeItem.remove();
+                if (container.querySelectorAll('.task').length === 0) 
+                    showEmptyState('noTask');
+                if (panel) panel.classList.remove('active');
                 return;
             }
 
@@ -814,17 +705,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                     { method: 'DELETE' }
                 );
 
-                if (response.status === 202) return;
-
-                if (!response.ok) throw new Error("Delete failed");
-
+                if (response.ok) {
+                    activeItem.remove();
+                    if (container.querySelectorAll('.task').length === 0) 
+                        showEmptyState('noTask');
+                    if (panel) panel.classList.remove('active');
+                } else utils.showWarning(t('home.msg_task_delete_error'));
             } catch (err) {
                 utils.showWarning(t('home.msg_task_delete_error'));
-
-                if (nextSibling) parent.insertBefore(itemToUndo, nextSibling);
-                else parent.appendChild(itemToUndo);
-
-                hideEmptyState();
             }
         });
     }
@@ -836,69 +724,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         clearTimeout(reorderDebounceTimer);
         reorderDebounceTimer = setTimeout(async () => {
             if (utils.TEST) return;
-
             const tasks = [...taskList.querySelectorAll('.task')];
-            let hasTempItem = false;
-
-            const body = tasks.map((el, index) => {
-                const id = el.dataset.id;
-                if (String(id).startsWith('temp-')) {
-                    hasTempItem = true;
-                }
-                return {
-                    id: id,
-                    position: index + 1
-                };
-            });
-
-            tasks.forEach((el, index) => {
-                const id = el.dataset.id;
-                const newPos = index + 1;
-            
-                const taskData = allTasksData.find(t => String(t.id) === String(id));
-                if (taskData) {
-                    taskData.position = newPos;
-                }
-            
-                if (activeData && String(activeData.id) === String(id)) {
-                    activeData.position = newPos;
-                }
-            });
-
-            if (hasTempItem) {
-                console.log("[REORDER] Có item tạm, cập nhật hàng chờ POST thay vì gửi PATCH.");
-
-                for (const item of body) {
-                    if (String(item.id).startsWith('temp-')) {
-                        await utils.updatePendingPostBody(item.id, { position: item.position });
-                    }
-                }
-                return;
-            }
-
-            // TRƯỜNG HỢP: TẤT CẢ ĐỀU LÀ ID THẬT
-            const cleanBody = body.map(item => ({
-                id: parseInt(item.id), 
-                position: item.position
+            const body = tasks.map((el, index) => ({
+                id: parseInt(el.dataset.id),
+                position: index + 1
             }));
-
-            try {
-                const res = await utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/reorder`, {
-                    method: 'PATCH',
-                    body: JSON.stringify(cleanBody)
-                });
-
-                if (res.status === 202) return; // Đã vào queue
-
-                if (!res.ok) {
-                    const err = await res.json();
-                    console.error('[REORDER ERROR]', err);
-                    // Rollback UI nếu cần (tải lại danh sách cũ)
-                }
-            } catch (err) {
-                utils.showWarning(t('home.msg_reorder_error'));
-            }
-        }, 1000); // Tăng debounce lên 1s vì thao tác kéo thả thường diễn ra liên tục
+        
+    utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/reorder`, {
+        method: 'PATCH',
+        body: JSON.stringify(body)
+    }).then(async res => {
+        if (!res.ok) {
+            const err = await res.json();
+            console.error('[REORDER]', res.status, err);
+        }
+    }).catch(() => utils.showWarning(t('home.msg_reorder_error')));
+        }, 500);
     }
     
     const taskList = container.querySelector('.task-list');

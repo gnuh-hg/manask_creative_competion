@@ -97,33 +97,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ========== SAVE NAME ==========
     btnSaveName.addEventListener('click', async function() {
         const newName = nameInput.value.trim();
-        const oldName = currentUser.username;
-
+        
         if (!newName) {
             utils.showWarning(t('home.profile_name_placeholder')); // "Please enter a name"
             return;
         }
-
-        currentUser.username = newName;
-        updateUI();
-        utils.showWarning(t('home.msg_name_updated'));
-
-        if (utils.TEST) return;
-
         try {
+            if (utils.TEST) {
+                currentUser.username = newName;
+                updateUI();
+                utils.showWarning(t('home.msg_name_updated'));
+                return;
+            }
             const response = await utils.fetchWithAuth(`${utils.URL_API}/account`, {
                 method: 'PATCH',
                 body: JSON.stringify({ username: newName })
             });
-
-            if (response.status == 202) return;
-
-            if (!response.ok) 
+            if (!response.ok) {
                 throw new Error('Failed to update name');
-
-        } catch (error) {
-            currentUser.username = oldName; 
+            }
+            currentUser.username = newName;
             updateUI();
+            utils.showWarning(t('home.msg_name_updated'));
+        } catch (error) {
             utils.showWarning(t('home.msg_name_failed'));
         }
     });
@@ -193,16 +189,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             utils.showWarning(t('home.msg_password_mismatch'));
             return;
         }
-
-        currentPassword.value = '';
-        newPassword.value = '';
-        confirmPassword.value = '';
-        passwordContent.classList.remove('active');
-        passwordHeader.classList.remove('active');
-
-        if (utils.TEST) return;
-
         try {
+            if (utils.TEST) {
+                utils.showWarning(t('home.msg_password_changed'));
+                currentPassword.value = '';
+                newPassword.value = '';
+                confirmPassword.value = '';
+                passwordContent.classList.remove('active');
+                passwordHeader.classList.remove('active');
+                return;
+            }
+
             const response = await utils.fetchWithAuth(`${utils.URL_API}/account/password`, {
                 method: 'PATCH',
                 body: JSON.stringify({
@@ -212,12 +209,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                 })
             });
 
-            if (response.status == 202) return;
-
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.detail || 'Failed to change password');
-            } else utils.showWarning(t('home.msg_password_changed'));
+            }
+            
+            utils.showWarning(t('home.msg_password_changed'));
+            currentPassword.value = '';
+            newPassword.value = '';
+            confirmPassword.value = '';
+            passwordContent.classList.remove('active');
+            passwordHeader.classList.remove('active');
         } catch (error) {
             utils.showWarning(t('home.msg_password_failed'));
         }
