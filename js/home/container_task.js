@@ -428,6 +428,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // ========== TASK DETAIL DATE PICKER ==========
+    let dateDebounceTimer = null;
+    
     class TaskDatePicker {
         constructor() {
             this.overlay = document.getElementById('taskCalendarOverlay');
@@ -633,6 +635,22 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (percent) percent.textContent = `${progress}%`;
             }
         
+            // Gửi dữ liệu lên backend với debounce
+            clearTimeout(dateDebounceTimer);
+            dateDebounceTimer = setTimeout(() => {
+                if (utils.TEST) return;
+                const updateData = {};
+                if (this.activeTarget === 'start') {
+                    updateData.start_date = activeData.start_date;
+                } else {
+                    updateData.due_date = activeData.due_date;
+                }
+                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(updateData)
+                }).catch(() => utils.showWarning(t('home.msg_date_error')));
+            }, 500);
+        
             this.closeCalendar();
         }
 
@@ -641,6 +659,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (this.activeTarget === 'start') {
                 document.getElementById('startDateText').textContent = placeholder;
                 this.startDate = null;
+                activeData.start_date = null;
                 const text = document.getElementById('startDateText');
                 text.textContent = 'Set date';
                 text.classList.add('placeholder');
@@ -648,11 +667,29 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 document.getElementById('dueDateText').textContent = placeholder;
                 this.dueDate = null;
+                activeData.due_date = null;
                 const text = document.getElementById('dueDateText');
                 text.textContent = 'Set date';
                 text.classList.add('placeholder');
                 document.getElementById('dueDateBtn').classList.remove('has-date');
             }
+            
+            // Gửi dữ liệu lên backend với debounce
+            clearTimeout(dateDebounceTimer);
+            dateDebounceTimer = setTimeout(() => {
+                if (utils.TEST) return;
+                const updateData = {};
+                if (this.activeTarget === 'start') {
+                    updateData.start_date = activeData.start_date;
+                } else {
+                    updateData.due_date = activeData.due_date;
+                }
+                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(updateData)
+                }).catch(() => utils.showWarning(t('home.msg_date_error')));
+            }, 500);
+            
             this.closeCalendar();
         }
     }
