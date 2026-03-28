@@ -63,6 +63,32 @@ export function hideLoading() {
     document.querySelector('.config-loading')?.remove();
 }
 
+// --- WARNING ---
+export function showWarning(...args) {
+    const warning_context = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+    ).join(' ');
+
+    const currentTime = Date.now();
+    if (currentTime - _lastWarningTime < 3000) return;
+    _lastWarningTime = currentTime;
+
+    const existingWarning = document.querySelector('.warning');
+    if (existingWarning) existingWarning.remove();
+
+    const warning = document.createElement('div');
+    warning.className = 'warning';
+    warning.textContent = warning_context;
+    warning.style.cssText = `
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background: #ef4444; color: white; padding: 12px 24px;
+        border-radius: 8px; font-size: 14px; font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;
+    `;
+    document.body.appendChild(warning);
+    setTimeout(() => warning.remove(), 3000);
+}
+
 // --- FETCH WITH RETRY ---
 export async function fetchWithRetry(url, options = {}, retries = 4) {
     for (let i = 0; i < retries; i++) {
@@ -143,32 +169,6 @@ export async function fetchWithAuth(url, options = {}, retries = 4) {
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
-}
-
-// --- WARNING ---
-export function showWarning(...args) {
-    const warning_context = args.map(arg =>
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-    ).join(' ');
-
-    const currentTime = Date.now();
-    if (currentTime - _lastWarningTime < 3000) return;
-    _lastWarningTime = currentTime;
-
-    const existingWarning = document.querySelector('.warning');
-    if (existingWarning) existingWarning.remove();
-
-    const warning = document.createElement('div');
-    warning.className = 'warning';
-    warning.textContent = warning_context;
-    warning.style.cssText = `
-        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-        background: #ef4444; color: white; padding: 12px 24px;
-        border-radius: 8px; font-size: 14px; font-weight: 500;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;
-    `;
-    document.body.appendChild(warning);
-    setTimeout(() => warning.remove(), 3000);
 }
 
 export { URL_API, TEST };
