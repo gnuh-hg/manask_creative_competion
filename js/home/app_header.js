@@ -44,11 +44,26 @@ document.addEventListener('DOMContentLoaded', async function() {
                 updateUI();
                 return;
             }
-            const response = await utils.fetchWithAuth(`${utils.URL_API}/account`);
+            const response = await utils.fetchWithAuth(
+                `${utils.URL_API}/account`,
+                { method: 'GET' },
+                {
+                    enableQueue: true,
+                    optimisticData: {
+                        username: localStorage.getItem('username') || 'Loading...',
+                        email: localStorage.getItem('email') || 'Loading...'
+                    }
+                }, utils.generateId(), 1
+            );
             if (!response.ok) 
                 throw new Error('Failed to fetch user data');
             currentUser = await response.json();
             updateUI();
+
+            if (response.headers.get('X-Queued') !== 'true') {
+                localStorage.setItem('username', currentUser.username);
+                localStorage.setItem('email', currentUser.email);
+            }
         } catch (error) {
             console.error('Error fetching user data:', error);
             usernameDisplay.textContent = 'Error';
@@ -109,14 +124,20 @@ document.addEventListener('DOMContentLoaded', async function() {
                 utils.showWarning(t('home.msg_name_updated'));
                 return;
             }
-            const response = await utils.fetchWithAuth(`${utils.URL_API}/account`, {
-                method: 'PATCH',
-                body: JSON.stringify({ username: newName })
-            });
+            const response = await utils.fetchWithAuth(
+                `${utils.URL_API}/account`,
+                {
+                    method: 'PATCH',
+                    body: JSON.stringify({ username: newName })
+                },
+                { enableQueue: true },
+                utils.generateId(), 1
+            );
             if (!response.ok) {
                 throw new Error('Failed to update name');
             }
             currentUser.username = newName;
+            localStorage.setItem('username', newName);
             updateUI();
             utils.showWarning(t('home.msg_name_updated'));
         } catch (error) {

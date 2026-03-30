@@ -1,8 +1,30 @@
+import * as idb from './idb.js';
+
 const URL_API = "https://backend-u1p2.onrender.com";
+const QUEUE_STORE = "offlinequeue";
 const TEST = false;
 let _lastWarningTime = 0;
 let _loadingCount = 0;
 let _loadingTimer = null;
+
+idb.registerStore(QUEUE_STORE);
+
+// FIX 3: Thêm random component để tránh collision khi nhiều tab chạy song song
+// Trước đây: Date.now() * 1e5 + _seq → 2 tab có cùng _seq trong cùng millisecond = collision
+let _seq = 0;
+let _lastTimestamp = 0;
+
+export const generateId = () => {
+  const now = Date.now();
+
+  // Nếu clock bị lùi (NTP, DST...), tăng lastTimestamp thay vì dùng now
+  // → đảm bảo timestamp component luôn tăng đơn điệu
+  if (now > _lastTimestamp) {
+    _lastTimestamp = now;
+    _seq = 0;
+  } else _seq = (_seq + 1) % 1e4;
+  return `tmp-${_lastTimestamp * 1e8 + _seq}`;
+};
 
 // --- LOADING ---
 export function showLoading() {
@@ -113,8 +135,21 @@ export async function fetchWithRetry(url, options = {}, retries = 4) {
     }
 }
 
-// --- FETCH WITH AUTH ---
-export async function fetchWithAuth(url, options = {}, retries = 4) {
+// ===== FETCH WITH AUTH (có Optimistic / Offline Queue) =====
+
+/**
+ * @param {string} url
+ * @param {RequestInit} options
+ * @param {number} retries
+ * @param {object} queueOptions
+ * @param {boolean} queueOptions.enableQueue  - Bật offline queue (default: false)
+ *                                              Chỉ bật với các request ghi (POST/PUT/PATCH/DELETE)
+ * @param {*}       queueOptions.optimisticData - Dữ liệu trả về ngay khi enqueue
+ *                                                (dùng cho Optimistic UI)
+ */
+export async function fetchWithAuth(url, options = {}, queueOptions = {}, key = generateId(), retries = 4) {
+    const { enableQueue = false, optimisticData = null } = queueOptions;
+
     showLoading();
     let didHideLoading = false;
 
@@ -126,49 +161,148 @@ export async function fetchWithAuth(url, options = {}, retries = 4) {
     };
 
     for (let i = 0; i < retries; i++) {
-        const token = localStorage.getItem('access_token');
+        const token = localStorage.getItem("access_token");
         const defaultHeaders = {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
         };
 
         const controller = new AbortController();
-        const timeoutMs = i === 0 ? 10000 : 60000;
+        const timeoutMs = i === 0 ? 10000 : 30000;
         const timer = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
             const response = await fetch(url, {
                 ...options,
                 headers: { ...defaultHeaders, ...options.headers },
-                signal: controller.signal
+                signal: controller.signal,
             });
             clearTimeout(timer);
-            safeHideLoading();
+
+            if (response.ok) {
+                safeHideLoading();
+                return response;
+            }
 
             if (response.status === 401) {
-                localStorage.removeItem('access_token');
+                safeHideLoading();
+                localStorage.removeItem("access_token");
                 window.location.href = "/pages/login.html";
                 throw new Error("Unauthorized");
             }
 
-            return response;
+            // Lỗi client 4xx (trừ 429) → không retry, không queue
+            if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+                safeHideLoading();
+                return response;
+            }
+
+            // Lỗi server 5xx / 429 → tiếp tục retry bên dưới
+            if (i === retries - 1) throw new Error(`Server Error: ${response.status}`);
+
         } catch (error) {
             clearTimeout(timer);
+
             if (error.message === "Unauthorized") throw error;
 
             if (i === retries - 1) {
                 safeHideLoading();
-                showWarning("Connection error");
-                localStorage.removeItem('access_token');
-                window.location.href = "/pages/login.html";
+
+                // ── OFFLINE QUEUE ──────────────────────────────────────────
+                // Chỉ queue khi: bật cờ, và thực sự mất mạng (hoặc không thể kết nối)
+                const isNetworkError =
+                    !navigator.onLine || error.name === "AbortError" || error.name === "TypeError";
+
+        if (enableQueue && isNetworkError) {
+            await enqueueRequest(url, key, options);
+        
+            if (optimisticData !== null) {
+                return new Response(JSON.stringify(optimisticData), {
+                    status: 202,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Queued": "true",
+                        "X-Queue-Key": String(key),
+                    },
+                });
+            }
+        
+            showWarning("Mất kết nối. Dữ liệu sẽ được gửi lại khi có mạng.");
+            throw error;
+        }
+                // ───────────────────────────────────────────────────────────
+
+                showWarning("Kết nối không ổn định. Vui lòng thử lại sau.");
                 throw error;
             }
+        }
 
-            const delay = 1000 * Math.pow(2, i);
-            console.warn(`Retry ${i + 1}/${retries} sau ${delay / 1000}s...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
+        const delay = 1000 * Math.pow(2, i);
+        console.warn(`Thử lại lần ${i + 1}/${retries} sau ${delay / 1000}s do lỗi tạm thời...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+}
+
+async function enqueueRequest(url, key, options = {}) {
+    await idb.addData(QUEUE_STORE, {
+        url, key,
+        options: {
+            ...options,
+            // Không serialize signal vì không clone được
+            signal: undefined,
+        },
+        token: localStorage.getItem("access_token"),
+        enqueuedAt: Date.now(),
+    }, key); // truyền key làm IDB key → FIFO theo generateId (timestamp-based)
+    console.info(`[Queue] Đã lưu request vào hàng chờ, key=${key}`);
+    return key;
+}
+
+async function flushQueue() {
+    let items;
+    try {
+        items = await idb.getAllDataWithKeys(QUEUE_STORE);
+    } catch {
+        return;
+    }
+    if (!items.length) return;
+
+    console.info(`[Queue] Đang xử lý ${items.length} request trong hàng chờ...`);
+
+    for (const item of items) {
+        const { _key, url, options, token } = item;
+        // FIX 2: Ưu tiên token mới từ localStorage — token lưu lúc enqueue có thể đã expired
+        const freshToken = localStorage.getItem("access_token") ?? token;
+        try {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    "Authorization": `Bearer ${freshToken}`,
+                    "Content-Type": "application/json",
+                    ...options?.headers,
+                },
+            });
+
+            if (response.ok || (response.status >= 400 && response.status < 500)) {
+                // Thành công hoặc lỗi client (không retry được) → xóa khỏi queue
+                await idb.deleteData(QUEUE_STORE, _key);
+                console.info(`[Queue] Đã gửi thành công, key=${_key}`);
+            } else {
+                console.warn(`[Queue] Server lỗi ${response.status}, sẽ thử lại sau`);
+            }
+        } catch {
+            // Vẫn mất mạng → giữ nguyên trong queue
+            console.warn(`[Queue] Vẫn mất mạng, dừng flush`);
+            break;
         }
     }
 }
 
-export { URL_API, TEST };
+window.addEventListener("online", () => {
+    console.info("[Queue] Mạng phục hồi, đang flush hàng chờ...");
+    flushQueue();
+});
+
+if (navigator.onLine) flushQueue();
+
+export { URL_API, TEST, QUEUE_STORE };

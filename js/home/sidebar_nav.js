@@ -1,4 +1,5 @@
 import * as utils from '../../utils.js';
+import * as idb from '../../idb.js';
 import { t, initI18n } from '../../i18n.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -100,10 +101,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             traverse(mainListWrapper);
 
             try {
-                const response = await utils.fetchWithAuth(`${utils.URL_API}/items/save-all`, { 
-                    method: 'POST',
-                    body: JSON.stringify(items)
-                });
+                const response = await utils.fetchWithAuth(
+                    `${utils.URL_API}/items/save-all`,
+                    { 
+                        method: 'POST',
+                        body: JSON.stringify(items)
+                    }
+                );
                 
                 if (!response.ok) {
                     utils.showWarning('Error saving structure');
@@ -180,12 +184,41 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 if (utils.TEST) return;
 
-                try {
-                    const response = await utils.fetchWithAuth(`${utils.URL_API}/items/${item.getAttribute('data-id')}`, {
-                        method: 'PUT',
-                        body: JSON.stringify({ expanded: isExpanded })
-                    });
+                const id = item.getAttribute('data-id');
+                
+                if (id.startsWith("tmp-")) {
+                    const existing = await idb.getData(utils.QUEUE_STORE, id);
+                    console.log("Toggling queued item:", id);
+                    console.log("Existing queued item for toggle:", existing);
+                    await idb.patchData(utils.QUEUE_STORE, id, {
+                      // field phẳng: truyền thẳng
+                      token: localStorage.getItem("access_token"),
+                      enqueuedAt: Date.now(),
                     
+                      // field là object: phải spread existing rồi ghi đè
+                      options: {
+                        ...existing.options,
+                        body: JSON.stringify({
+                          ...JSON.parse(existing.options.body),
+                          expanded: isExpanded,
+                        }),
+                      },
+                    });
+
+                    return;
+                }
+
+                try {
+                    const response = await utils.fetchWithAuth(
+                        `${utils.URL_API}/items/${id}`,
+                        {
+                            method: 'PUT',
+                            body: JSON.stringify({ expanded: isExpanded })
+                        },
+                        { enableQueue: true },
+                        utils.generateId(), 1
+                    );
+
                     if (!response.ok) {
                         utils.showWarning(t('home.msg_folder_status_error'));
                         console.error("Unable to update folder status");
@@ -331,10 +364,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
 
-            const res = await utils.fetchWithAuth(`${utils.URL_API}/items`, {
-                method: 'POST',
-                body: JSON.stringify(newItem)
-            });
+            const res = await utils.fetchWithAuth(
+                `${utils.URL_API}/items`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify(newItem)
+                },
+                {
+                    enableQueue: true,
+                    optimisticData: { ...newItem, id: utils.generateId() }
+                },
+                utils.generateId(), 1
+            );
 
             if (res.ok) {
                 const createdItem = await res.json();
@@ -343,7 +384,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 input.value = '';
                 closeModals();
             } else {
-                const errorData = await res.json();
                 utils.showWarning(t('home.msg_create_error'));
             }
         } catch (err) {
