@@ -67,9 +67,152 @@ document.addEventListener('DOMContentLoaded', async function() {
                 hideEmptyState();
                 items.forEach(item => renderItem(item));
             }
+
+            // Load sort & filter settings từ backend
+            await loadSortSettings();
+            await loadFilterSettings();
         } catch (err) {
             utils.showWarning(t('home.msg_load_error'));
         }
+    }
+
+    // ========== LOAD SORT SETTINGS ==========
+    // GET /project/${projectId}/sort
+    // Response: [{ field, order, ascending }] hoặc []
+    async function loadSortSettings() {
+        try {
+            const res = await utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/sort`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) return;
+
+            // Sắp theo order rồi map sang internal format { id, field, asc }
+            const sorted = [...data].sort((a, b) => a.order - b.order);
+            sortConditions = sorted.map(item => ({
+                id: sortIdCtr++,
+                field: item.field,
+                asc: item.ascending,
+            }));
+            updateSFBadge('btn-sort', 'sort-badge', sortConditions.length);
+
+            window.sortState = { conditions: sortConditions.map(s => ({ field: s.field, asc: s.asc })) };
+            document.dispatchEvent(new CustomEvent('sortApplied', { detail: window.sortState }));
+        } catch (err) {
+            // Không block UI nếu lỗi
+        }
+    }
+
+    // ========== LOAD FILTER SETTINGS ==========
+    // GET /project/${projectId}/filter
+    // Response: { logic: "and"|"or", filters: [{ field, operator, value }] }
+    async function loadFilterSettings() {
+        try {
+            const res = await utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/filter`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.filters || data.filters.length === 0) return;
+
+            filterLogic = (data.logic || 'and').toUpperCase(); // nội bộ dùng "AND"/"OR"
+
+            filterConditions = data.filters.map(f => {
+                const cond = {
+                    id: filterIdCtr++,
+                    field: f.field,
+                    operator: f.operator,
+                    value: '',
+                    valueFrom: '',
+                    valueTo: '',
+                };
+
+                if (f.operator === 'between' && f.value && typeof f.value === 'object') {
+                    // between: API trả { from, to }
+                    cond.valueFrom = f.value.from || '';
+                    cond.valueTo   = f.value.to   || '';
+                } else if (f.field === 'priority' && Array.isArray(f.value)) {
+                    cond.value = [...f.value];
+                } else {
+                    // name (string), time_spent (HH:mm:ss), date (ISO) — giữ nguyên
+                    cond.value = f.value || '';
+                }
+
+                return cond;
+            });
+
+            updateSFBadge('btn-filter', 'filter-badge', filterConditions.length);
+
+            window.filterState = {
+                logic: filterLogic,
+                conditions: filterConditions.map(f => ({
+                    field: f.field, operator: f.operator,
+                    value: f.value, valueFrom: f.valueFrom, valueTo: f.valueTo,
+                }))
+            };
+            document.dispatchEvent(new CustomEvent('filterApplied', { detail: window.filterState }));
+        } catch (err) {
+            // Không block UI nếu lỗi
+        }
+    }
+
+    // ========== BUILD SORT PAYLOAD ==========
+    // Internal [{ id, field, asc }] → PUT body [{ field, order, ascending }]
+    // order = vị trí trong mảng (1-based), không trùng nhau
+    // Truyền [] để tắt sort
+    function buildSortPayload(conditions) {
+        return conditions.map((s, idx) => ({
+            field: s.field,
+            order: idx + 1,
+            ascending: s.asc,
+        }));
+    }
+
+    // ========== BUILD FILTER PAYLOAD ==========
+    function hoursToHHMMSS(hours) {
+        const totalSeconds = Math.round(parseFloat(hours) * 3600);
+        const hh = Math.floor(totalSeconds / 3600);
+        const mm = Math.floor((totalSeconds % 3600) / 60);
+        const ss = totalSeconds % 60;
+        return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+    }
+
+    function isoToDisplay(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+
+    function buildFilterPayload(conditions, logic) {
+        const filters = conditions.map(f => {
+            const base = { field: f.field, operator: f.operator };
+
+            if (f.operator === 'between') {
+                // between → value phải là object { from, to }
+                // time_spent: convert từ số giờ sang HH:mm:ss
+                const convertTime = (v) =>
+                    f.field === 'time_spent' && v !== '' ? hoursToHHMMSS(v) : (v || '');
+                base.value = {
+                    from: convertTime(f.valueFrom),
+                    to:   convertTime(f.valueTo),
+                };
+            } else if (f.field === 'priority') {
+                base.value = Array.isArray(f.value) ? f.value : [];
+            } else {
+                // name (string), date fields (ISO từ calendar)
+                // time_spent: người dùng nhập số giờ → convert sang HH:mm:ss cho backend
+                if (f.field === 'time_spent' && f.value !== '' && f.value !== null && f.value !== undefined) {
+                    base.value = hoursToHHMMSS(f.value);
+                } else {
+                    base.value = f.value;
+                }
+            }
+
+            return base;
+        });
+
+        return {
+            logic: logic.toLowerCase(), // "and" | "or"
+            filters,
+        };
     }
 
     function showEmptyState(type) {
@@ -325,7 +468,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const item = await response.json();
                 renderItem(item);
             } else {
-                const errorData = await response.json();
                 utils.showWarning(t('home.msg_task_create_error'));
             }
         } catch (err) {
@@ -607,7 +749,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 this.openCalendar(this.dueDate);
             });
         }
-
+ 
         onDateSelected(date, formatted) {
             if (this.activeTarget === 'start') {
                 this.startDate = date;
@@ -739,12 +881,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         </button>
                         <div class="calendar-title">
                             <select class="month-select" id="sf-cal-month-select">
-                                <option value="0">January</option><option value="1">February</option>
-                                <option value="2">March</option><option value="3">April</option>
-                                <option value="4">May</option><option value="5">June</option>
-                                <option value="6">July</option><option value="7">August</option>
-                                <option value="8">September</option><option value="9">October</option>
-                                <option value="10">November</option><option value="11">December</option>
+                                <option value="0" data-i18n="home.month_1">January</option><option value="1" data-i18n="home.month_2">February</option>
+                                <option value="2" data-i18n="home.month_3">March</option><option value="3" data-i18n="home.month_4">April</option>
+                                <option value="4" data-i18n="home.month_5">May</option><option value="5" data-i18n="home.month_6">June</option>
+                                <option value="6" data-i18n="home.month_7">July</option><option value="7" data-i18n="home.month_8">August</option>
+                                <option value="8" data-i18n="home.month_9">September</option><option value="9" data-i18n="home.month_10">October</option>
+                                <option value="10" data-i18n="home.month_11">November</option><option value="11" data-i18n="home.month_12">December</option>
                             </select>
                             <div class="year-stepper">
                                 <button class="year-step-btn" id="sf-cal-year-down">-</button>
@@ -759,19 +901,28 @@ document.addEventListener('DOMContentLoaded', async function() {
                         </button>
                     </div>
                     <div class="calendar-weekdays">
-                        <div class="weekday">Su</div><div class="weekday">Mo</div>
-                        <div class="weekday">Tu</div><div class="weekday">We</div>
-                        <div class="weekday">Th</div><div class="weekday">Fr</div>
-                        <div class="weekday">Sa</div>
+                        <div class="weekday" data-i18n="home.weekday_su">Su</div><div class="weekday" data-i18n="home.weekday_mo">Mo</div>
+                        <div class="weekday" data-i18n="home.weekday_tu">Tu</div><div class="weekday" data-i18n="home.weekday_we">We</div>
+                        <div class="weekday" data-i18n="home.weekday_th">Th</div><div class="weekday" data-i18n="home.weekday_fr">Fr</div>
+                        <div class="weekday" data-i18n="home.weekday_sa">Sa</div>
                     </div>
                     <div class="calendar-days" id="sf-cal-days"></div>
                     <div class="calendar-footer">
-                        <button class="btn-clear" id="sf-cal-clear-btn">Clear</button>
-                        <button class="btn-today" id="sf-cal-today-btn">Today</button>
+                        <button class="btn-clear" id="sf-cal-clear-btn" data-i18n="home.calendar_clear">Clear</button>
+                        <button class="btn-today" id="sf-cal-today-btn" data-i18n="home.calendar_today">Today</button>
                     </div>
                 </div>
             </div>`;
             document.body.appendChild(tpl.firstElementChild);
+            
+            // Apply i18n to newly injected elements
+            const injectedOverlay = document.getElementById('sf-cal-overlay');
+            if (injectedOverlay) {
+                injectedOverlay.querySelectorAll('[data-i18n]').forEach(el => {
+                    const val = t(el.getAttribute('data-i18n'));
+                    if (val) el.textContent = val;
+                });
+            }
         }
     }
 
@@ -897,6 +1048,38 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             el.textContent = t(el.getAttribute('data-i18n'));
         });
+
+        // Update calendar overlay i18n elements
+        const calendarOverlay = document.getElementById('sf-cal-overlay');
+        if (calendarOverlay) {
+            calendarOverlay.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = t(el.getAttribute('data-i18n'));
+            });
+        }
+
+        // Update sort condition labels
+        document.querySelectorAll('#sf-sort-body .sf-sort-condition').forEach(card => {
+            const fieldBtn = card.querySelector('.sf-cycle-btn');
+            const id = parseInt(card.dataset.id);
+            const cond = draftSortConditions.find(c => c.id === id);
+            if (fieldBtn && cond) {
+                fieldBtn.textContent = getFieldLabel(cond.field);
+            }
+        });
+
+        // Update filter condition labels
+        document.querySelectorAll('#sf-filter-conditions-list .sf-filter-condition').forEach(card => {
+            const fieldBtn = card.querySelector('[class*="field"] .sf-cycle-btn');
+            const opBtn = card.querySelector('[class*="op"] .sf-cycle-btn');
+            const id = parseInt(card.dataset.id);
+            const cond = draftFilterConditions.find(c => c.id === id);
+            if (fieldBtn && cond) {
+                fieldBtn.textContent = getFieldLabel(cond.field);
+            }
+            if (opBtn && cond) {
+                opBtn.textContent = getOperatorLabel(cond.operator);
+            }
+        });
     
         container.querySelectorAll('.task').forEach(taskEl => {
             const taskId = taskEl.dataset.id;
@@ -955,25 +1138,49 @@ document.addEventListener('DOMContentLoaded', async function() {
     let filterIdCtr      = 0;
     let _sfButtonClicked = false; // cờ ngăn blur validate khi bấm Apply/Cancel
 
-    const SORT_FIELDS = ['name', 'priority', 'start_date', 'due_date', 'time_spent'];
+    // SORT_FIELDS: theo spec — "name"|"start_date"|"due_date"|"time_spent"|"create_date"|"priority"
+    const SORT_FIELDS = ['name', 'priority', 'start_date', 'due_date', 'time_spent', 'create_date'];
 
-    const FILTER_FIELDS   = ['name', 'priority', 'start_date', 'due_date', 'time_spent'];
+    // FILTER_FIELDS: theo spec — bổ sung create_date
+    const FILTER_FIELDS   = ['name', 'priority', 'start_date', 'due_date', 'time_spent', 'create_date'];
     const FIELD_OPERATORS = {
         name:        ['contains', 'not_contains', 'eq', 'not_eq'],
         priority:    ['in', 'not_in'],
         start_date:  ['eq', 'gt', 'gte', 'lt', 'lte', 'between'],
         due_date:    ['eq', 'gt', 'gte', 'lt', 'lte', 'between'],
         time_spent:  ['eq', 'gt', 'gte', 'lt', 'lte', 'between'],
+        create_date: ['eq', 'gt', 'gte', 'lt', 'lte', 'between'],
     };
     const OPERATOR_LABELS = {
-        eq: 'is (=)', not_eq: 'is not (≠)', contains: 'contains', not_contains: 'not contains',
-        in: 'in', not_in: 'not in',
-        gt: '>', gte: '≥', lt: '<', lte: '≤', between: 'between',
+        eq: 'operator_eq', not_eq: 'operator_not_eq', contains: 'operator_contains', not_contains: 'operator_not_contains',
+        in: 'operator_in', not_in: 'operator_not_in',
+        gt: 'operator_gt', gte: 'operator_gte', lt: 'operator_lt', lte: 'operator_lte', between: 'operator_between',
+    };
+    const FIELD_LABELS = {
+        name: 'field_name',
+        priority: 'field_priority',
+        start_date: 'field_start_date',
+        due_date: 'field_due_date',
+        time_spent: 'field_time_spent',
+        create_date: 'field_create_date',
     };
     const FIELD_TYPE = {
         name: 'text', priority: 'priority',
         start_date: 'date', due_date: 'date', time_spent: 'time',
+        create_date: 'date',
     };
+
+    // Helper to get field label
+    function getFieldLabel(fieldName) {
+        const key = FIELD_LABELS[fieldName];
+        return key ? t(`home.${key}`) : fieldName;
+    }
+
+    // Helper to get operator label
+    function getOperatorLabel(operatorName) {
+        const key = OPERATOR_LABELS[operatorName];
+        return key ? t(`home.${key}`) : operatorName;
+    }
 
     // --- Draft ---
     let draftSortConditions   = [];
@@ -1047,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         const lbl = document.createElement('div');
         lbl.className = 'sf-field-label';
-        lbl.textContent = 'Sort by';
+        lbl.textContent = t('home.sort_label_sort_by');
         card.appendChild(lbl);
 
         const row = document.createElement('div');
@@ -1095,11 +1302,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         const sel = document.createElement('button');
         sel.type = 'button';
         sel.className = 'sf-cycle-btn';
-        sel.textContent = s.field;
+        sel.textContent = getFieldLabel(s.field);
         sel.addEventListener('click', () => {
             const idx = SORT_FIELDS.indexOf(s.field);
             s.field = SORT_FIELDS[(idx + 1) % SORT_FIELDS.length];
-            sel.textContent = s.field;
+            sel.textContent = getFieldLabel(s.field);
         });
 
         const grp = document.createElement('div');
@@ -1108,8 +1315,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         const btnDesc = document.createElement('button');
         btnAsc.className  = 'sf-dir-btn' + (s.asc  ? ' active' : '');
         btnDesc.className = 'sf-dir-btn' + (!s.asc ? ' active' : '');
-        btnAsc.textContent  = 'Asc';
-        btnDesc.textContent = 'Desc';
+        btnAsc.textContent  = t('home.sort_label_asc');
+        btnDesc.textContent = t('home.sort_label_desc');
         btnAsc.addEventListener('click',  () => { s.asc = true;  btnAsc.classList.add('active');  btnDesc.classList.remove('active'); });
         btnDesc.addEventListener('click', () => { s.asc = false; btnDesc.classList.add('active'); btnAsc.classList.remove('active');  });
         grp.append(btnAsc, btnDesc);
@@ -1149,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <line x1="16" y1="24" x2="20" y2="24" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </div>
-                No sort conditions yet.<br>Click "Add a condition" to start.
+                ${t('home.sort_empty_title')}<br>${t('home.sort_empty_desc')}
             </div>`;
     }
 
@@ -1174,7 +1381,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         wrap.appendChild(buildSortCard(s, true));
     });
 
-    document.getElementById('sf-sort-apply')?.addEventListener('click', () => {
+    document.getElementById('sf-sort-apply')?.addEventListener('click', async () => {
         const cards = document.querySelectorAll('#sf-sort-body .sf-sort-condition');
         const ordered = [];
         cards.forEach(card => {
@@ -1187,9 +1394,27 @@ document.addEventListener('DOMContentLoaded', async function() {
         sfCloseAll();
         window.sortState = { conditions: sortConditions.map(s => ({ field: s.field, asc: s.asc })) };
         document.dispatchEvent(new CustomEvent('sortApplied', { detail: window.sortState }));
+
+        // PUT /project/${projectId}/sort
+        // Body: [{ field, order, ascending }]  hoặc [] để tắt
+        const payload = buildSortPayload(sortConditions);
+        console.log('[SORT PAYLOAD]', payload);
+
+        if (!utils.TEST && projectId) {
+            try {
+                const res = await utils.fetchWithAuth(
+                    `${utils.URL_API}/project/${projectId}/sort`,
+                    { method: 'PUT', body: JSON.stringify(payload) }
+                );
+                if (!res.ok) utils.showWarning(t('home.msg_sort_error'));
+            } catch {
+                utils.showWarning(t('home.msg_sort_error'));
+            }
+        }
     });
 
     // ── FILTER ──
+ 
     function buildFilterCard(f, isNew) {
         const card = document.createElement('div');
         card.className = 'sf-filter-condition' + (isNew ? ' is-new' : '');
@@ -1201,17 +1426,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         const fieldWrap = document.createElement('div');
         const fieldLbl  = document.createElement('div');
         fieldLbl.className = 'sf-field-label';
-        fieldLbl.textContent = 'Field';
+        fieldLbl.textContent = t('home.filter_label_field');
         const fieldSel = document.createElement('button');
         fieldSel.type = 'button';
         fieldSel.className = 'sf-cycle-btn';
-        fieldSel.textContent = f.field;
+        fieldSel.textContent = getFieldLabel(f.field);
         fieldWrap.append(fieldLbl, fieldSel);
 
         const opWrap = document.createElement('div');
         const opLbl  = document.createElement('div');
         opLbl.className = 'sf-field-label';
-        opLbl.textContent = 'Operator';
+        opLbl.textContent = t('home.filter_label_operator');
         const opSel = document.createElement('button');
         opSel.type = 'button';
         opSel.className = 'sf-cycle-btn';
@@ -1237,11 +1462,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         function populateOperators(field, currentOp) {
             const ops = FIELD_OPERATORS[field];
             f.operator = ops.includes(currentOp) ? currentOp : ops[0];
-            opSel.textContent = OPERATOR_LABELS[f.operator];
+            opSel.textContent = getOperatorLabel(f.operator);
             opSel.onclick = () => {
                 const idx = ops.indexOf(f.operator);
                 f.operator  = ops[(idx + 1) % ops.length];
-                opSel.textContent = OPERATOR_LABELS[f.operator];
+                opSel.textContent = getOperatorLabel(f.operator);
                 f.value     = FIELD_TYPE[f.field] === 'priority' ? (f.value || []) : (typeof f.value === 'string' ? f.value : '');
                 f.valueFrom = f.valueFrom || '';
                 f.valueTo   = f.valueTo   || '';
@@ -1265,7 +1490,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <line x1="16" y1="3" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>`;
                 const label = document.createElement('span');
-                label.textContent = currentVal || 'Set date';
+                label.textContent = currentVal || t('home.filter_label_set_date');
                 if (!currentVal) label.classList.add('placeholder');
                 btn.innerHTML = svgIcon;
                 btn.appendChild(label);
@@ -1285,7 +1510,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                     filterDatePicker.open(
                         _currentDate,
                         (date, formatted) => {
-                            const iso = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+                            // Lưu ISO 8601 đúng theo spec: yyyy-MM-ddTHH:mm:ss.sssZ
+                            const iso = date.toISOString();
                             _currentDate = date;
                             wrap._dateValue = iso;
                             label.textContent = formatted;
@@ -1296,7 +1522,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         () => {
                             _currentDate = null;
                             wrap._dateValue = '';
-                            label.textContent = 'Set date';
+                            label.textContent = t('home.filter_label_set_date');
                             label.classList.add('placeholder');
                             btn.classList.remove('has-date');
                             wrap.dispatchEvent(new CustomEvent('datechange', { detail: '', bubbles: true }));
@@ -1322,29 +1548,36 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                 return wrap;
             } else if (type === 'time') {
+                // time_spent: nhập số thực đơn vị giờ (vd: 1.5 = 1h30m), convert sang HH:mm:ss khi gửi backend
                 const inp = document.createElement('input');
                 inp.type = 'text';
-                inp.placeholder = 'Enter value...';
-                inp.value = currentVal || '';
+                inp.placeholder = t('home.filter_label_hours');
+                inp.min = '0';
+                inp.step = 'any';
+                // Nếu currentVal là HH:mm:ss thì convert sang số giờ để hiển thị
+                if (currentVal && /^\d{2}:\d{2}:\d{2}$/.test(currentVal)) {
+                    const [hh, mm, ss] = currentVal.split(':').map(Number);
+                    inp.value = parseFloat((hh + mm / 60 + ss / 3600).toFixed(4));
+                } else {
+                    inp.value = currentVal || '';
+                }
                 inp._isTimeInput = true;
                 inp.addEventListener('blur', () => {
                     if (_sfButtonClicked) return;
                     const v = inp.value.trim();
                     if (v === '') return;
-                    const n = parseFloat(v);
-                    if (isNaN(n) || n < 0 || !/^[0-9]*\.?[0-9]+$/.test(v)) {
-                        utils.showWarning('Please enter a valid number >= 0');
+                    const num = parseFloat(v);
+                    if (isNaN(num) || num < 0) {
+                        utils.showWarning(t('home.filter_error_invalid_hours'));
                         inp.value = '';
                         setTimeout(() => inp.focus(), 0);
-                    } else {
-                        inp.value = String(n);
                     }
                 });
                 return inp;
             } else {
                 const inp = document.createElement('input');
                 inp.type = 'text';
-                inp.placeholder = 'Enter value...';
+                inp.placeholder = t('home.filter_error_invalid_text');
                 inp.value = currentVal || '';
                 return inp;
             }
@@ -1357,7 +1590,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (type === 'priority') {
                 const lbl = document.createElement('div');
                 lbl.className = 'sf-field-label';
-                lbl.textContent = 'Value';
+                lbl.textContent = t('home.filter_label_value');
                 const cg = document.createElement('div');
                 cg.className = 'sf-chip-group';
                 ['high', 'medium', 'low'].forEach(p => {
@@ -1365,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const chip = document.createElement('span');
                     const selected = Array.isArray(f.value) && f.value.includes(p);
                     chip.className = 'sf-chip ' + p + (selected ? ' selected' : '');
-                    chip.innerHTML = `<svg width="6" height="6"><circle cx="3" cy="3" r="3" fill="${colors[p]}"/></svg>${p}`;
+                    chip.innerHTML = `<svg width="6" height="6"><circle cx="3" cy="3" r="3" fill="${colors[p]}"/></svg>${t(`home.priority_value_${p}`)}`;
                     chip.addEventListener('click', () => {
                         if (!Array.isArray(f.value)) f.value = [];
                         if (f.value.includes(p)) f.value = f.value.filter(v => v !== p);
@@ -1379,7 +1612,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else if (operator === 'between') {
                 const lbl = document.createElement('div');
                 lbl.className = 'sf-field-label';
-                lbl.textContent = 'Value (from → to)';
+                lbl.textContent = t('home.filter_label_value_range');
                 valueArea.appendChild(lbl);
 
                 const brow = document.createElement('div');
@@ -1388,16 +1621,16 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const fromWrap = document.createElement('div');
                 const fromLbl  = document.createElement('div');
                 fromLbl.className = 'sf-field-label';
-                fromLbl.textContent = 'From';
-                const fromInp = buildValueInput(type, f.valueFrom || '');
+                fromLbl.textContent = t('home.filter_label_from');
+                const fromInp = buildValueInput(type, (type === 'date' && f.valueFrom) ? isoToDisplay(f.valueFrom) : (f.valueFrom || ''));
                 fromInp.addEventListener('input',  () => { f.valueFrom = fromInp.value; });
                 fromWrap.append(fromLbl, fromInp);
 
                 const toWrap = document.createElement('div');
                 const toLbl  = document.createElement('div');
                 toLbl.className = 'sf-field-label';
-                toLbl.textContent = 'To';
-                const toInp = buildValueInput(type, f.valueTo || '');
+                toLbl.textContent = t('home.filter_label_to');
+                const toInp = buildValueInput(type, (type === 'date' && f.valueTo) ? isoToDisplay(f.valueTo) : (f.valueTo || ''));
                 toInp.addEventListener('input', () => { f.valueTo = toInp.value; });
                 toWrap.append(toLbl, toInp);
 
@@ -1407,8 +1640,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 const lbl = document.createElement('div');
                 lbl.className = 'sf-field-label';
-                lbl.textContent = 'Value';
-                const inp = buildValueInput(type, typeof f.value === 'string' ? f.value : '');
+                lbl.textContent = t('home.filter_label_value');
+                const displayVal = (type === 'date' && f.value) ? isoToDisplay(f.value) : (typeof f.value === 'string' ? f.value : '');
+                const inp = buildValueInput(type, displayVal);
                 inp.addEventListener('input', () => { f.value = inp.value; });
                 valueArea.append(lbl, inp);
             }
@@ -1423,13 +1657,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             f.operator = FIELD_OPERATORS[f.field][0];
             f.value    = FIELD_TYPE[f.field] === 'priority' ? [] : '';
             f.valueFrom = ''; f.valueTo = '';
-            fieldSel.textContent = f.field;
+            fieldSel.textContent = getFieldLabel(f.field);
             populateOperators(f.field, f.operator);
             renderValueArea(f.field, f.operator);
         });
 
         return card;
-    }
+    } 
 
     function renderFilterEmpty() {
         document.getElementById('sf-filter-conditions-list').innerHTML = `
@@ -1440,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <path d="M10 12h16l-6 7v5l-4-2v-3l-6-7z" stroke="#6366f1" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
                     </svg>
                 </div>
-                No filter conditions yet.<br>Click "Add a condition" to start.
+                ${t('home.filter_empty_title')}<br>${t('home.filter_empty_desc')}
             </div>`;
     }
 
@@ -1484,22 +1718,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         setTimeout(() => { _sfButtonClicked = false; }, 200);
     });
 
-    document.getElementById('sf-filter-apply')?.addEventListener('click', () => {
-        // Validate time inputs trước khi commit
+    document.getElementById('sf-filter-apply')?.addEventListener('click', async () => {
         const timeInputs = document.querySelectorAll('#sf-filter-conditions-list input[type="text"]');
         for (const inp of timeInputs) {
             if (!inp._isTimeInput) continue;
             const v = inp.value.trim();
             if (v === '') continue;
-            const n = parseFloat(v);
-            if (isNaN(n) || n < 0 || !/^[0-9]*\.?[0-9]+$/.test(v)) {
-                utils.showWarning('Please enter a valid number >= 0');
+            const num = parseFloat(v);
+            if (v === '' || isNaN(num) || num < 0) {
+                utils.showWarning(t('home.filter_error_invalid_hours'));
                 _sfButtonClicked = false;
                 inp.focus();
                 return;
             }
-            inp.value = String(n);
         }
+        
         // Commit draft → state thật
         filterConditions = cloneConditions(draftFilterConditions);
         filterLogic      = draftFilterLogic;
@@ -1513,8 +1746,23 @@ document.addEventListener('DOMContentLoaded', async function() {
             }))
         };
         document.dispatchEvent(new CustomEvent('filterApplied', { detail: window.filterState }));
-    });
 
+        const payload = buildFilterPayload(filterConditions, filterLogic);
+        console.log('[FILTER PAYLOAD]', payload);
+
+        if (!utils.TEST && projectId) {
+            try {
+                const res = await utils.fetchWithAuth(
+                    `${utils.URL_API}/project/${projectId}/filter`,
+                    { method: 'PUT', body: JSON.stringify(payload) }
+                );
+                if (!res.ok) utils.showWarning(t('home.msg_filter_error'));
+            } catch {
+                utils.showWarning(t('home.msg_filter_error'));
+            }
+        }
+    });
+ 
     // Close sf boxes when task detail calendar is opened
     document.getElementById('taskCalendarOverlay')?.addEventListener('click', () => {
         document.getElementById('sf-sort-box')?.classList.remove('visible');
