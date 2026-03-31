@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 start_date_text.textContent = showDate(data.start_date);
                 start_date_text.classList.remove('placeholder');
                 start_date_btn.classList.add('has-date');
-                taskDatePicker.startDate = new Date(data.start_date); // đồng bộ với picker
+                taskDatePicker.startDate = new Date(data.start_date);
             } else {
                 start_date_text.textContent = t('home.date_set');
                 start_date_text.classList.add('placeholder');
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 due_date_text.textContent = showDate(data.due_date);
                 due_date_text.classList.remove('placeholder');
                 due_date_btn.classList.add('has-date');
-                taskDatePicker.dueDate = new Date(data.due_date); // đồng bộ với picker
+                taskDatePicker.dueDate = new Date(data.due_date);
             } else {
                 due_date_text.textContent = t('home.date_set');
                 due_date_text.classList.add('placeholder');
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     let cnt = 0;
-    container.querySelector('h1 button').addEventListener('click', async (e) => {
+    container.querySelector('h1 .h1-actions .btn-done').addEventListener('click', async (e) => {
         if (!projectId && !utils.TEST) {
             utils.showWarning(t('home.msg_select_project'));
             return;
@@ -427,87 +427,68 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // ========== TASK DETAIL DATE PICKER ==========
+    // ========== TASK DATE PICKER (Base Class) ==========
     let dateDebounceTimer = null;
-    
+
     class TaskDatePicker {
-        constructor() {
-            this.overlay = document.getElementById('taskCalendarOverlay');
-            this.popup = document.getElementById('taskCalendarPopup');
-            this.calendarDays = document.getElementById('taskCalendarDays');
-            this.monthSelect = document.getElementById('taskMonthSelect');
+        constructor(ids) {
+            this.overlay      = document.getElementById(ids.overlay);
+            this.popup        = document.getElementById(ids.popup);
+            this.calendarDays = document.getElementById(ids.calendarDays);
+            this.monthSelect  = document.getElementById(ids.monthSelect);
+            this._ids         = ids;
 
-            this.activeTarget = null; // 'start' or 'due'
-            this.startDate = null;
-            this.dueDate = null;
+            this.selectedDate = null;
             this.currentMonth = new Date().getMonth();
-            this.currentYear = new Date().getFullYear();
+            this.currentYear  = new Date().getFullYear();
 
-            this.init();
+            this._initBase();
         }
 
-        init() {
-            // Populate year select
-            // Trong init(), xóa phần populate year select, thêm vào:
-            this.yearDisplay = document.getElementById('taskYearDisplay');
+        _initBase() {
+            const ids = this._ids;
+
+            this.yearDisplay = document.getElementById(ids.yearDisplay);
             this.yearDisplay.textContent = this.currentYear;
 
-            document.getElementById('taskYearUp').addEventListener('click', () => {
+            document.getElementById(ids.yearUp).addEventListener('click', () => {
                 this.currentYear++;
                 this.updateCalendar();
             });
-
-            document.getElementById('taskYearDown').addEventListener('click', () => {
+            document.getElementById(ids.yearDown).addEventListener('click', () => {
                 this.currentYear--;
                 this.updateCalendar();
             });
+
             this.monthSelect.value = this.currentMonth;
-
-            // Open calendar on button click
-            document.getElementById('startDateBtn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.activeTarget = 'start';
-                this.openCalendar();
-            });
-
-            document.getElementById('dueDateBtn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.activeTarget = 'due';
-                this.openCalendar();
-            });
-
-            // Close on overlay click
-            this.overlay.addEventListener('click', (e) => {
-                if (e.target === this.overlay) this.closeCalendar();
-            });
-
-            this.popup.addEventListener('click', (e) => e.stopPropagation());
-
-            document.getElementById('taskPrevMonthBtn').addEventListener('click', () => {
-                this.currentMonth--;
-                if (this.currentMonth < 0) { this.currentMonth = 11; this.currentYear--; }
-                this.updateCalendar();
-            });
-
-            document.getElementById('taskNextMonthBtn').addEventListener('click', () => {
-                this.currentMonth++;
-                if (this.currentMonth > 11) { this.currentMonth = 0; this.currentYear++; }
-                this.updateCalendar();
-            });
-
             this.monthSelect.addEventListener('change', (e) => {
                 this.currentMonth = parseInt(e.target.value);
                 this.updateCalendar();
             });
 
-            document.getElementById('taskTodayBtn').addEventListener('click', () => {
+            document.getElementById(ids.prevMonth).addEventListener('click', () => {
+                this.currentMonth--;
+                if (this.currentMonth < 0) { this.currentMonth = 11; this.currentYear--; }
+                this.updateCalendar();
+            });
+            document.getElementById(ids.nextMonth).addEventListener('click', () => {
+                this.currentMonth++;
+                if (this.currentMonth > 11) { this.currentMonth = 0; this.currentYear++; }
+                this.updateCalendar();
+            });
+
+            document.getElementById(ids.todayBtn).addEventListener('click', () => {
                 const today = new Date();
                 this.selectDate(today.getDate(), today.getMonth(), today.getFullYear());
             });
-
-            document.getElementById('taskClearBtn').addEventListener('click', () => {
+            document.getElementById(ids.clearBtn).addEventListener('click', () => {
                 this.clearDate();
             });
+
+            this.overlay.addEventListener('click', (e) => {
+                if (e.target === this.overlay) this.closeCalendar();
+            });
+            this.popup.addEventListener('click', (e) => e.stopPropagation());
 
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && this.overlay.classList.contains('active')) {
@@ -518,12 +499,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             this.updateCalendar();
         }
 
-        openCalendar() {
-            // Set current month/year to selected date if exists
-            const current = this.activeTarget === 'start' ? this.startDate : this.dueDate;
-            if (current) {
-                this.currentMonth = current.getMonth();
-                this.currentYear = current.getFullYear();
+        openCalendar(currentDate = null) {
+            const ref = currentDate ?? this.selectedDate;
+            if (ref) {
+                this.currentMonth = ref.getMonth();
+                this.currentYear  = ref.getFullYear();
             }
             this.updateCalendar();
             this.overlay.classList.add('active');
@@ -531,49 +511,45 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         closeCalendar() {
             this.overlay.classList.remove('active');
-            this.activeTarget = null;
         }
 
         updateCalendar() {
-            this.monthSelect.value = this.currentMonth;
-            this.yearDisplay.textContent = this.currentYear;
-            this.calendarDays.innerHTML = '';
+            this.monthSelect.value          = this.currentMonth;
+            this.yearDisplay.textContent    = this.currentYear;
+            this.calendarDays.innerHTML     = '';
 
-            const firstDay = new Date(this.currentYear, this.currentMonth, 1).getDay();
-            const lastDate = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+            const firstDay     = new Date(this.currentYear, this.currentMonth, 1).getDay();
+            const lastDate     = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
             const prevLastDate = new Date(this.currentYear, this.currentMonth, 0).getDate();
-            const today = new Date();
+            const today        = new Date();
 
-            const selectedDate = this.activeTarget === 'start' ? this.startDate : this.dueDate;
-
-            for (let i = firstDay; i > 0; i--) {
-                this.calendarDays.appendChild(this.createDay(prevLastDate - i + 1, this.currentMonth - 1, this.currentYear, true, selectedDate, today));
-            }
-            for (let i = 1; i <= lastDate; i++) {
-                this.calendarDays.appendChild(this.createDay(i, this.currentMonth, this.currentYear, false, selectedDate, today));
-            }
+            for (let i = firstDay; i > 0; i--)
+                this.calendarDays.appendChild(this._createDay(prevLastDate - i + 1, this.currentMonth - 1, this.currentYear, true, today));
+            for (let i = 1; i <= lastDate; i++)
+                this.calendarDays.appendChild(this._createDay(i, this.currentMonth, this.currentYear, false, today));
             const total = this.calendarDays.children.length;
-            for (let i = 1; i <= 42 - total; i++) {
-                this.calendarDays.appendChild(this.createDay(i, this.currentMonth + 1, this.currentYear, true, selectedDate, today));
-            }
+            for (let i = 1; i <= 42 - total; i++)
+                this.calendarDays.appendChild(this._createDay(i, this.currentMonth + 1, this.currentYear, true, today));
         }
 
-        createDay(day, month, year, isOther, selectedDate, today) {
+        _createDay(day, month, year, isOther, today) {
             const div = document.createElement('div');
             div.className = 'calendar-day';
             div.textContent = day;
             if (isOther) div.classList.add('other-month');
 
             let actualMonth = month, actualYear = year;
-            if (month < 0) { actualMonth = 11; actualYear = year - 1; }
+            if (month < 0)  { actualMonth = 11; actualYear = year - 1; }
             else if (month > 11) { actualMonth = 0; actualYear = year + 1; }
 
-            if (day === today.getDate() && actualMonth === today.getMonth() && actualYear === today.getFullYear()) {
+            if (day === today.getDate() && actualMonth === today.getMonth() && actualYear === today.getFullYear())
                 div.classList.add('today');
-            }
-            if (selectedDate && day === selectedDate.getDate() && actualMonth === selectedDate.getMonth() && actualYear === selectedDate.getFullYear()) {
+
+            if (this.selectedDate &&
+                day === this.selectedDate.getDate() &&
+                actualMonth === this.selectedDate.getMonth() &&
+                actualYear  === this.selectedDate.getFullYear())
                 div.classList.add('selected');
-            }
 
             div.addEventListener('click', () => this.selectDate(day, actualMonth, actualYear));
             return div;
@@ -581,121 +557,227 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         selectDate(day, month, year) {
             const date = new Date(year, month, day);
-            const dd = String(day).padStart(2, '0');
-            const mm = String(month + 1).padStart(2, '0');
-            const formatted = `${dd}/${mm}/${year}`;
-        
+            const formatted = `${String(day).padStart(2,'0')}/${String(month+1).padStart(2,'0')}/${year}`;
+            this.selectedDate = date;
+            this.onDateSelected(date, formatted);
+            this.closeCalendar();
+        }
+
+        clearDate() {
+            this.selectedDate = null;
+            this.onDateCleared();
+            this.closeCalendar();
+        }
+
+        onDateSelected(date, formatted) {}
+        onDateCleared() {}
+    }
+
+    // ========== TASK DETAIL DATE PICKER ==========
+    class TaskDetailDatePicker extends TaskDatePicker {
+        constructor() {
+            super({
+                overlay:      'taskCalendarOverlay',
+                popup:        'taskCalendarPopup',
+                calendarDays: 'taskCalendarDays',
+                monthSelect:  'taskMonthSelect',
+                yearDisplay:  'taskYearDisplay',
+                yearUp:       'taskYearUp',
+                yearDown:     'taskYearDown',
+                prevMonth:    'taskPrevMonthBtn',
+                nextMonth:    'taskNextMonthBtn',
+                todayBtn:     'taskTodayBtn',
+                clearBtn:     'taskClearBtn',
+            });
+
+            this.activeTarget = null;
+            this.startDate    = null;
+            this.dueDate      = null;
+
+            document.getElementById('startDateBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.activeTarget = 'start';
+                this.selectedDate = this.startDate;
+                this.openCalendar(this.startDate);
+            });
+            document.getElementById('dueDateBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.activeTarget = 'due';
+                this.selectedDate = this.dueDate;
+                this.openCalendar(this.dueDate);
+            });
+        }
+
+        onDateSelected(date, formatted) {
             if (this.activeTarget === 'start') {
                 this.startDate = date;
-                activeData.start_date = date.toISOString(); // ← sync data
-                const btn = document.getElementById('startDateBtn');
-                const text = document.getElementById('startDateText');
-                text.textContent = formatted;
-                text.classList.remove('placeholder');
-                btn.classList.add('has-date');
+                activeData.start_date = date.toISOString();
+                document.getElementById('startDateText').textContent = formatted;
+                document.getElementById('startDateText').classList.remove('placeholder');
+                document.getElementById('startDateBtn').classList.add('has-date');
             } else {
                 this.dueDate = date;
-                activeData.due_date = date.toISOString(); // ← sync data
-                const btn = document.getElementById('dueDateBtn');
-                const text = document.getElementById('dueDateText');
+                activeData.due_date = date.toISOString();
                 const item = document.querySelector(`.task[data-id="${activeData.id}"]`);
-                item.querySelector('.task-deadline span').textContent =
+                if (item) item.querySelector('.task-deadline span').textContent =
                     `${t('home.task_due_prefix')} ${formatted}`;
-                text.textContent = formatted;
-                text.classList.remove('placeholder');
-                btn.classList.add('has-date');
+                document.getElementById('dueDateText').textContent = formatted;
+                document.getElementById('dueDateText').classList.remove('placeholder');
+                document.getElementById('dueDateBtn').classList.add('has-date');
             }
-        
-            // Tính lại progress sau khi đổi ngày
-            const start = this.startDate;
-            const due = this.dueDate;
-            const now = new Date();
+            this._updateProgress();
+            this._syncBackend();
+        }
+
+        onDateCleared() {
+            const placeholder = t('home.date_set');
+            if (this.activeTarget === 'start') {
+                this.startDate = null;
+                activeData.start_date = null;
+                const text = document.getElementById('startDateText');
+                text.textContent = placeholder;
+                text.classList.add('placeholder');
+                document.getElementById('startDateBtn').classList.remove('has-date');
+            } else {
+                this.dueDate = null;
+                activeData.due_date = null;
+                const text = document.getElementById('dueDateText');
+                text.textContent = placeholder;
+                text.classList.add('placeholder');
+                document.getElementById('dueDateBtn').classList.remove('has-date');
+            }
+            this._syncBackend();
+        }
+
+        _updateProgress() {
+            const start = this.startDate, due = this.dueDate, now = new Date();
             let progress = 0;
-        
             if (start && due) {
                 if (now < start) progress = 0;
                 else if (now > due) progress = 100;
                 else progress = Math.round(((now - start) / (due - start)) * 100);
             }
-        
-            // Cập nhật progress trên task card
             if (activeItem) {
-                const fill = activeItem.querySelector('.progress-bar-fill');
+                const fill    = activeItem.querySelector('.progress-bar-fill');
                 const percent = activeItem.querySelector('.progress-percent');
-                if (fill) fill.style.width = `${progress}%`;
+                if (fill)    fill.style.width    = `${progress}%`;
                 if (percent) percent.textContent = `${progress}%`;
             }
-        
-            // Cập nhật progress trên panel detail
             const panel = document.querySelector('.task-detail-panel');
             if (panel) {
-                const fill = panel.querySelector('.progress-bar-fill');
+                const fill    = panel.querySelector('.progress-bar-fill');
                 const percent = panel.querySelector('.progress-percent');
-                if (fill) fill.style.width = `${progress}%`;
+                if (fill)    fill.style.width    = `${progress}%`;
                 if (percent) percent.textContent = `${progress}%`;
             }
-        
-            // Gửi dữ liệu lên backend với debounce
-            clearTimeout(dateDebounceTimer);
-            dateDebounceTimer = setTimeout(() => {
-                if (utils.TEST) return;
-                const updateData = {};
-                if (this.activeTarget === 'start') {
-                    updateData.start_date = activeData.start_date;
-                } else {
-                    updateData.due_date = activeData.due_date;
-                }
-                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify(updateData)
-                }).catch(() => utils.showWarning(t('home.msg_date_error')));
-            }, 500);
-        
-            this.closeCalendar();
         }
 
-        clearDate() {
-            const placeholder = t('home.date_set');
-            if (this.activeTarget === 'start') {
-                document.getElementById('startDateText').textContent = placeholder;
-                this.startDate = null;
-                activeData.start_date = null;
-                const text = document.getElementById('startDateText');
-                text.textContent = 'Set date';
-                text.classList.add('placeholder');
-                document.getElementById('startDateBtn').classList.remove('has-date');
-            } else {
-                document.getElementById('dueDateText').textContent = placeholder;
-                this.dueDate = null;
-                activeData.due_date = null;
-                const text = document.getElementById('dueDateText');
-                text.textContent = 'Set date';
-                text.classList.add('placeholder');
-                document.getElementById('dueDateBtn').classList.remove('has-date');
-            }
-            
-            // Gửi dữ liệu lên backend với debounce
+        _syncBackend() {
             clearTimeout(dateDebounceTimer);
             dateDebounceTimer = setTimeout(() => {
                 if (utils.TEST) return;
-                const updateData = {};
-                if (this.activeTarget === 'start') {
-                    updateData.start_date = activeData.start_date;
-                } else {
-                    updateData.due_date = activeData.due_date;
-                }
+                const updateData = this.activeTarget === 'start'
+                    ? { start_date: activeData.start_date }
+                    : { due_date:   activeData.due_date   };
                 utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify(updateData)
                 }).catch(() => utils.showWarning(t('home.msg_date_error')));
             }, 500);
-            
-            this.closeCalendar();
+        }
+    }
+
+    // ========== FILTER DATE PICKER ==========
+    class FilterDatePicker extends TaskDatePicker {
+        constructor() {
+            FilterDatePicker._injectHTML();
+
+            super({
+                overlay:      'sf-cal-overlay',
+                popup:        'sf-cal-popup',
+                calendarDays: 'sf-cal-days',
+                monthSelect:  'sf-cal-month-select',
+                yearDisplay:  'sf-cal-year-display',
+                yearUp:       'sf-cal-year-up',
+                yearDown:     'sf-cal-year-down',
+                prevMonth:    'sf-cal-prev-month',
+                nextMonth:    'sf-cal-next-month',
+                todayBtn:     'sf-cal-today-btn',
+                clearBtn:     'sf-cal-clear-btn',
+            });
+
+            this._onSelect = null;
+            this._onClear  = null;
+        }
+
+        open(currentDate, onSelect, onClear) {
+            this._onSelect = onSelect;
+            this._onClear  = onClear;
+            this.selectedDate = currentDate ?? null;
+            this.openCalendar(currentDate);
+        }
+
+        onDateSelected(date, formatted) {
+            if (this._onSelect) this._onSelect(date, formatted);
+        }
+
+        onDateCleared() {
+            if (this._onClear) this._onClear();
+        }
+
+        static _injectHTML() {
+            if (document.getElementById('sf-cal-overlay')) return;
+            const tpl = document.createElement('div');
+            tpl.innerHTML = `
+            <div class="calendar-overlay" id="sf-cal-overlay" style="z-index:10001">
+                <div class="calendar-popup" id="sf-cal-popup">
+                    <div class="calendar-header">
+                        <button class="calendar-nav-btn" id="sf-cal-prev-month">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <div class="calendar-title">
+                            <select class="month-select" id="sf-cal-month-select">
+                                <option value="0">January</option><option value="1">February</option>
+                                <option value="2">March</option><option value="3">April</option>
+                                <option value="4">May</option><option value="5">June</option>
+                                <option value="6">July</option><option value="7">August</option>
+                                <option value="8">September</option><option value="9">October</option>
+                                <option value="10">November</option><option value="11">December</option>
+                            </select>
+                            <div class="year-stepper">
+                                <button class="year-step-btn" id="sf-cal-year-down">-</button>
+                                <span class="year-display" id="sf-cal-year-display">2026</span>
+                                <button class="year-step-btn" id="sf-cal-year-up">+</button>
+                            </div>
+                        </div>
+                        <button class="calendar-nav-btn" id="sf-cal-next-month">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div class="weekday">Su</div><div class="weekday">Mo</div>
+                        <div class="weekday">Tu</div><div class="weekday">We</div>
+                        <div class="weekday">Th</div><div class="weekday">Fr</div>
+                        <div class="weekday">Sa</div>
+                    </div>
+                    <div class="calendar-days" id="sf-cal-days"></div>
+                    <div class="calendar-footer">
+                        <button class="btn-clear" id="sf-cal-clear-btn">Clear</button>
+                        <button class="btn-today" id="sf-cal-today-btn">Today</button>
+                    </div>
+                </div>
+            </div>`;
+            document.body.appendChild(tpl.firstElementChild);
         }
     }
 
     // Khởi tạo
-    const taskDatePicker = new TaskDatePicker();
+    const taskDatePicker    = new TaskDetailDatePicker();
+    const filterDatePicker  = new FilterDatePicker();
 
     // ========== NOTES ==========
     const notesTextarea = document.querySelector('.notes-textarea');
@@ -705,10 +787,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         notesTextarea.addEventListener('input', function () {
             const newNotes = notesTextarea.value;
 
-            // Cập nhật UI ngay
             activeData.notes = newNotes;
 
-            // Chỉ delay phần gửi backend
             clearTimeout(notesDebounceTimer);
             notesDebounceTimer = setTimeout(() => {
                 if (utils.TEST) return;
@@ -767,15 +847,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                 position: index + 1
             }));
         
-    utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/reorder`, {
-        method: 'PATCH',
-        body: JSON.stringify(body)
-    }).then(async res => {
-        if (!res.ok) {
-            const err = await res.json();
-            console.error('[REORDER]', res.status, err);
-        }
-    }).catch(() => utils.showWarning(t('home.msg_reorder_error')));
+        utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/reorder`, {
+            method: 'PATCH',
+            body: JSON.stringify(body)
+        }).then(async res => {
+            if (!res.ok) {
+                const err = await res.json();
+                console.error('[REORDER]', res.status, err);
+            }
+        }).catch(() => utils.showWarning(t('home.msg_reorder_error')));
         }, 500);
     }
     
@@ -863,5 +943,582 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             }
         }
+    });
+
+    // ========== SORT & FILTER ==========
+
+    // --- State ---
+    let sortConditions   = [];
+    let filterConditions = [];
+    let filterLogic      = 'AND';
+    let sortIdCtr        = 0;
+    let filterIdCtr      = 0;
+    let _sfButtonClicked = false; // cờ ngăn blur validate khi bấm Apply/Cancel
+
+    const SORT_FIELDS = ['name', 'priority', 'start_date', 'due_date', 'time_spent'];
+
+    const FILTER_FIELDS   = ['name', 'priority', 'start_date', 'due_date', 'time_spent'];
+    const FIELD_OPERATORS = {
+        name:        ['contains', 'not_contains', 'eq', 'not_eq'],
+        priority:    ['in', 'not_in'],
+        start_date:  ['eq', 'gt', 'gte', 'lt', 'lte', 'between'],
+        due_date:    ['eq', 'gt', 'gte', 'lt', 'lte', 'between'],
+        time_spent:  ['eq', 'gt', 'gte', 'lt', 'lte', 'between'],
+    };
+    const OPERATOR_LABELS = {
+        eq: 'is (=)', not_eq: 'is not (≠)', contains: 'contains', not_contains: 'not contains',
+        in: 'in', not_in: 'not in',
+        gt: '>', gte: '≥', lt: '<', lte: '≤', between: 'between',
+    };
+    const FIELD_TYPE = {
+        name: 'text', priority: 'priority',
+        start_date: 'date', due_date: 'date', time_spent: 'time',
+    };
+
+    // --- Draft ---
+    let draftSortConditions   = [];
+    let draftFilterConditions = [];
+    let draftFilterLogic      = 'AND';
+
+    function cloneConditions(arr) {
+        return arr.map(c => ({ ...c, value: Array.isArray(c.value) ? [...c.value] : c.value }));
+    }
+
+    // --- Badge ---
+    function updateSFBadge(btnId, badgeId, count) {
+        const btn   = document.getElementById(btnId);
+        const badge = document.getElementById(badgeId);
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = '';
+            if (btn) btn.classList.add('active');
+        } else {
+            badge.style.display = 'none';
+            if (btn) btn.classList.remove('active');
+        }
+    }
+
+    // --- Open / Close ---
+    function sfOpenBox(boxId, btnId) {
+        document.getElementById(boxId)?.classList.add('visible');
+        document.getElementById('sf-overlay')?.classList.add('visible');
+        document.getElementById(btnId)?.classList.add('active');
+    }
+
+    function sfCloseAll() {
+        ['sf-sort-box', 'sf-filter-box'].forEach(id => document.getElementById(id)?.classList.remove('visible'));
+        document.getElementById('sf-overlay')?.classList.remove('visible');
+        if (sortConditions.length === 0)   document.getElementById('btn-sort')?.classList.remove('active');
+        if (filterConditions.length === 0) document.getElementById('btn-filter')?.classList.remove('active');
+    }
+
+    document.getElementById('sf-overlay')?.addEventListener('click', sfCloseAll);
+    document.getElementById('sf-sort-close')?.addEventListener('click', sfCloseAll);
+    document.getElementById('sf-filter-close')?.addEventListener('click', sfCloseAll);
+    document.getElementById('sf-sort-cancel')?.addEventListener('click', sfCloseAll);
+    document.getElementById('sf-filter-cancel')?.addEventListener('click', sfCloseAll);
+
+    // Gắn cờ mousedown cho các nút đóng filter
+    ['sf-filter-close', 'sf-filter-cancel'].forEach(id => {
+        document.getElementById(id)?.addEventListener('mousedown', () => {
+            _sfButtonClicked = true;
+            setTimeout(() => { _sfButtonClicked = false; }, 200);
+        });
+    });
+
+    // ── SORT ──
+    const DRAG_HANDLE_SVG = `<svg width="12" height="16" viewBox="0 0 12 16" fill="none">
+      <circle cx="4" cy="4"  r="1.3" fill="currentColor"/>
+      <circle cx="8" cy="4"  r="1.3" fill="currentColor"/>
+      <circle cx="4" cy="8"  r="1.3" fill="currentColor"/>
+      <circle cx="8" cy="8"  r="1.3" fill="currentColor"/>
+      <circle cx="4" cy="12" r="1.3" fill="currentColor"/>
+      <circle cx="8" cy="12" r="1.3" fill="currentColor"/>
+    </svg>`;
+
+    let sfDragSrc = null;
+
+    function buildSortCard(s, isNew) {
+        const card = document.createElement('div');
+        card.className = 'sf-sort-condition' + (isNew ? ' is-new' : '');
+        card.dataset.id = s.id;
+        card.draggable = false;
+
+        const lbl = document.createElement('div');
+        lbl.className = 'sf-field-label';
+        lbl.textContent = 'Sort by';
+        card.appendChild(lbl);
+
+        const row = document.createElement('div');
+        row.className = 'sf-sort-row-inner';
+
+        const handle = document.createElement('div');
+        handle.className = 'sf-drag-handle';
+        handle.innerHTML = DRAG_HANDLE_SVG;
+        handle.addEventListener('mousedown', () => { card.draggable = true; });
+        handle.addEventListener('mouseup',   () => { card.draggable = false; });
+
+        card.addEventListener('dragstart', e => {
+            sfDragSrc = card;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        card.addEventListener('dragend', () => {
+            card.draggable = false;
+            card.classList.remove('dragging');
+            document.querySelectorAll('.sf-drop-indicator').forEach(el => el.remove());
+            sfDragSrc = null;
+        });
+        card.addEventListener('dragover', e => {
+            if (!sfDragSrc || sfDragSrc === card) return;
+            e.preventDefault();
+            document.querySelectorAll('.sf-drop-indicator').forEach(el => el.remove());
+            const rect  = card.getBoundingClientRect();
+            const after = e.clientY > rect.top + rect.height / 2;
+            const ind = document.createElement('div');
+            ind.className = 'sf-drop-indicator';
+            const wrap = document.getElementById('sf-sort-body');
+            wrap.insertBefore(ind, after ? card.nextSibling : card);
+        });
+        card.addEventListener('drop', e => {
+            if (!sfDragSrc || sfDragSrc === card) return;
+            e.preventDefault();
+            document.querySelectorAll('.sf-drop-indicator').forEach(el => el.remove());
+            const rect  = card.getBoundingClientRect();
+            const after = e.clientY > rect.top + rect.height / 2;
+            const wrap = document.getElementById('sf-sort-body');
+            wrap.insertBefore(sfDragSrc, after ? card.nextSibling : card);
+            syncSortOrder();
+        });
+
+        const sel = document.createElement('button');
+        sel.type = 'button';
+        sel.className = 'sf-cycle-btn';
+        sel.textContent = s.field;
+        sel.addEventListener('click', () => {
+            const idx = SORT_FIELDS.indexOf(s.field);
+            s.field = SORT_FIELDS[(idx + 1) % SORT_FIELDS.length];
+            sel.textContent = s.field;
+        });
+
+        const grp = document.createElement('div');
+        grp.className = 'sf-sort-dir-group';
+        const btnAsc  = document.createElement('button');
+        const btnDesc = document.createElement('button');
+        btnAsc.className  = 'sf-dir-btn' + (s.asc  ? ' active' : '');
+        btnDesc.className = 'sf-dir-btn' + (!s.asc ? ' active' : '');
+        btnAsc.textContent  = 'Asc';
+        btnDesc.textContent = 'Desc';
+        btnAsc.addEventListener('click',  () => { s.asc = true;  btnAsc.classList.add('active');  btnDesc.classList.remove('active'); });
+        btnDesc.addEventListener('click', () => { s.asc = false; btnDesc.classList.add('active'); btnAsc.classList.remove('active');  });
+        grp.append(btnAsc, btnDesc);
+
+        const rm = document.createElement('button');
+        rm.className = 'sf-remove-btn';
+        rm.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+        rm.addEventListener('click', () => {
+            draftSortConditions = draftSortConditions.filter(x => x.id !== s.id);
+            card.remove();
+            if (draftSortConditions.length === 0) renderSortEmpty();
+        });
+
+        row.append(handle, sel, grp, rm);
+        card.appendChild(row);
+        return card;
+    }
+
+    function syncSortOrder() {
+        const cards = document.querySelectorAll('#sf-sort-body .sf-sort-condition');
+        const newOrder = [];
+        cards.forEach(card => {
+            const found = draftSortConditions.find(s => s.id === parseInt(card.dataset.id));
+            if (found) newOrder.push(found);
+        });
+        draftSortConditions = newOrder;
+    }
+
+    function renderSortEmpty() {
+        document.getElementById('sf-sort-body').innerHTML = `
+            <div class="sf-empty-state">
+                <div class="sf-empty-icon">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <rect width="36" height="36" rx="8" fill="rgba(99,102,241,0.08)"/>
+                        <line x1="10" y1="12" x2="26" y2="12" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="13" y1="18" x2="23" y2="18" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="16" y1="24" x2="20" y2="24" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                No sort conditions yet.<br>Click "Add a condition" to start.
+            </div>`;
+    }
+
+    function initSortBox() {
+        draftSortConditions = cloneConditions(sortConditions);
+        const wrap = document.getElementById('sf-sort-body');
+        wrap.innerHTML = '';
+        if (draftSortConditions.length === 0) { renderSortEmpty(); return; }
+        draftSortConditions.forEach(s => wrap.appendChild(buildSortCard(s, false)));
+    }
+
+    document.getElementById('btn-sort')?.addEventListener('click', () => {
+        initSortBox();
+        sfOpenBox('sf-sort-box', 'btn-sort');
+    });
+
+    document.getElementById('sf-sort-add')?.addEventListener('click', () => {
+        const s = { id: sortIdCtr++, field: 'name', asc: true };
+        draftSortConditions.push(s);
+        const wrap = document.getElementById('sf-sort-body');
+        wrap.querySelector('.sf-empty-state')?.remove();
+        wrap.appendChild(buildSortCard(s, true));
+    });
+
+    document.getElementById('sf-sort-apply')?.addEventListener('click', () => {
+        const cards = document.querySelectorAll('#sf-sort-body .sf-sort-condition');
+        const ordered = [];
+        cards.forEach(card => {
+            const found = draftSortConditions.find(s => s.id === parseInt(card.dataset.id));
+            if (found) ordered.push(found);
+        });
+        draftSortConditions = ordered;
+        sortConditions = cloneConditions(draftSortConditions);
+        updateSFBadge('btn-sort', 'sort-badge', sortConditions.length);
+        sfCloseAll();
+        window.sortState = { conditions: sortConditions.map(s => ({ field: s.field, asc: s.asc })) };
+        document.dispatchEvent(new CustomEvent('sortApplied', { detail: window.sortState }));
+    });
+
+    // ── FILTER ──
+    function buildFilterCard(f, isNew) {
+        const card = document.createElement('div');
+        card.className = 'sf-filter-condition' + (isNew ? ' is-new' : '');
+        card.dataset.id = f.id;
+
+        const topRow = document.createElement('div');
+        topRow.className = 'sf-filter-top-row';
+
+        const fieldWrap = document.createElement('div');
+        const fieldLbl  = document.createElement('div');
+        fieldLbl.className = 'sf-field-label';
+        fieldLbl.textContent = 'Field';
+        const fieldSel = document.createElement('button');
+        fieldSel.type = 'button';
+        fieldSel.className = 'sf-cycle-btn';
+        fieldSel.textContent = f.field;
+        fieldWrap.append(fieldLbl, fieldSel);
+
+        const opWrap = document.createElement('div');
+        const opLbl  = document.createElement('div');
+        opLbl.className = 'sf-field-label';
+        opLbl.textContent = 'Operator';
+        const opSel = document.createElement('button');
+        opSel.type = 'button';
+        opSel.className = 'sf-cycle-btn';
+        opWrap.append(opLbl, opSel);
+
+        const rm = document.createElement('button');
+        rm.className = 'sf-remove-btn';
+        rm.style.marginBottom = '1px';
+        rm.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+        rm.addEventListener('click', () => {
+            draftFilterConditions = draftFilterConditions.filter(x => x.id !== f.id);
+            card.remove();
+            if (draftFilterConditions.length === 0) renderFilterEmpty();
+        });
+
+        topRow.append(fieldWrap, opWrap, rm);
+        card.appendChild(topRow);
+
+        const valueArea = document.createElement('div');
+        valueArea.className = 'sf-filter-value-area';
+        card.appendChild(valueArea);
+
+        function populateOperators(field, currentOp) {
+            const ops = FIELD_OPERATORS[field];
+            f.operator = ops.includes(currentOp) ? currentOp : ops[0];
+            opSel.textContent = OPERATOR_LABELS[f.operator];
+            opSel.onclick = () => {
+                const idx = ops.indexOf(f.operator);
+                f.operator  = ops[(idx + 1) % ops.length];
+                opSel.textContent = OPERATOR_LABELS[f.operator];
+                f.value     = FIELD_TYPE[f.field] === 'priority' ? (f.value || []) : (typeof f.value === 'string' ? f.value : '');
+                f.valueFrom = f.valueFrom || '';
+                f.valueTo   = f.valueTo   || '';
+                renderValueArea(f.field, f.operator);
+            };
+        }
+
+        function buildValueInput(type, currentVal) {
+            if (type === 'date') {
+                const wrap = document.createElement('div');
+                wrap.className = 'sf-date-btn-wrap';
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'sf-date-btn' + (currentVal ? ' has-date' : '');
+
+                const svgIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="5" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <line x1="4" y1="9" x2="20" y2="9" stroke="currentColor" stroke-width="2"/>
+                    <line x1="8" y1="3" x2="8" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="16" y1="3" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>`;
+                const label = document.createElement('span');
+                label.textContent = currentVal || 'Set date';
+                if (!currentVal) label.classList.add('placeholder');
+                btn.innerHTML = svgIcon;
+                btn.appendChild(label);
+
+                let _currentDate = currentVal ? (() => {
+                    if (currentVal.includes('/')) {
+                        const [dd, mm, yyyy] = currentVal.split('/');
+                        return new Date(+yyyy, +mm - 1, +dd);
+                    }
+                    return new Date(currentVal);
+                })() : null;
+
+                wrap._dateValue = currentVal || '';
+
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    filterDatePicker.open(
+                        _currentDate,
+                        (date, formatted) => {
+                            const iso = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+                            _currentDate = date;
+                            wrap._dateValue = iso;
+                            label.textContent = formatted;
+                            label.classList.remove('placeholder');
+                            btn.classList.add('has-date');
+                            wrap.dispatchEvent(new CustomEvent('datechange', { detail: iso, bubbles: true }));
+                        },
+                        () => {
+                            _currentDate = null;
+                            wrap._dateValue = '';
+                            label.textContent = 'Set date';
+                            label.classList.add('placeholder');
+                            btn.classList.remove('has-date');
+                            wrap.dispatchEvent(new CustomEvent('datechange', { detail: '', bubbles: true }));
+                        }
+                    );
+                });
+
+                wrap.appendChild(btn);
+
+                Object.defineProperty(wrap, 'value', {
+                    get: () => wrap._dateValue,
+                    set: (v) => { wrap._dateValue = v; },
+                });
+
+                const _origAddEventListener = wrap.addEventListener.bind(wrap);
+                wrap.addEventListener = (event, handler, ...rest) => {
+                    if (event === 'input') {
+                        _origAddEventListener('datechange', (e) => handler({ target: { value: e.detail } }), ...rest);
+                    } else {
+                        _origAddEventListener(event, handler, ...rest);
+                    }
+                };
+
+                return wrap;
+            } else if (type === 'time') {
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.placeholder = 'Enter value...';
+                inp.value = currentVal || '';
+                inp._isTimeInput = true;
+                inp.addEventListener('blur', () => {
+                    if (_sfButtonClicked) return;
+                    const v = inp.value.trim();
+                    if (v === '') return;
+                    const n = parseFloat(v);
+                    if (isNaN(n) || n < 0 || !/^[0-9]*\.?[0-9]+$/.test(v)) {
+                        utils.showWarning('Please enter a valid number >= 0');
+                        inp.value = '';
+                        setTimeout(() => inp.focus(), 0);
+                    } else {
+                        inp.value = String(n);
+                    }
+                });
+                return inp;
+            } else {
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.placeholder = 'Enter value...';
+                inp.value = currentVal || '';
+                return inp;
+            }
+        }
+
+        function renderValueArea(field, operator) {
+            valueArea.innerHTML = '';
+            const type = FIELD_TYPE[field];
+
+            if (type === 'priority') {
+                const lbl = document.createElement('div');
+                lbl.className = 'sf-field-label';
+                lbl.textContent = 'Value';
+                const cg = document.createElement('div');
+                cg.className = 'sf-chip-group';
+                ['high', 'medium', 'low'].forEach(p => {
+                    const colors = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
+                    const chip = document.createElement('span');
+                    const selected = Array.isArray(f.value) && f.value.includes(p);
+                    chip.className = 'sf-chip ' + p + (selected ? ' selected' : '');
+                    chip.innerHTML = `<svg width="6" height="6"><circle cx="3" cy="3" r="3" fill="${colors[p]}"/></svg>${p}`;
+                    chip.addEventListener('click', () => {
+                        if (!Array.isArray(f.value)) f.value = [];
+                        if (f.value.includes(p)) f.value = f.value.filter(v => v !== p);
+                        else f.value.push(p);
+                        chip.classList.toggle('selected', f.value.includes(p));
+                    });
+                    cg.appendChild(chip);
+                });
+                valueArea.append(lbl, cg);
+
+            } else if (operator === 'between') {
+                const lbl = document.createElement('div');
+                lbl.className = 'sf-field-label';
+                lbl.textContent = 'Value (from → to)';
+                valueArea.appendChild(lbl);
+
+                const brow = document.createElement('div');
+                brow.className = 'sf-between-row';
+
+                const fromWrap = document.createElement('div');
+                const fromLbl  = document.createElement('div');
+                fromLbl.className = 'sf-field-label';
+                fromLbl.textContent = 'From';
+                const fromInp = buildValueInput(type, f.valueFrom || '');
+                fromInp.addEventListener('input',  () => { f.valueFrom = fromInp.value; });
+                fromWrap.append(fromLbl, fromInp);
+
+                const toWrap = document.createElement('div');
+                const toLbl  = document.createElement('div');
+                toLbl.className = 'sf-field-label';
+                toLbl.textContent = 'To';
+                const toInp = buildValueInput(type, f.valueTo || '');
+                toInp.addEventListener('input', () => { f.valueTo = toInp.value; });
+                toWrap.append(toLbl, toInp);
+
+                brow.append(fromWrap, toWrap);
+                valueArea.appendChild(brow);
+
+            } else {
+                const lbl = document.createElement('div');
+                lbl.className = 'sf-field-label';
+                lbl.textContent = 'Value';
+                const inp = buildValueInput(type, typeof f.value === 'string' ? f.value : '');
+                inp.addEventListener('input', () => { f.value = inp.value; });
+                valueArea.append(lbl, inp);
+            }
+        }
+
+        populateOperators(f.field, f.operator);
+        renderValueArea(f.field, f.operator);
+
+        fieldSel.addEventListener('click', () => {
+            const idx = FILTER_FIELDS.indexOf(f.field);
+            f.field    = FILTER_FIELDS[(idx + 1) % FILTER_FIELDS.length];
+            f.operator = FIELD_OPERATORS[f.field][0];
+            f.value    = FIELD_TYPE[f.field] === 'priority' ? [] : '';
+            f.valueFrom = ''; f.valueTo = '';
+            fieldSel.textContent = f.field;
+            populateOperators(f.field, f.operator);
+            renderValueArea(f.field, f.operator);
+        });
+
+        return card;
+    }
+
+    function renderFilterEmpty() {
+        document.getElementById('sf-filter-conditions-list').innerHTML = `
+            <div class="sf-empty-state">
+                <div class="sf-empty-icon">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <rect width="36" height="36" rx="8" fill="rgba(99,102,241,0.08)"/>
+                        <path d="M10 12h16l-6 7v5l-4-2v-3l-6-7z" stroke="#6366f1" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                </div>
+                No filter conditions yet.<br>Click "Add a condition" to start.
+            </div>`;
+    }
+
+    function initFilterBox() {
+        draftFilterConditions = cloneConditions(filterConditions);
+        draftFilterLogic      = filterLogic;
+        document.getElementById('sf-logic-and').classList.toggle('active', draftFilterLogic === 'AND');
+        document.getElementById('sf-logic-or').classList.toggle('active',  draftFilterLogic === 'OR');
+        const list = document.getElementById('sf-filter-conditions-list');
+        list.innerHTML = '';
+        if (draftFilterConditions.length === 0) { renderFilterEmpty(); return; }
+        draftFilterConditions.forEach(f => list.appendChild(buildFilterCard(f, false)));
+    }
+
+    document.getElementById('btn-filter')?.addEventListener('click', () => {
+        initFilterBox();
+        sfOpenBox('sf-filter-box', 'btn-filter');
+    });
+
+    document.getElementById('sf-filter-add')?.addEventListener('click', () => {
+        const f = { id: filterIdCtr++, field: 'name', operator: 'contains', value: '', valueFrom: '', valueTo: '' };
+        draftFilterConditions.push(f);
+        const list = document.getElementById('sf-filter-conditions-list');
+        list.querySelector('.sf-empty-state')?.remove();
+        list.appendChild(buildFilterCard(f, true));
+    });
+
+    document.getElementById('sf-logic-and')?.addEventListener('click', () => {
+        draftFilterLogic = 'AND';
+        document.getElementById('sf-logic-and').classList.add('active');
+        document.getElementById('sf-logic-or').classList.remove('active');
+    });
+    document.getElementById('sf-logic-or')?.addEventListener('click', () => {
+        draftFilterLogic = 'OR';
+        document.getElementById('sf-logic-or').classList.add('active');
+        document.getElementById('sf-logic-and').classList.remove('active');
+    });
+
+    document.getElementById('sf-filter-apply')?.addEventListener('mousedown', () => {
+        _sfButtonClicked = true;
+        setTimeout(() => { _sfButtonClicked = false; }, 200);
+    });
+
+    document.getElementById('sf-filter-apply')?.addEventListener('click', () => {
+        // Validate time inputs trước khi commit
+        const timeInputs = document.querySelectorAll('#sf-filter-conditions-list input[type="text"]');
+        for (const inp of timeInputs) {
+            if (!inp._isTimeInput) continue;
+            const v = inp.value.trim();
+            if (v === '') continue;
+            const n = parseFloat(v);
+            if (isNaN(n) || n < 0 || !/^[0-9]*\.?[0-9]+$/.test(v)) {
+                utils.showWarning('Please enter a valid number >= 0');
+                _sfButtonClicked = false;
+                inp.focus();
+                return;
+            }
+            inp.value = String(n);
+        }
+        // Commit draft → state thật
+        filterConditions = cloneConditions(draftFilterConditions);
+        filterLogic      = draftFilterLogic;
+        updateSFBadge('btn-filter', 'filter-badge', filterConditions.length);
+        sfCloseAll();
+        window.filterState = {
+            logic: filterLogic,
+            conditions: filterConditions.map(f => ({
+                field: f.field, operator: f.operator,
+                value: f.value, valueFrom: f.valueFrom, valueTo: f.valueTo,
+            }))
+        };
+        document.dispatchEvent(new CustomEvent('filterApplied', { detail: window.filterState }));
+    });
+
+    // Close sf boxes when task detail calendar is opened
+    document.getElementById('taskCalendarOverlay')?.addEventListener('click', () => {
+        document.getElementById('sf-sort-box')?.classList.remove('visible');
+        document.getElementById('sf-filter-box')?.classList.remove('visible');
+        document.getElementById('sf-overlay')?.classList.remove('visible');
     });
 });

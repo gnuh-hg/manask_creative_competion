@@ -90,7 +90,9 @@
     "msg_create_error": "Unable to create a new item",
     "msg_update_error": "Unable to update",
     "msg_delete_error": "Unable to delete",
-    "msg_folder_status_error": "Unable to update folder status"
+    "msg_folder_status_error": "Unable to update folder status",
+    "btn_sort": "Sort",
+    "btn_filter": "Filter"
   },
   "login": {
     "label": {

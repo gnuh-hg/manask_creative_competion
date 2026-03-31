@@ -90,7 +90,9 @@
     "msg_create_error": "Không thể tạo mục mới",
     "msg_update_error": "Không thể cập nhật",
     "msg_delete_error": "Không thể xóa",
-    "msg_folder_status_error": "Không thể cập nhật trạng thái thư mục"
+    "msg_folder_status_error": "Không thể cập nhật trạng thái thư mục",
+    "btn_sort": "Sắp xếp",
+    "btn_filter": "Lọc"
   },
   "login": {
     "label": {

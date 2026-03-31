@@ -47,13 +47,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const response = await utils.fetchWithAuth(
                 `${utils.URL_API}/account`,
                 { method: 'GET' },
-                {
-                    enableQueue: true,
-                    optimisticData: {
-                        username: localStorage.getItem('username') || 'Loading...',
-                        email: localStorage.getItem('email') || 'Loading...'
-                    }
-                }, utils.generateId(), 1
+                { optimisticData: {
+                    username: localStorage.getItem('username') || 'Loading...',
+                    email: localStorage.getItem('email') || 'Loading...'
+                }},
+                utils.generateId(), 1
             );
             if (!response.ok) 
                 throw new Error('Failed to fetch user data');
