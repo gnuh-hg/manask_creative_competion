@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (login_btn.classList.contains('loading')) return;
 
         const email = email_input.value.trim();
-        const password = password_input.value.trim();
+        const password = password_input.value;
 
         // Validation
         if (!email || !password) {

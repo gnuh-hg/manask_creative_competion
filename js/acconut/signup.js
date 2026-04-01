@@ -160,9 +160,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
 
-        const username = name_input.value.trim();
+        const username = name_input.value;
         const email = email_input.value.trim();
-        const password = password_input.value.trim();
+        const password = password_input.value;
 
         // Clear previous error states
         name_input.classList.remove('error');

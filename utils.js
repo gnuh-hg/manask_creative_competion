@@ -148,6 +148,8 @@ export async function fetchWithRetry(url, options = {}, retries = 4) {
  *                                                (dùng cho Optimistic UI)
  */
 export async function fetchWithAuth(url, options = {}, queueOptions = {}, key = generateId(), retries = 4) {
+    console.info(`[FetchWithAuth] ${options.method || 'GET'} ${url} ${JSON.stringify(options)} (retries=${retries}, queue=${queueOptions.enableQueue})`);
+    console.trace();
     const { enableQueue = false, optimisticData = null } = queueOptions;
 
     showLoading();

@@ -188,8 +188,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 if (id.startsWith("tmp-")) {
                     const existing = await idb.getData(utils.QUEUE_STORE, id);
-                    console.log("Toggling queued item:", id);
-                    console.log("Existing queued item for toggle:", existing);
+
                     await idb.patchData(utils.QUEUE_STORE, id, {
                       // field phẳng: truyền thẳng
                       token: localStorage.getItem("access_token"),
@@ -235,15 +234,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (item.classList.contains('project-item-child')) {
             item.addEventListener('click', function(e) {
                 if (e.target.closest('.modal-more')) return;
-
+            
                 const projectId = this.getAttribute('data-id');
                 const name = this.querySelector('p').innerText;
-                
+            
+                // Lưu project đã chọn vào localStorage
+                localStorage.setItem('selectedProjectId', projectId);
+                localStorage.setItem('selectedProjectName', name);
+            
                 // Đóng sidebar trên mobile khi chọn project
                 closeSidebarMobile();
-
+            
                 const event = new CustomEvent('projectSelected', {
-                    detail: { id: projectId, name: name},
+                    detail: { id: projectId, name: name },
                     bubbles: true
                 });
                 document.dispatchEvent(event);
@@ -414,26 +417,62 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
 
-        try {
-            if (utils.TEST) {
-                currentSelectedItem.querySelector('p').innerText = newName;
-                const iconPath = currentSelectedItem.querySelector('.folder-icon path') || currentSelectedItem.querySelector('.project-icon circle');
-                if (iconPath) iconPath.setAttribute('fill', newColor);
+        if (utils.TEST) {
+            currentSelectedItem.querySelector('p').innerText = newName;
+            const iconPath = currentSelectedItem.querySelector('.folder-icon path') || currentSelectedItem.querySelector('.project-icon circle');
+            if (iconPath) iconPath.setAttribute('fill', newColor);
 
-                if (currentSelectedItem.classList.contains('project-item-child')) {
-                    document.dispatchEvent(new CustomEvent('projectUpdated', {
-                        detail: { id: currentSelectedItem.getAttribute('data-id'), name: newName }
-                    }));
-                }
-
-                closeModals();
-                return;
+            if (currentSelectedItem.classList.contains('project-item-child')) {
+                document.dispatchEvent(new CustomEvent('projectUpdated', {
+                    detail: { id: currentSelectedItem.getAttribute('data-id'), name: newName }
+                }));
             }
 
-            const res = await utils.fetchWithAuth(`${utils.URL_API}/items/${id}`, {
-                method: 'PUT',
-                body: JSON.stringify({ name: newName, color: newColor })
+            closeModals();
+            return;
+        }
+
+        if (id.startsWith("tmp-")) {
+            const existing = await idb.getData(utils.QUEUE_STORE, id);
+
+            await idb.patchData(utils.QUEUE_STORE, id, {
+                token: localStorage.getItem("access_token"),
+                enqueuedAt: Date.now(),
+                options: {
+                    ...existing.options,
+                    body: JSON.stringify({
+                        ...JSON.parse(existing.options.body),
+                        name: newName,
+                        color: newColor
+                    })
+                }
             });
+
+            currentSelectedItem.querySelector('p').innerText = newName;
+            const iconPath = currentSelectedItem.querySelector('.folder-icon path') || currentSelectedItem.querySelector('.project-icon circle');
+            if (iconPath) iconPath.setAttribute('fill', newColor);
+            
+            if (currentSelectedItem.classList.contains('project-item-child')) {
+                document.dispatchEvent(new CustomEvent('projectUpdated', {
+                    detail: { id: currentSelectedItem.getAttribute('data-id'), name: newName }
+                }));
+            }
+            
+            closeModals();
+
+            return;
+        }
+
+        try {
+            const res = await utils.fetchWithAuth(
+                `${utils.URL_API}/items/${id}`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({ name: newName, color: newColor })
+                },
+                { enableQueue: true },
+                utils.generateId(), 1
+            );
 
             if (res.ok) {
                 currentSelectedItem.querySelector('p').innerText = newName;
@@ -467,23 +506,45 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         const id = currentSelectedItem.getAttribute('data-id');
 
-        try {
-            if (utils.TEST) {
-                if (currentSelectedItem.classList.contains('project-item-child')) {
-                    document.dispatchEvent(new CustomEvent('projectDeleted', {
-                        detail: { id: currentSelectedItem.getAttribute('data-id') }
-                    }));
-                }
-
-                currentSelectedItem.remove();
-                updateEmptyState();
-                closeModals();
-                return;
+        if (utils.TEST) {
+            if (currentSelectedItem.classList.contains('project-item-child')) {
+                document.dispatchEvent(new CustomEvent('projectDeleted', {
+                    detail: { id: currentSelectedItem.getAttribute('data-id') }
+                }));
             }
 
-            const res = await utils.fetchWithAuth(`${utils.URL_API}/items/${id}`, { 
-                method: 'DELETE' 
-            });
+            currentSelectedItem.remove();
+            updateEmptyState();
+            closeModals();
+            return;
+        }
+
+        if (id.startsWith("tmp-")) {
+            await idb.deleteData(utils.QUEUE_STORE, id);
+
+            if (currentSelectedItem.classList.contains('project-item-child')) {
+                document.dispatchEvent(new CustomEvent('projectDeleted', {
+                    detail: { id: currentSelectedItem.getAttribute('data-id') }
+                }));
+            }
+
+            currentSelectedItem.remove();
+            updateEmptyState();
+            closeModals();
+            return;
+        }
+
+        try {
+            const res = await utils.fetchWithAuth(
+                `${utils.URL_API}/items/${id}`,
+                { 
+                    method: 'DELETE'
+                },
+                {
+                    enableQueue: true
+                },
+                utils.generateId(), 1
+            );
             
             if (res.ok) {
                 if (currentSelectedItem.classList.contains('project-item-child')) {
@@ -660,6 +721,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     window.addEventListener('langChanged', () => {
         updateEmptyState();
     });
+
+    window.addEventListener("online", () => { loadData(); });
 
     loadData();
 });

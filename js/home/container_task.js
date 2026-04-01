@@ -21,10 +21,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         projectId = e.detail.id;
         nameProject = e.detail.name;
 
+        sortConditions = [];
+        filterConditions = [];
+        filterLogic = 'AND';
+        sortIdCtr = 0;
+        filterIdCtr = 0;
+        updateSFBadge('btn-sort', 'sort-badge', 0);
+        updateSFBadge('btn-filter', 'filter-badge', 0);
+
         container.querySelector('h1').style.display = '';
         container.querySelector('h1 p').innerHTML = nameProject;
         if (!utils.TEST) loadData();
     });
+
+    function restoreSelectedProject() {
+        const savedId = localStorage.getItem('selectedProjectId');
+        const savedName = localStorage.getItem('selectedProjectName');
+        if (!savedId || !savedName) return;
+
+        const event = new CustomEvent('projectSelected', {
+            detail: { id: savedId, name: savedName },
+            bubbles: true
+        });
+        document.dispatchEvent(event);
+    };
 
     document.addEventListener('projectUpdated', function(e) {
         const { id, name } = e.detail;
@@ -1406,7 +1426,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                     `${utils.URL_API}/project/${projectId}/sort`,
                     { method: 'PUT', body: JSON.stringify(payload) }
                 );
-                if (!res.ok) utils.showWarning(t('home.msg_sort_error'));
+                if (!res.ok) {
+                    utils.showWarning(t('home.msg_sort_error'));
+                } else {
+                    // Reload task list để áp dụng sort
+                    await loadData();
+                }
             } catch {
                 utils.showWarning(t('home.msg_sort_error'));
             }
@@ -1756,7 +1781,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                     `${utils.URL_API}/project/${projectId}/filter`,
                     { method: 'PUT', body: JSON.stringify(payload) }
                 );
-                if (!res.ok) utils.showWarning(t('home.msg_filter_error'));
+                if (!res.ok) {
+                    utils.showWarning(t('home.msg_filter_error'));
+                } else {
+                    // Reload task list để áp dụng filter
+                    await loadData();
+                }
             } catch {
                 utils.showWarning(t('home.msg_filter_error'));
             }
@@ -1769,4 +1799,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('sf-filter-box')?.classList.remove('visible');
         document.getElementById('sf-overlay')?.classList.remove('visible');
     });
+
+    restoreSelectedProject();
 });

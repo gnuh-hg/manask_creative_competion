@@ -35,8 +35,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ========== FETCH USER DATA ==========
     async function fetchUserData() {
         try {
+            // Hiển thị dữ liệu cache từ localStorage trước
+            const cachedUsername = localStorage.getItem('username');
+            const cachedEmail = localStorage.getItem('email');
+            if (cachedUsername) {
+                currentUser = { username: cachedUsername, email: cachedEmail };
+                updateUI();
+            }
+
             if (utils.TEST) {
-                // Test data
                 currentUser = {
                     username: 'Admin Taskora',
                     email: 'admin.taskora@example.com'
@@ -44,27 +51,27 @@ document.addEventListener('DOMContentLoaded', async function() {
                 updateUI();
                 return;
             }
+
             const response = await utils.fetchWithAuth(
                 `${utils.URL_API}/account`,
                 { method: 'GET' },
-                { optimisticData: {
-                    username: localStorage.getItem('username') || 'Loading...',
-                    email: localStorage.getItem('email') || 'Loading...'
-                }},
-                utils.generateId(), 1
+                {}, utils.generateId(), 1
             );
-            if (!response.ok) 
-                throw new Error('Failed to fetch user data');
+            if (!response.ok) throw new Error('Failed to fetch user data');
+
             currentUser = await response.json();
             updateUI();
 
-            if (response.headers.get('X-Queued') !== 'true') {
-                localStorage.setItem('username', currentUser.username);
-                localStorage.setItem('email', currentUser.email);
-            }
+            // Cập nhật cache
+            localStorage.setItem('username', currentUser.username);
+            localStorage.setItem('email', currentUser.email);
+
         } catch (error) {
             console.error('Error fetching user data:', error);
-            usernameDisplay.textContent = 'Error';
+            // Nếu có cache thì không hiện Error
+            if (!localStorage.getItem('username')) {
+                usernameDisplay.textContent = 'Error';
+            }
         }
     }
 
@@ -135,7 +142,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 throw new Error('Failed to update name');
             }
             currentUser.username = newName;
-            localStorage.setItem('username', newName);
             updateUI();
             utils.showWarning(t('home.msg_name_updated'));
         } catch (error) {
