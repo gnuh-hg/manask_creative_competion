@@ -300,6 +300,17 @@ async function flushQueue() {
     }
 }
 
+//Boolean kiểm tra xem queue có phần tử nào không
+export async function isQueueEmpty() {
+    try {
+        const items = await idb.getAllDataWithKeys(QUEUE_STORE);
+        return items.length === 0;
+    } catch {
+        return true;
+    }
+}
+
+
 window.addEventListener("online", () => {
     console.info("[Queue] Mạng phục hồi, đang flush hàng chờ...");
     flushQueue();

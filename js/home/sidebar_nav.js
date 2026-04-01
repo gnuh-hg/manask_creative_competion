@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     let saveTimeout = null;
     async function saveAllStructure() {
         if (utils.TEST) return;
-
         if (isSaving) return;
+        if (!await utils.isQueueEmpty()) return;
         
         if (saveTimeout) clearTimeout(saveTimeout);
         

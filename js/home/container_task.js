@@ -1,4 +1,5 @@
 import * as utils from '../../utils.js';
+import * as idb from '../../idb.js';
 import { t, initI18n } from '../../i18n.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -385,9 +386,20 @@ document.addEventListener('DOMContentLoaded', async function() {
                     return;
                 }
                 try {
+                    if (data.id.toString().startsWith('tmp-')) {throw new Error('Cannot delete unsynced task');}
+
                     const response = await utils.fetchWithAuth(
                         `${utils.URL_API}/project/${projectId}/items/${data.id}/done`, 
-                        { method: 'DELETE' }
+                        { method: 'DELETE' },
+                        {
+                            enableQueue: true,
+                            onQueueSuccess: () => {
+                                item.remove();
+                                if (container.querySelectorAll('.task').length === 0)
+                                    showEmptyState('noTask');
+                            }
+                        },
+                        utils.generateId(), 1
                     );
                     
                     if (response.ok) {
@@ -466,26 +478,37 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
 
-        try {
-            if (utils.TEST) {
-                cnt++;
-                const pri = ['high', 'medium', 'low'];
-                const d = new Date();
-                const item = {
-                    id: cnt, position: cnt, name: `Task ${cnt}`,
-                    priority: pri[Math.ceil(Math.random() * 10) % 3],
-                    start_date: new Date(d.setHours(0,0,0,0)).toISOString(),
-                    due_date: new Date(d.setHours(23,59,59,999)).toISOString(),
-                    time_spent: 0,
-                    note: ""
-                };
-                renderItem(item);
-                return;
-            }
+        const tmp_id = utils.generateId();
+        cnt++;
+        const pri = ['high', 'medium', 'low'];
+        const d = new Date();
+        const item = {
+            id: tmp_id,
+            position: cnt, name: `Task ${cnt}`,
+            priority: pri[Math.ceil(Math.random() * 10) % 3],
+            start_date: new Date(d.setHours(0,0,0,0)).toISOString(),
+            due_date: new Date(d.setHours(23,59,59,999)).toISOString(),
+            time_spent: 0,
+            note: ""
+        };
 
-            const response = await utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items`, {
-                method: 'POST', body: JSON.stringify({})
-            });
+        if (utils.TEST) {
+            renderItem(item);
+            return;
+        }
+
+        try {
+            const response = await utils.fetchWithAuth(
+                `${utils.URL_API}/project/${projectId}/items`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({})
+                },
+                {
+                    enableQueue: true,
+                    optimisticData: item
+                }, tmp_id, 1
+            );
 
             if (response.ok) {
                 const item = await response.json();
@@ -527,7 +550,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     let nameDebounceTimer = null;
     
     if (nameInput) {
-        nameInput.addEventListener('input', function () {
+        nameInput.addEventListener('input', async function () {
             const newName = nameInput.value.trim();
             if (!newName || !activeData) return;
         
@@ -538,6 +561,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             activeData.name = newName;
         
             if (utils.TEST) return;
+
+            if (activeData.id.toString().startsWith('tmp-')) {
+                const existing = await idb.getData(utils.QUEUE_STORE, activeData.id);
+
+                await idb.patchData(utils.QUEUE_STORE, activeData.id, {
+                    token: localStorage.getItem('access_token'),
+                    enqueuedAt: Date.now(),
+
+                    options: {
+                        ...existing.options,
+                        body: JSON.stringify({
+                            ...JSON.parse(existing.options.body),
+                            name: newName
+                        })
+                    }
+                });
+
+                return;
+            }
         
             clearTimeout(nameDebounceTimer);
             nameDebounceTimer = setTimeout(async () => {
@@ -545,7 +587,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 try {
                     await utils.fetchWithAuth(
                         `${utils.URL_API}/project/${projectId}/items/${activeData.id}`,
-                        { method: 'PATCH', body: JSON.stringify({ name: newName }) }
+                        {
+                            method: 'PATCH',
+                            body: JSON.stringify({ name: newName })
+                        },
+                        { enableQueue: true },
+                        utils.generateId(), 1
                     );
                 } catch {}
             }, 500);
@@ -581,13 +628,35 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             if (utils.TEST) return;
 
+            if (activeData.id.toString().startsWith('tmp-')) {
+                idb.getData(utils.QUEUE_STORE, activeData.id).then(existing => {
+                    idb.patchData(utils.QUEUE_STORE, activeData.id, {
+                        token: localStorage.getItem('access_token'),
+                        enqueuedAt: Date.now(),
+                        options: {
+                            ...existing.options,
+                            body: JSON.stringify({
+                                ...JSON.parse(existing.options.body),
+                                priority: newPriority
+                            })
+                        }
+                    });
+                });
+                return;
+            }
+
             // Chỉ delay phần gửi backend
             clearTimeout(priorityDebounceTimer);
             priorityDebounceTimer = setTimeout(() => {
-                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ priority: newPriority })
-                }).catch(() => utils.showWarning(t('home.msg_priority_error')))
+                utils.fetchWithAuth(
+                    `${utils.URL_API}/project/${projectId}/items/${activeData.id}`,
+                    {
+                        method: 'PATCH',
+                        body: JSON.stringify({ priority: newPriority })
+                    },
+                    { enableQueue: true },
+                    utils.generateId(), 1
+                ).catch(() => utils.showWarning(t('home.msg_priority_error')))
             }, 500);
         });
     }
@@ -838,16 +907,40 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         _syncBackend() {
+            if (utils.TEST) return;
+            const updateData = this.activeTarget === 'start'
+                ? { start_date: activeData.start_date }
+                : { due_date:   activeData.due_date   };
+
+            if (activeData.id.toString().startsWith('tmp-')) {
+                idb.getData(utils.QUEUE_STORE, activeData.id).then(existing => {
+                    idb.patchData(utils.QUEUE_STORE, activeData.id, {
+                        token: localStorage.getItem('access_token'),
+                        enqueuedAt: Date.now(),
+                        options: {
+                            ...existing.options,
+                            body: JSON.stringify({
+                                ...JSON.parse(existing.options.body),
+                                ...updateData
+                            })
+                        }
+                    });
+                });
+                return;
+            }
+
+
             clearTimeout(dateDebounceTimer);
             dateDebounceTimer = setTimeout(() => {
-                if (utils.TEST) return;
-                const updateData = this.activeTarget === 'start'
-                    ? { start_date: activeData.start_date }
-                    : { due_date:   activeData.due_date   };
-                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify(updateData)
-                }).catch(() => utils.showWarning(t('home.msg_date_error')));
+                utils.fetchWithAuth(
+                    `${utils.URL_API}/project/${projectId}/items/${activeData.id}`,
+                    {
+                        method: 'PATCH',
+                        body: JSON.stringify(updateData)
+                    },
+                    { enableQueue: true },
+                    utils.generateId(), 1
+                ).catch(() => utils.showWarning(t('home.msg_date_error')));
             }, 500);
         }
     }
@@ -963,13 +1056,35 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             activeData.notes = newNotes;
 
+            if (activeData.id.toString().startsWith('tmp-')) {
+                idb.getData(utils.QUEUE_STORE, activeData.id).then(existing => {
+                    idb.patchData(utils.QUEUE_STORE, activeData.id, {
+                        token: localStorage.getItem('access_token'),
+                        enqueuedAt: Date.now(),
+                        options: {
+                            ...existing.options,
+                            body: JSON.stringify({
+                                ...JSON.parse(existing.options.body),
+                                notes: newNotes
+                            })
+                        }
+                    });
+                });
+                return;
+            }
+
             clearTimeout(notesDebounceTimer);
             notesDebounceTimer = setTimeout(() => {
                 if (utils.TEST) return;
-                utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/${activeData.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ notes: newNotes })
-                }).catch(() => utils.showWarning(t('home.msg_notes_error')));
+                utils.fetchWithAuth(
+                    `${utils.URL_API}/project/${projectId}/items/${activeData.id}`,
+                    {
+                        method: 'PATCH',
+                        body: JSON.stringify({ notes: newNotes })
+                    },
+                    { enableQueue: true },
+                    utils.generateId(), 1
+                ).catch(() => utils.showWarning(t('home.msg_notes_error')));
             }, 500);
         });
     }
@@ -990,10 +1105,24 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
 
+            if (activeData.id.toString().startsWith('tmp-')) {
+                await idb.deleteData(utils.QUEUE_STORE, activeData.id);
+
+                activeItem.remove();
+                if (container.querySelectorAll('.task').length === 0) 
+                    showEmptyState('noTask');
+                if (panel) panel.classList.remove('active');
+
+                return;
+            }
+
+
             try {
                 const response = await utils.fetchWithAuth(
                     `${utils.URL_API}/project/${projectId}/items/${activeData.id}`, 
-                    { method: 'DELETE' }
+                    { method: 'DELETE' },
+                    { enableQueue: true },
+                    utils.generateId(), 1
                 );
 
                 if (response.ok) {
@@ -1020,6 +1149,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 id: parseInt(el.dataset.id),
                 position: index + 1
             }));
+
+        if (!await utils.isQueueEmpty()) {return;}
         
         utils.fetchWithAuth(`${utils.URL_API}/project/${projectId}/items/reorder`, {
             method: 'PATCH',
@@ -1427,7 +1558,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const res = await utils.fetchWithAuth(
                     `${utils.URL_API}/project/${projectId}/sort`,
-                    { method: 'PUT', body: JSON.stringify(payload) }
+                    { method: 'PUT', body: JSON.stringify(payload) },
+                    { enableQueue: true },
+                    utils.generateId(), 1
                 );
                 if (!res.ok) {
                     utils.showWarning(t('home.msg_sort_error'));
@@ -1782,7 +1915,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const res = await utils.fetchWithAuth(
                     `${utils.URL_API}/project/${projectId}/filter`,
-                    { method: 'PUT', body: JSON.stringify(payload) }
+                    { method: 'PUT', body: JSON.stringify(payload) },
+                    { enableQueue: true },
+                    utils.generateId(), 1
                 );
                 if (!res.ok) {
                     utils.showWarning(t('home.msg_filter_error'));
