@@ -62,6 +62,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             projectId = null;
             nameProject = null;
 
+            localStorage.removeItem('selectedProjectId');
+            localStorage.removeItem('selectedProjectName');
+
             container.querySelectorAll('.task').forEach(el => el.remove());
 
             const panel = document.querySelector('.task-detail-panel');
