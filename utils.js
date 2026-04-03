@@ -1,4 +1,5 @@
 import * as idb from './idb.js';
+import { t } from './i18n.js';
 
 const URL_API = "https://backend-u1p2.onrender.com";
 const QUEUE_STORE = "offlinequeue";
@@ -57,7 +58,7 @@ export function showLoading() {
                     animation: config-spin 0.8s linear infinite; flex-shrink: 0;
                 "></div>
                 <span style="font-size: 13px; font-weight: 500; color: #9494a0;">
-                    Connecting...
+                    ${t('utils.connecting')}
                 </span>
             </div>
         `;
@@ -229,12 +230,12 @@ export async function fetchWithAuth(url, options = {}, queueOptions = {}, key = 
                 });
             }
         
-            showWarning("Mất kết nối. Dữ liệu sẽ được gửi lại khi có mạng.");
+            showWarning(t('utils.offline_queue'));
             throw error;
         }
                 // ───────────────────────────────────────────────────────────
 
-                showWarning("Kết nối không ổn định. Vui lòng thử lại sau.");
+                showWarning(t('utils.connection_unstable'));
                 throw error;
             }
         }
@@ -312,7 +313,7 @@ export async function isQueueEmpty() {
 
 
 window.addEventListener("online", () => {
-    console.info("[Queue] Mạng phục hồi, đang flush hàng chờ...");
+    console.info(`[Queue] ${t('utils.network_recovered')}`);
     flushQueue();
 });
 

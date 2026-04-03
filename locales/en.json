@@ -440,5 +440,11 @@
     "streak_longest": "Longest",
     "rate_created": "{{n}} created",
     "rate_done": "{{n}} completed"
+  },
+  "utils": {
+    "connecting": "Connecting...",
+    "offline_queue": "Connection lost. Data will be sent again when online.",
+    "connection_unstable": "Connection unstable. Please try again later.",
+    "network_recovered": "Network recovered, flushing queue..."
   }
 }

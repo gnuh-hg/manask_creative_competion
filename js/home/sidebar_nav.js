@@ -722,7 +722,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateEmptyState();
     });
 
-    window.addEventListener("online", () => { loadData(); });
+    window.addEventListener("online", async () => {
+      await waitForQueueEmpty();
+      loadData();
+    });
+
+    async function waitForQueueEmpty() {
+      while (!(await utils.isQueueEmpty())) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
 
     loadData();
 });

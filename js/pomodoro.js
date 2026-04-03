@@ -158,11 +158,25 @@ document.addEventListener('DOMContentLoaded', async function () {
             auto_start_focus: s.autoFocus,
             auto_start_break: s.autoBreak,
         };
+
+        localStorage.setItem('pomodoro_focus_duration', body.focus_duration);
+        localStorage.setItem('pomodoro_short_break', body.short_break);
+        localStorage.setItem('pomodoro_long_break', body.long_break);
+        localStorage.setItem('pomodoro_long_break_after', body.long_break_after);
+        localStorage.setItem('pomodoro_disable_break', body.disable_break);
+        localStorage.setItem('pomodoro_auto_focus', body.auto_start_focus);
+        localStorage.setItem('pomodoro_auto_break', body.auto_start_break);
+
         try {
-            const res = await utils.fetchWithAuth(`${utils.URL_API}/pomodoro/settings`, {
-                method: 'PATCH',
-                body: JSON.stringify(body),
-            });
+            const res = await utils.fetchWithAuth(
+                `${utils.URL_API}/pomodoro/settings`,
+                {
+                    method: 'PATCH',
+                    body: JSON.stringify(body),
+                },
+                { enableQueue: true},
+                utils.generateId(), 1
+            );
             if (!res.ok) utils.showWarning('PATCH settings failed');
         } catch (err) {
             if (err.message !== 'Unauthorized') utils.showWarning('PATCH settings error');
@@ -190,12 +204,46 @@ document.addEventListener('DOMContentLoaded', async function () {
     // --- 7. API: LOAD ON STARTUP ---
 
     async function loadSettings() {
+        const focusDur = localStorage.getItem('pomodoro_focus_duration') || 25 * 60;
+        const shortDur = localStorage.getItem('pomodoro_short_break') || 5 * 60;
+        const longDur = localStorage.getItem('pomodoro_long_break') || 15 * 60;
+        const longAfter = localStorage.getItem('pomodoro_long_break_after') || 4;
+        const disableBreak = localStorage.getItem('pomodoro_disable_break') === 'true';
+        const autoFocus = localStorage.getItem('pomodoro_auto_focus') === 'true';
+        const autoBreak = localStorage.getItem('pomodoro_auto_break') === 'true';
+
+        const localData = {
+            focus_duration:   parseInt(focusDur),
+            short_break:      parseInt(shortDur),
+            long_break:       parseInt(longDur),
+            long_break_after: parseInt(longAfter),
+            disable_break:    disableBreak,
+            auto_start_focus: autoFocus,
+            auto_start_break: autoBreak,
+        }
+
+        applySettingsToUI(localData);
+
         if (utils.TEST) return;
+
         try {
-            const res  = await utils.fetchWithAuth(`${utils.URL_API}/pomodoro/settings`);
+            const res  = await utils.fetchWithAuth(
+                `${utils.URL_API}/pomodoro/settings`,
+                { method: 'GET' },
+                {}, utils.generateId(), 1
+            );
+
             if (!res.ok) return;
             const data = await res.json();
             applySettingsToUI(data);
+
+            localStorage.setItem('pomodoro_focus_duration', data.focus_duration);
+            localStorage.setItem('pomodoro_short_break', data.short_break);
+            localStorage.setItem('pomodoro_long_break', data.long_break);
+            localStorage.setItem('pomodoro_long_break_after', data.long_break_after);
+            localStorage.setItem('pomodoro_disable_break', data.disable_break);
+            localStorage.setItem('pomodoro_auto_focus', data.auto_start_focus);
+            localStorage.setItem('pomodoro_auto_break', data.auto_start_break);
         } catch (err) {
             if (err.message !== 'Unauthorized') utils.showWarning('Load settings error');
         }

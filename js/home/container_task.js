@@ -392,12 +392,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         `${utils.URL_API}/project/${projectId}/items/${data.id}/done`, 
                         { method: 'DELETE' },
                         {
-                            enableQueue: true,
-                            onQueueSuccess: () => {
-                                item.remove();
-                                if (container.querySelectorAll('.task').length === 0)
-                                    showEmptyState('noTask');
-                            }
+                            enableQueue: true
                         },
                         utils.generateId(), 1
                     );
@@ -411,7 +406,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                         utils.showWarning(t('home.msg_task_delete_error'));
                     }
                 } catch (err) {
-                    utils.showWarning(t('home.msg_task_delete_error'));
+                    item.remove();
+                    // Nếu không còn task nào thì hiện empty state
+                    if (container.querySelectorAll('.task').length === 0) 
+                        showEmptyState('noTask');
                 }
             }, 400);
         });
@@ -480,20 +478,22 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         const tmp_id = utils.generateId();
         cnt++;
-        const pri = ['high', 'medium', 'low'];
         const d = new Date();
         const item = {
-            id: tmp_id,
-            position: cnt, name: `Task ${cnt}`,
-            priority: pri[Math.ceil(Math.random() * 10) % 3],
+            name: `Task`,
+            priority: 'low',
             start_date: new Date(d.setHours(0,0,0,0)).toISOString(),
             due_date: new Date(d.setHours(23,59,59,999)).toISOString(),
-            time_spent: 0,
             note: ""
+        };
+        const fake_item = {
+            ...item,
+            id: tmp_id,
+            position: cnt
         };
 
         if (utils.TEST) {
-            renderItem(item);
+            renderItem(fake_item);
             return;
         }
 
@@ -502,17 +502,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                 `${utils.URL_API}/project/${projectId}/items`,
                 {
                     method: 'POST',
-                    body: JSON.stringify({})
+                    body: JSON.stringify(item)
                 },
                 {
                     enableQueue: true,
-                    optimisticData: item
+                    optimisticData: fake_item
                 }, tmp_id, 1
             );
 
             if (response.ok) {
-                const item = await response.json();
-                renderItem(item);
+                const _item = await response.json();
+                renderItem(_item);
             } else {
                 utils.showWarning(t('home.msg_task_create_error'));
             }
@@ -908,9 +908,27 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         _syncBackend() {
             if (utils.TEST) return;
-            const updateData = this.activeTarget === 'start'
-                ? { start_date: activeData.start_date }
-                : { due_date:   activeData.due_date   };
+            if (!activeData) return; // ← THÊM DÒNG NÀY
+
+            const updateData = {};
+
+            if (this.activeTarget === 'start') {
+                if (activeData.start_date) {
+                    const startDate = new Date(activeData.start_date);
+                    startDate.setHours(0, 0, 0, 0);
+                    updateData.start_date = startDate.toISOString();
+                } else {
+                    updateData.start_date = null;
+                }
+            } else {
+                if (activeData.due_date) {
+                    const dueDate = new Date(activeData.due_date);
+                    dueDate.setHours(23, 59, 59, 999);
+                    updateData.due_date = dueDate.toISOString();
+                } else {
+                    updateData.due_date = null;
+                }
+            }
 
             if (activeData.id.toString().startsWith('tmp-')) {
                 idb.getData(utils.QUEUE_STORE, activeData.id).then(existing => {
@@ -1937,6 +1955,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('sf-filter-box')?.classList.remove('visible');
         document.getElementById('sf-overlay')?.classList.remove('visible');
     });
+
+    window.addEventListener("online", async () => {
+      await waitForQueueEmpty();
+      loadData();
+    });
+
+    async function waitForQueueEmpty() {
+      while (!(await utils.isQueueEmpty())) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
 
     restoreSelectedProject();
 });

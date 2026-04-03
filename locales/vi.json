@@ -440,5 +440,11 @@
     "streak_longest": "Dài nhất",
     "rate_created": "{{n}} đã tạo",
     "rate_done": "{{n}} hoàn thành"
+  },
+  "utils": {
+    "connecting": "Đang kết nối...",
+    "offline_queue": "Mất kết nối. Dữ liệu sẽ được gửi lại khi có mạng.",
+    "connection_unstable": "Kết nối không ổn định. Vui lòng thử lại sau.",
+    "network_recovered": "Mạng phục hồi, đang flush hàng chờ..."
   }
 }
