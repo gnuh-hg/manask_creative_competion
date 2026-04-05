@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 hideEmptyState();
                 items.forEach(item => renderItem(item));
+                notif.checkOverdue(items);
             }
 
             // Load sort & filter settings từ backend

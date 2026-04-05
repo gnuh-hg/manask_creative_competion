@@ -1,5 +1,6 @@
 // js/notification.js — Manask Notification Manager
 import { t } from '../i18n.js';
+import * as utils from '../utils.js';
 
 // ─── SVG ICONS (custom, 24×24, no external library) ───────────────────────
 
@@ -137,6 +138,14 @@ export function markAllRead() {
   _save();
   _updateBadge();
   _renderList();
+  // Sync to backend (fire-and-forget, offline queue enabled)
+  if (!utils.TEST) {
+    utils.fetchWithAuth(
+      `${utils.URL_API}/notifications/read-all`,
+      { method: 'PATCH' },
+      { enableQueue: true }
+    ).catch(() => {});
+  }
 }
 
 export function clearAll() {
@@ -144,11 +153,61 @@ export function clearAll() {
   _save();
   _updateBadge();
   _renderList();
+  // Sync to backend (fire-and-forget, offline queue enabled)
+  if (!utils.TEST) {
+    utils.fetchWithAuth(
+      `${utils.URL_API}/notifications`,
+      { method: 'DELETE' },
+      { enableQueue: true }
+    ).catch(() => {});
+  }
 }
 
 export function getUnreadCount() {
   _load();
   return _store.filter(n => !n.read).length;
+}
+
+// ─── OVERDUE CHECK (frontend fallback, không cần backend) ─────────────────
+
+const _OVERDUE_SEEN_KEY = 'manask_overdue_seen';
+
+/**
+ * Kiểm tra danh sách task có due_date đã qua và tạo notification task_overdue
+ * nếu chưa từng notify cho task đó. Gọi sau khi loadData() trả về danh sách task.
+ *
+ * @param {Array<{id: string|number, name: string, due_date?: string}>} tasks
+ */
+export function checkOverdue(tasks) {
+  if (!Array.isArray(tasks) || tasks.length === 0) return;
+
+  let seen;
+  try { seen = new Set(JSON.parse(localStorage.getItem(_OVERDUE_SEEN_KEY) || '[]')); }
+  catch { seen = new Set(); }
+
+  const now = Date.now();
+  let changed = false;
+
+  tasks.forEach(task => {
+    if (!task.due_date) return;
+    const due = new Date(task.due_date).getTime();
+    if (isNaN(due) || due >= now) return;          // chưa overdue
+    const key = String(task.id);
+    if (seen.has(key)) return;                      // đã notify rồi
+
+    add(
+      'task_overdue',
+      _safeT('notif.task_overdue_title', 'Task overdue'),
+      task.name || ''
+    );
+    seen.add(key);
+    changed = true;
+  });
+
+  if (changed) {
+    // Giữ tối đa 500 entries để tránh localStorage bloat
+    localStorage.setItem(_OVERDUE_SEEN_KEY, JSON.stringify([...seen].slice(-500)));
+  }
 }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────
@@ -256,11 +315,48 @@ function _closePanel(panel) {
   panel.classList.remove('notif-panel--open');
 }
 
+// ─── BACKEND SYNC ─────────────────────────────────────────────────────────
+
+/**
+ * Fetch notifications từ backend và merge vào localStorage.
+ * Backend items được ưu tiên (dedup theo id).
+ * Silent fail nếu backend chưa có endpoint hoặc offline.
+ */
+async function _syncFromBackend() {
+  if (utils.TEST) return;
+  try {
+    const res = await utils.fetchWithAuth(
+      `${utils.URL_API}/notifications`,
+      { method: 'GET' },
+      { enableQueue: false }
+    );
+    if (!res || !res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data.items)) return;
+
+    _load();
+    const localIds = new Set(_store.map(n => n.id));
+    // Thêm các item từ backend chưa có ở local
+    for (const item of data.items) {
+      if (!localIds.has(item.id)) _store.push(item);
+    }
+    // Sắp xếp mới nhất trước
+    _store.sort((a, b) => new Date(b.time) - new Date(a.time));
+    _save();
+    _updateBadge();
+    _renderList();
+  } catch {
+    // Backend chưa có endpoint hoặc offline — dùng localStorage
+  }
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────
 
 export function init() {
   _load();
   _updateBadge();
+  // Fetch từ backend (fire-and-forget, không block UI)
+  _syncFromBackend();
 
   // Đóng panel khi click bên ngoài
   document.addEventListener('click', e => {
@@ -280,5 +376,5 @@ export function init() {
 
 // Expose globally — cho utils.js và các trang không dùng ES module import
 if (typeof window !== 'undefined') {
-  window.Notif = { add, init, togglePanel, markAllRead, clearAll, getUnreadCount };
+  window.Notif = { add, init, togglePanel, markAllRead, clearAll, getUnreadCount, checkOverdue };
 }
