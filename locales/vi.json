@@ -446,5 +446,28 @@
     "offline_queue": "Mất kết nối. Dữ liệu sẽ được gửi lại khi có mạng.",
     "connection_unstable": "Kết nối không ổn định. Vui lòng thử lại sau.",
     "network_recovered": "Mạng phục hồi, đang flush hàng chờ..."
+  },
+  "notif": {
+    "title": "Thông báo",
+    "clear_all": "Xóa tất cả",
+    "empty": "Chưa có thông báo nào",
+    "just_now": "vừa xong",
+    "sec": "s",
+    "min": "ph",
+    "hr": "g",
+    "day": "ng",
+    "task_done_title": "Hoàn thành công việc!",
+    "task_done_body": "Bạn đã hoàn thành công việc này",
+    "task_overdue_title": "Công việc quá hạn",
+    "pomodoro_done_title": "Xong một phiên tập trung!",
+    "pomodoro_done_body": "Bạn đã hoàn thành một pomodoro",
+    "break_start_title": "Đến giờ nghỉ rồi!",
+    "break_start_long": "Nghỉ dài — bạn đã xứng đáng",
+    "break_start_short": "Nghỉ ngắn, nạp lại năng lượng nhanh thôi",
+    "break_end_title": "Hết giờ nghỉ — quay lại tập trung!",
+    "offline_title": "Mất kết nối",
+    "offline_body": "Dữ liệu sẽ đồng bộ khi có mạng trở lại",
+    "online_title": "Đã kết nối lại!",
+    "online_body": "Đang đồng bộ dữ liệu offline"
   }
 }
