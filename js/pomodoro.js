@@ -492,12 +492,17 @@ document.addEventListener('DOMContentLoaded', async function () {
     const musicOverlay      = document.getElementById('musicOverlay');
     const musicModal        = document.getElementById('musicModal');
     const musicModalList    = document.getElementById('musicModalList');
-    const musicAddBtn       = document.getElementById('musicAddBtn');
-    const musicAddForm      = document.getElementById('musicAddForm');
-    const musicAddName      = document.getElementById('musicAddName');
-    const musicAddUrl       = document.getElementById('musicAddUrl');
-    const musicAddCancel    = document.getElementById('musicAddCancel');
-    const musicAddConfirm   = document.getElementById('musicAddConfirm');
+    const musicAddBtn          = document.getElementById('musicAddBtn');
+    const musicAddForm         = document.getElementById('musicAddForm');
+    const musicAddName         = document.getElementById('musicAddName');
+    const musicFileInput       = document.getElementById('musicFileInput');       // file picker ẩn
+    const musicDropZone        = document.getElementById('musicDropZone');        // drop zone
+    const musicDropZoneFilename = document.getElementById('musicDropZoneFilename'); // tên file hiển thị
+    const musicAddCancel       = document.getElementById('musicAddCancel');
+    const musicAddConfirm      = document.getElementById('musicAddConfirm');
+
+    // File được chọn hiện tại (qua picker hoặc drag-and-drop)
+    let _selectedAudioFile = null;
 
     // ── GET /pomodoro/music ──────────────────────────────────────
     // Lấy toàn bộ list nhạc từ backend để render.
@@ -549,76 +554,136 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (chosen) playTrack(chosen);
     }
 
-    // ── PATCH /pomodoro/music — THÊM TRACK MỚI ──────────────────
-    // Backend tạo id; client dùng tmp id optimistic khi offline.
-    // Offline queue được bật: khi có mạng trở lại sẽ flush tự động.
-    async function confirmAddTrack() {
-        const name = musicAddName.value.trim();
-        const src  = musicAddUrl.value.trim();
+    // ── HELPER: đặt file được chọn, cập nhật drop zone UI ─────────
+    function _setSelectedFile(file) {
+        if (!file || !file.type.startsWith('audio/')) {
+            utils.showWarning(t('pomodoro.music.invalidFile'));
+            return;
+        }
+        _selectedAudioFile = file;
 
-        if (!name) { musicAddName.focus(); return; }
-        if (!src)  { musicAddUrl.focus();  return; }
+        // Hiển thị tên file trong drop zone
+        const baseName = file.name.replace(/\.[^.]+$/, ''); // bỏ extension
+        musicDropZoneFilename.textContent = file.name;
+        musicDropZoneFilename.style.display = 'block';
+        musicDropZone.classList.add('has-file');
+        musicDropZone.querySelector('span[data-i18n]').style.display = 'none';
+
+        // Nếu ô tên chưa có gì → tự điền tên file làm fallback
+        if (!musicAddName.value.trim()) {
+            musicAddName.value = baseName;
+        }
+    }
+
+    // ── POST /pomodoro/music — UPLOAD FILE + THÊM TRACK MỚI ───────
+    // Gửi file thực lên backend qua multipart/form-data (không phải JSON).
+    // Backend lưu file, trả về URL thật → src dùng được vĩnh viễn qua các session.
+    //
+    // Không dùng offline queue vì File object không serialize được vào IndexedDB.
+    // Nếu mất mạng → báo lỗi trực tiếp, không queue.
+    //
+    // Optimistic UI:
+    //   - Tạo blob URL tạm để phát nhạc ngay lập tức trong session hiện tại
+    //   - Sau khi backend trả về URL thật → thay blob URL bằng URL thật
+    //   - Blob URL được revoke sau khi thay thế để tránh memory leak
+    async function confirmAddTrack() {
+        if (!_selectedAudioFile) {
+            // Chưa chọn file → pulse drop zone để nhắc người dùng
+            musicDropZone.classList.add('drag-over');
+            setTimeout(() => musicDropZone.classList.remove('drag-over'), 600);
+            return;
+        }
+
+        // Tên: dùng input của user, hoặc fallback tên file (không có extension)
+        const name = musicAddName.value.trim()
+            || _selectedAudioFile.name.replace(/\.[^.]+$/, '');
 
         musicAddConfirm.disabled = true;
 
-        // Tạo tmp id để optimistic UI — sẽ được thay bằng id thật sau khi backend phản hồi
         const tmpId = utils.generateId(); // đã có tiền tố "tmp-" sẵn
+
+        // Tạo blob URL tạm để phát nhạc optimistic ngay trong session này
+        const blobSrc = URL.createObjectURL(_selectedAudioFile);
 
         const optimisticTrack = {
             id:        tmpId,
             name,
-            src,
+            src:       blobSrc, // tạm thời — sẽ được thay bằng URL thật từ backend
             isDefault: false,
             selected:  false,
         };
 
         if (utils.TEST) {
-            // TEST mode: không gọi API
+            // TEST mode: không gọi API, giữ blob URL
             musicList.push(optimisticTrack);
             _resetAddForm();
             renderMusicList();
             return;
         }
 
-        // Optimistic UI: hiển thị track ngay lập tức
+        // Optimistic UI: hiển thị và cho phép phát nhạc ngay
         musicList.push(optimisticTrack);
         renderMusicList();
         _resetAddForm();
 
+        // Xây dựng FormData để gửi file thực lên backend
+        const formData = new FormData();
+        formData.append('file', _selectedAudioFile);
+        formData.append('name', name);
+
         try {
-            const res = await utils.fetchWithAuth(
+            // Dùng fetchWithAuth nhưng KHÔNG set Content-Type — browser tự set
+            // boundary cho multipart/form-data. Nếu set thủ công sẽ thiếu boundary → lỗi.
+            const token = localStorage.getItem('access_token');
+            const res = await utils.fetchWithRetry(
                 `${utils.URL_API}/pomodoro/music`,
                 {
-                    method: 'PATCH',
-                    body: JSON.stringify({ name, src }),
-                },
-                {
-                    enableQueue:    true,
-                    // optimisticData: backend trả về khi online — dùng để flush queue đúng cách
-                    optimisticData: optimisticTrack,
-                },
-                tmpId, // dùng tmpId làm queue key để DELETE có thể tìm và hủy nếu cần
-                1
+                    method:  'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                    // Không set Content-Type — để browser tự xử lý với boundary
+                    body: formData,
+                }
             );
 
-            if (res.ok) {
+            if (res && res.ok) {
                 const data = await res.json();
-                // Thay thế tmp id bằng id thật từ backend
-                const realId = data.id;
-                if (realId && realId !== tmpId) {
-                    musicList = musicList.map(tr =>
-                        tr.id === tmpId
-                            ? { ...tr, id: realId, name: data.name ?? name, src: data.src ?? src }
-                            : tr
-                    );
-                    renderMusicList();
-                    updateMusicTrigger();
-                }
+                const realId  = data.id;
+                const realSrc = data.src;
+
+                // Thay thế tmp-id và blob URL bằng id thật + URL thật từ backend
+                musicList = musicList.map(tr => {
+                    if (tr.id !== tmpId) return tr;
+                    return {
+                        ...tr,
+                        id:  realId  ?? tmpId,
+                        src: realSrc ?? blobSrc,
+                        name: data.name ?? name,
+                    };
+                });
+
+                // Nếu track đang phát với blob URL → cập nhật sang URL thật
+                // (không cần restart Audio vì đã phát rồi — chỉ cập nhật src trong list)
+                URL.revokeObjectURL(blobSrc); // giải phóng memory
+
+                renderMusicList();
+                updateMusicTrigger();
+            } else {
+                // Upload thất bại → xóa optimistic track, thông báo lỗi
+                URL.revokeObjectURL(blobSrc);
+                musicList = musicList.filter(tr => tr.id !== tmpId);
+                renderMusicList();
+                updateMusicTrigger();
+                utils.showWarning(t('pomodoro.music.uploadError'));
             }
-            // Nếu res.status === 202 (queued) → tmp id giữ nguyên, flush sau
         } catch (err) {
-            if (err.message === 'Unauthorized') return;
-            // Mất mạng đã được queue xử lý — không cần làm gì thêm
+            // Mất mạng hoặc lỗi khác → xóa optimistic track
+            URL.revokeObjectURL(blobSrc);
+            musicList = musicList.filter(tr => tr.id !== tmpId);
+            renderMusicList();
+            updateMusicTrigger();
+            if (err.message !== 'Unauthorized') {
+                utils.showWarning(t('pomodoro.music.uploadError'));
+            }
         }
     }
 
@@ -863,7 +928,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     // ── HELPER RESET FORM ────────────────────────────────────────
     function _resetAddForm() {
         musicAddName.value = '';
-        musicAddUrl.value  = '';
+        musicFileInput.value = '';         // reset file picker
+        _selectedAudioFile = null;         // xóa file đang giữ
+
+        // Reset drop zone UI về trạng thái ban đầu
+        musicDropZone.classList.remove('has-file', 'drag-over');
+        musicDropZoneFilename.style.display = 'none';
+        musicDropZoneFilename.textContent   = '';
+        const hint = musicDropZone.querySelector('span[data-i18n]');
+        if (hint) hint.style.display = '';
+
         musicAddForm.style.display = 'none';
         musicAddBtn.style.display  = 'flex';
         musicAddConfirm.disabled   = false;
@@ -909,18 +983,40 @@ document.addEventListener('DOMContentLoaded', async function () {
         musicAddName.focus();
     });
 
-    musicAddCancel.addEventListener('click', () => {
-        musicAddForm.style.display = 'none';
-        musicAddBtn.style.display  = 'flex';
-        musicAddName.value = '';
-        musicAddUrl.value  = '';
-    });
-
+    musicAddCancel.addEventListener('click', _resetAddForm);
     musicAddConfirm.addEventListener('click', confirmAddTrack);
 
-    // Cho phép nhấn Enter để xác nhận thêm track
-    musicAddUrl.addEventListener('keydown', (e) => {
+    // Enter trong ô tên → xác nhận thêm
+    musicAddName.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') confirmAddTrack();
+    });
+
+    // ── File picker: click vào drop zone → mở OS file dialog ────
+    musicDropZone.addEventListener('click', () => musicFileInput.click());
+
+    musicFileInput.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) _setSelectedFile(file);
+    });
+
+    // ── Drag-and-drop ────────────────────────────────────────────
+    musicDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault(); // cho phép drop
+        musicDropZone.classList.add('drag-over');
+    });
+
+    musicDropZone.addEventListener('dragleave', (e) => {
+        // Chỉ remove khi rời hẳn khỏi zone (không phải rời sang child element)
+        if (!musicDropZone.contains(e.relatedTarget)) {
+            musicDropZone.classList.remove('drag-over');
+        }
+    });
+
+    musicDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        musicDropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files?.[0];
+        if (file) _setSelectedFile(file);
     });
 
     // --- 12. GLOBAL EXPOSE ---

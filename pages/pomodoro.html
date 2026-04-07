@@ -228,27 +228,38 @@
   <!-- Danh sách track -->
   <div class="music-modal-list" id="musicModalList"></div>
 
-  <!-- Form thêm track mới -->
+  <!-- Form thêm track mới — file picker + drag-and-drop, không còn URL input -->
   <div class="music-add-form" id="musicAddForm" style="display:none">
+
+    <!-- Input file ẩn, trigger từ drop zone -->
+    <input type="file" class="music-file-input" id="musicFileInput"
+           accept="audio/*" />
+
+    <!-- Drop zone: click để chọn file hoặc kéo thả -->
+    <div class="music-drop-zone" id="musicDropZone">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <span data-i18n="pomodoro.music.dropZoneHint">Kéo thả hoặc nhấn để chọn file audio</span>
+      <span class="music-drop-zone-filename" id="musicDropZoneFilename" style="display:none"></span>
+    </div>
+
+    <!-- Tên track — để trống sẽ dùng tên file làm mặc định -->
     <input
       type="text"
       class="music-add-input"
       id="musicAddName"
       data-i18n-placeholder="pomodoro.music.addNamePlaceholder"
-      placeholder="Track name..."
+      placeholder="Tên bài hát (để trống = dùng tên file)..."
       autocomplete="off"
     />
-    <input
-      type="url"
-      class="music-add-input"
-      id="musicAddUrl"
-      data-i18n-placeholder="pomodoro.music.addUrlPlaceholder"
-      placeholder="Audio URL (mp3, ogg...)..."
-      autocomplete="off"
-    />
+
     <div class="music-add-actions">
-      <button class="music-add-cancel" id="musicAddCancel" data-i18n="pomodoro.music.addCancel">Cancel</button>
-      <button class="music-add-confirm" id="musicAddConfirm" data-i18n="pomodoro.music.addConfirm">Add</button>
+      <button class="music-add-cancel" id="musicAddCancel" data-i18n="pomodoro.music.addCancel">Hủy</button>
+      <button class="music-add-confirm" id="musicAddConfirm" data-i18n="pomodoro.music.addConfirm">Thêm</button>
     </div>
   </div>
 

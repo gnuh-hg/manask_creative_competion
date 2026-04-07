@@ -346,12 +346,14 @@
       "noneOption": "— No music —",
       "defaultBadge": "built-in",
       "addTrack": "Add track",
-      "addNamePlaceholder": "Track name...",
-      "addUrlPlaceholder": "Audio URL (mp3, ogg...)...",
+      "addNamePlaceholder": "Track name (leave blank to use filename)...",
       "addCancel": "Cancel",
       "addConfirm": "Add",
       "deleteTitle": "Remove track",
-      "playError": "Unable to play this track. Check the URL."
+      "playError": "Unable to play this track. Check the URL.",
+      "dropZoneHint": "Drag & drop or click to select audio file",
+      "invalidFile": "Invalid file. Please select an audio file.",
+      "uploadError": "Unable to upload track. Please check your connection and try again."
     },
     "btn_start": "Start",
     "btn_pause": "Pause",

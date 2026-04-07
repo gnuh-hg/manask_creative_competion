@@ -346,12 +346,14 @@
       "noneOption": "— Không phát nhạc —",
       "defaultBadge": "mặc định",
       "addTrack": "Thêm bài hát",
-      "addNamePlaceholder": "Tên bài hát...",
-      "addUrlPlaceholder": "Đường dẫn âm thanh (mp3, ogg...)...",
+      "addNamePlaceholder": "Tên bài hát (để trống = dùng tên file)...",
       "addCancel": "Hủy",
       "addConfirm": "Thêm",
       "deleteTitle": "Xóa bài hát",
-      "playError": "Không thể phát bài này. Kiểm tra lại đường dẫn."
+      "playError": "Không thể phát bài này. Kiểm tra lại đường dẫn.",
+      "dropZoneHint": "Kéo thả hoặc nhấn để chọn file audio",
+      "invalidFile": "File không hợp lệ. Vui lòng chọn file audio.",
+      "uploadError": "Không thể tải lên bài hát. Vui lòng kiểm tra kết nối và thử lại."
     },
     "btn_start": "Bắt đầu",
     "btn_pause": "Tạm dừng",
