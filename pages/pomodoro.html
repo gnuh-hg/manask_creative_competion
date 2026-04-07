@@ -149,6 +149,41 @@
       </div>
     </div>
 
+    <div class="divider"></div>
+
+    <!-- Music Section -->
+    <div class="settings-section music-section">
+      <div class="settings-section-label" data-i18n="pomodoro.music.label">Music</div>
+
+      <!-- Music trigger button -->
+      <button class="music-trigger" id="musicTrigger">
+        <!-- Icon nhạc -->
+        <svg class="music-trigger-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18V5l12-2v13"/>
+          <circle cx="6" cy="18" r="3"/>
+          <circle cx="18" cy="16" r="3"/>
+        </svg>
+        <span id="musicTriggerLabel" data-i18n="pomodoro.music.noneSelected">No music</span>
+        <!-- Equalizer animation khi đang phát -->
+        <span class="music-eq" id="musicEq" style="display:none">
+          <span></span><span></span><span></span>
+        </span>
+        <svg class="music-trigger-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      <!-- Volume control (chỉ hiện khi có track được chọn) -->
+      <div class="music-volume-wrap" id="musicVolumeWrap" style="display:none">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--text-tertiary)">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+        <input type="range" class="music-volume-slider" id="musicVolumeSlider" min="0" max="100" value="60">
+        <span class="music-volume-label" id="musicVolumeLabel">60%</span>
+      </div>
+    </div>
+
     <button class="close-btn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -182,5 +217,52 @@
 
   <div class="task-modal-list" id="taskModalList"></div>
 </div>
+
+<!-- Music Picker Modal -->
+<div class="music-overlay" id="musicOverlay"></div>
+<div class="music-modal" id="musicModal">
+  <div class="music-modal-header">
+    <span data-i18n="pomodoro.music.modalHeader">Focus Music</span>
+  </div>
+
+  <!-- Danh sách track -->
+  <div class="music-modal-list" id="musicModalList"></div>
+
+  <!-- Form thêm track mới -->
+  <div class="music-add-form" id="musicAddForm" style="display:none">
+    <input
+      type="text"
+      class="music-add-input"
+      id="musicAddName"
+      data-i18n-placeholder="pomodoro.music.addNamePlaceholder"
+      placeholder="Track name..."
+      autocomplete="off"
+    />
+    <input
+      type="url"
+      class="music-add-input"
+      id="musicAddUrl"
+      data-i18n-placeholder="pomodoro.music.addUrlPlaceholder"
+      placeholder="Audio URL (mp3, ogg...)..."
+      autocomplete="off"
+    />
+    <div class="music-add-actions">
+      <button class="music-add-cancel" id="musicAddCancel" data-i18n="pomodoro.music.addCancel">Cancel</button>
+      <button class="music-add-confirm" id="musicAddConfirm" data-i18n="pomodoro.music.addConfirm">Add</button>
+    </div>
+  </div>
+
+  <!-- Footer: nút thêm track -->
+  <div class="music-modal-footer">
+    <button class="music-add-btn" id="musicAddBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      <span data-i18n="pomodoro.music.addTrack">Add track</span>
+    </button>
+  </div>
+</div>
+
 </body>
 </html>

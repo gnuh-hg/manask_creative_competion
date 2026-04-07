@@ -231,8 +231,6 @@ export async function fetchWithAuth(url, options = {}, queueOptions = {}, key = 
             }
         
             showWarning(t('utils.offline_queue'));
-            // Trigger offline notification nếu module đã load
-            window.Notif?.add('offline', t('utils.offline_queue'), '');
             throw error;
         }
                 // ───────────────────────────────────────────────────────────
@@ -317,7 +315,6 @@ export async function isQueueEmpty() {
 window.addEventListener("online", () => {
     console.info(`[Queue] ${t('utils.network_recovered')}`);
     flushQueue();
-    window.Notif?.add('online', t('utils.network_recovered'), '');
 });
 
 if (navigator.onLine) flushQueue();

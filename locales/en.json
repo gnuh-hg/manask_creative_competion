@@ -339,6 +339,20 @@
       "close": "Close Pomodoro",
       "closeWarning": "Exit will discard current pomodoro!"
     },
+    "music": {
+      "label": "Music",
+      "modalHeader": "Focus Music",
+      "noneSelected": "No music",
+      "noneOption": "— No music —",
+      "defaultBadge": "built-in",
+      "addTrack": "Add track",
+      "addNamePlaceholder": "Track name...",
+      "addUrlPlaceholder": "Audio URL (mp3, ogg...)...",
+      "addCancel": "Cancel",
+      "addConfirm": "Add",
+      "deleteTitle": "Remove track",
+      "playError": "Unable to play this track. Check the URL."
+    },
     "btn_start": "Start",
     "btn_pause": "Pause",
     "mode_focus": "Focus",
@@ -468,6 +482,13 @@
     "offline_title": "Connection lost",
     "offline_body": "Data will sync when you're back online",
     "online_title": "Back online!",
-    "online_body": "Syncing your offline changes"
+    "online_body": "Syncing your offline changes",
+    "task_done_count": "Completed {{count}} task today",
+    "task_done_count_plural": "Completed {{count}} tasks today",
+    "pomodoro_done_count": "Completed {{count}} Pomodoro today",
+    "pomodoro_done_count_plural": "Completed {{count}} Pomodoros today",
+    "task_overdue_body": "\"{{task_title}}\" is past due",
+    "streak_title": "🔥 {{count}}-day streak!",
+    "streak_body": "Keep it up!"
   }
 }

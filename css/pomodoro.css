@@ -542,6 +542,328 @@ body {
 }
 .pomo-wrapper { animation: fadeIn 0.3s ease both; }
 
+/* =============================================
+   MUSIC SECTION — Settings Panel
+   ============================================= */
+
+/* Nút trigger mở music modal */
+.music-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 8px 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    overflow: hidden;
+}
+.music-trigger:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+.music-trigger.playing {
+    border-color: rgba(99,102,241,0.4);
+    color: var(--text-primary);
+}
+.music-trigger-icon { flex-shrink: 0; color: var(--text-tertiary); }
+.music-trigger #musicTriggerLabel {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.music-trigger-chevron { flex-shrink: 0; color: var(--text-tertiary); margin-left: auto; }
+
+/* Equalizer animation */
+.music-eq {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 13px;
+    flex-shrink: 0;
+}
+.music-eq span {
+    display: block;
+    width: 3px;
+    background: var(--accent-primary);
+    border-radius: 2px;
+    animation: eq-bounce 0.8s ease-in-out infinite;
+}
+.music-eq span:nth-child(1) { animation-delay: 0s;    height: 6px; }
+.music-eq span:nth-child(2) { animation-delay: 0.15s; height: 11px; }
+.music-eq span:nth-child(3) { animation-delay: 0.3s;  height: 8px; }
+
+@keyframes eq-bounce {
+    0%, 100% { transform: scaleY(0.4); }
+    50%       { transform: scaleY(1); }
+}
+
+/* Volume slider */
+.music-volume-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 0 2px;
+}
+.music-volume-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: var(--bg-hover);
+    border-radius: 99px;
+    outline: none;
+    cursor: pointer;
+    accent-color: var(--accent-primary);
+}
+.music-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+.music-volume-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+.music-volume-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    min-width: 28px;
+    text-align: right;
+}
+
+/* =============================================
+   MUSIC MODAL
+   ============================================= */
+.music-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+}
+.music-overlay.open { display: block; }
+
+.music-modal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -48%);
+    width: 380px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.6);
+    z-index: 201;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+    flex-direction: column;
+}
+.music-modal.open {
+    display: flex;
+    opacity: 1;
+    transform: translate(-50%, -50%);
+}
+
+.music-modal-header {
+    padding: 15px 18px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+/* Danh sách track bên trong modal */
+.music-modal-list {
+    padding: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+    flex: 1;
+}
+.music-modal-list::-webkit-scrollbar { width: 4px; }
+.music-modal-list::-webkit-scrollbar-track { background: transparent; }
+.music-modal-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+
+/* Mỗi track item */
+.music-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-secondary);
+    transition: all 0.1s;
+    user-select: none;
+}
+.music-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.music-item.selected {
+    background: rgba(99,102,241,0.1);
+    color: var(--text-primary);
+}
+
+/* Dot trạng thái */
+.music-item-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-light);
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+.music-item.selected .music-item-dot {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+/* Tên track */
+.music-item-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* Badge "default" */
+.music-item-badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1px 5px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* Nút xóa track (chỉ hiện với track user thêm) */
+.music-item-delete {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    opacity: 0;
+}
+.music-item:hover .music-item-delete { opacity: 1; }
+.music-item-delete:hover {
+    background: rgba(239,68,68,0.12);
+    color: #f87171;
+}
+
+/* Option "Không có nhạc" */
+.music-item-none {
+    font-style: italic;
+    color: var(--text-tertiary);
+}
+.music-item-none.selected { color: var(--text-secondary); }
+
+/* Footer modal — nút thêm track */
+.music-modal-footer {
+    padding: 8px 10px;
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+.music-add-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    background: transparent;
+    border: 1px dashed var(--border-light);
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+    font-family: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.music-add-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background: rgba(99,102,241,0.05);
+}
+
+/* Form thêm track mới */
+.music-add-form {
+    padding: 10px 10px 6px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    flex-shrink: 0;
+}
+.music-add-input {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+.music-add-input::placeholder { color: var(--text-tertiary); }
+.music-add-input:focus { border-color: var(--accent-primary); }
+
+.music-add-actions {
+    display: flex;
+    gap: 7px;
+    justify-content: flex-end;
+}
+.music-add-cancel {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.music-add-cancel:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.music-add-confirm {
+    padding: 6px 14px;
+    background: var(--accent-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.music-add-confirm:hover { background: var(--accent-hover); }
+
 /* ===== MOBILE RESPONSIVE: Stack + Scroll Snap ===== */
 @media (max-width: 640px) {
 
@@ -552,8 +874,8 @@ body {
 
     .pomo-wrapper {
         flex-direction: column;
-        gap: 12px;          /* khoảng cách giữa 2 card */
-        padding: 10px;      /* margin 4 cạnh với màn hình */
+        gap: 12px;
+        padding: 10px;
         max-width: 100%;
         width: 100%;
         height: 100dvh;
@@ -568,10 +890,9 @@ body {
         scroll-padding-top: 10px;
     }
 
-    /* Mỗi card cao = 100dvh trừ padding trên dưới (10+10) và nửa gap */
     .timer-panel {
         width: 100%;
-        height: calc(100dvh - 20px); /* trừ padding top+bottom của wrapper */
+        height: calc(100dvh - 20px);
         min-height: calc(100dvh - 20px);
         flex-shrink: 0;
         scroll-snap-align: start;
@@ -580,7 +901,7 @@ body {
         gap: 22px;
         position: relative;
         box-sizing: border-box;
-        border-radius: 16px;  /* card nổi có bo góc */
+        border-radius: 16px;
     }
 
     .settings-panel {
@@ -592,7 +913,7 @@ body {
         scroll-snap-stop: always;
         overflow-y: auto;
         box-sizing: border-box;
-        border-radius: 16px;  /* card nổi có bo góc */
+        border-radius: 16px;
     }
 
     .timer-circle-wrap {
@@ -625,5 +946,10 @@ body {
     .timer-panel *,
     .settings-panel * {
         max-height: none;
+    }
+
+    /* Music modal full-width trên mobile */
+    .music-modal {
+        width: calc(100vw - 32px);
     }
 }

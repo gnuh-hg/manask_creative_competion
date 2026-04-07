@@ -1,18 +1,14 @@
-// js/notification.js — Manask Notification Manager
 import { t } from '../i18n.js';
 import * as utils from '../utils.js';
 
-// ─── SVG ICONS (custom, 24×24, no external library) ───────────────────────
+// ─── SVG ICONS ────────────────────────────────────────────────────────────────
 
 export const ICONS = {
-
-  // ✓ Xanh — task hoàn thành: checkmark trong circle
   task_done: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="9.25" fill="rgba(34,197,94,0.12)" stroke="#22c55e" stroke-width="1.5"/>
     <path d="M7.5 12.5l3 3 6-6" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`,
 
-  // 📅 Đỏ — task quá hạn: lịch với dấu chấm than
   task_overdue: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="3" y="4" width="18" height="17" rx="2.5" fill="rgba(239,68,68,0.1)" stroke="#ef4444" stroke-width="1.5"/>
     <path d="M3 9.5h18" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
@@ -21,48 +17,28 @@ export const ICONS = {
     <circle cx="12" cy="18.5" r="0.9" fill="#ef4444"/>
   </svg>`,
 
-  // 🍅 Indigo — pomodoro xong: tomato (circle có cuống)
   pomodoro_done: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="13" r="9" fill="rgba(99,102,241,0.12)" stroke="#6366f1" stroke-width="1.5"/>
     <path d="M9.5 4C10 2.5 14 2.5 14.5 4" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" fill="none"/>
     <path d="M8.5 13.5l2.5 2.5 5-5" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`,
 
-  // 🌙 Cyan — nghỉ giải lao: mặt trăng lưỡi liềm
   break_start: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="rgba(6,182,212,0.12)" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M16.5 10.5a2.5 2.5 0 0 0-2.5-2.5" stroke="#06b6d4" stroke-width="1.3" stroke-linecap="round"/>
   </svg>`,
 
-  // ☀️ Vàng — hết giờ nghỉ: mặt trời với tia sáng
   break_end: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="4.5" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="1.5"/>
     <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M19.07 4.93l-1.77 1.77M6.7 17.3l-1.77 1.77" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
   </svg>`,
 
-  // 🔥 Cam — streak: ngọn lửa
   streak: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M12.5 2.5C9.5 5.5 7.5 8.5 7.5 12c0 2.5 1 4.5 2.5 6-0.5-1.5 0-3 1-4 0.5 1.5 1.5 2.5 2.5 3-0.5-1 0-2.5 0.5-3.5C15 15 16 16.5 16 18c1.5-1.5 2-3.5 2-5.5 0-4-2-7-5.5-10z" fill="rgba(249,115,22,0.15)" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M12 22c2.5 0 4-1.5 4-3.5 0-1.5-1-2.5-2-3-0.2 1-1 1.8-2 2-1-1-1.5-2.5-1.5-3.5-1 1-1.5 2.5-1.5 4 0 2.2 1.5 4 3 4z" fill="rgba(249,115,22,0.3)"/>
   </svg>`,
-
-  // 📡 Xám — mất kết nối: wifi bị gạch chéo
-  offline: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M1.5 1.5l21 21" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round"/>
-    <circle cx="12" cy="20" r="1.2" fill="#9ca3af"/>
-  </svg>`,
-
-  // 📶 Xanh lá — khôi phục kết nối: wifi với dấu check
-  online: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"/>
-    <circle cx="12" cy="20" r="1.2" fill="#22c55e"/>
-    <circle cx="19.5" cy="5.5" r="4.5" fill="rgba(34,197,94,0.15)" stroke="#22c55e" stroke-width="1.3"/>
-    <path d="M17.5 5.5l1.5 1.5 2.5-2.5" stroke="#22c55e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`,
 };
 
-// Màu accent cho từng loại notification
 export const COLORS = {
   task_done:     '#22c55e',
   task_overdue:  '#ef4444',
@@ -70,33 +46,74 @@ export const COLORS = {
   break_start:   '#06b6d4',
   break_end:     '#f59e0b',
   streak:        '#f97316',
-  offline:       '#9ca3af',
-  online:        '#22c55e',
 };
 
-// ─── STORAGE ──────────────────────────────────────────────────────────────
+// ─── I18N HELPERS ─────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'manask_notifications';
-const MAX_STORE   = 50;
-let _store = [];
-
-function _load() {
-  try { _store = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-  catch { _store = []; }
-}
-
-function _save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(_store.slice(0, MAX_STORE)));
-}
-
-// ─── HELPERS ──────────────────────────────────────────────────────────────
-
-// Gọi t() an toàn — fallback về chuỗi tiếng Anh nếu key chưa load
-function _safeT(key, fallback) {
+function _safeT(key, fallback, vars = {}) {
   try {
-    const v = t(key);
+    const v = t(key, vars);
     return (v && v !== key) ? v : fallback;
   } catch { return fallback; }
+}
+
+/**
+ * Build title từ raw data của notification.
+ * Backend KHÔNG gửi title — chỉ gửi type, count, task_title.
+ * Frontend dùng t() để build đúng ngôn ngữ hiện tại.
+ */
+function _buildTitle(n) {
+  switch (n.type) {
+    case 'task_done':
+      return n.count > 1
+        ? _safeT('notif.task_done_count_plural', `Completed ${n.count} tasks today`, { count: n.count })
+        : _safeT('notif.task_done_count', `Completed ${n.count} task today`, { count: n.count });
+
+    case 'pomodoro_done':
+      return n.count > 1
+        ? _safeT('notif.pomodoro_done_count_plural', `Completed ${n.count} Pomodoros today`, { count: n.count })
+        : _safeT('notif.pomodoro_done_count', `Completed ${n.count} Pomodoro today`, { count: n.count });
+
+    case 'task_overdue':
+      return _safeT('notif.task_overdue_title', 'Task overdue');
+
+    case 'streak':
+      return _safeT('notif.streak_title', `🔥 ${n.count}-day streak!`, { count: n.count });
+
+    case 'break_start':
+      return _safeT('notif.break_start_title', 'Break time!');
+
+    case 'break_end':
+      return _safeT('notif.break_end_title', "Break's over — back to focus!");
+
+    default:
+      return n.type;
+  }
+}
+
+/**
+ * Build body từ raw data.
+ * Chỉ task_overdue và streak cần body có vars.
+ */
+function _buildBody(n) {
+  switch (n.type) {
+    case 'task_overdue':
+      return n.task_title
+        ? _safeT('notif.task_overdue_body', `"${n.task_title}" is past due`, { task_title: n.task_title })
+        : '';
+
+    case 'streak':
+      return _safeT('notif.streak_body', 'Keep it up!');
+
+    case 'break_start':
+      // break_type: 'long' | 'short' — backend gửi kèm nếu cần phân biệt
+      return n.break_type === 'long'
+        ? _safeT('notif.break_start_long', "Long break — you've earned it")
+        : _safeT('notif.break_start_short', 'Short break, recharge quickly');
+
+    default:
+      return '';
+  }
 }
 
 function _relTime(iso) {
@@ -110,35 +127,94 @@ function _relTime(iso) {
   return `${Math.floor(h / 24)}${_safeT('notif.day', 'd')} ago`;
 }
 
-// ─── PUBLIC API ───────────────────────────────────────────────────────────
+// ─── CACHE (stale-while-revalidate) ───────────────────────────────────────────
+//
+// Cache lưu RAW data từ backend (không lưu title đã build).
+// Title được build tại render time → đổi ngôn ngữ không cần fetch lại.
+
+const CACHE_KEY  = 'manask_notif_cache';
+const CACHE_META = 'manask_notif_meta';
+const MAX_CACHE  = 50;
+
+let _cache = [];
+let _meta  = {};
+
+function _loadCache() {
+  try { _cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); }
+  catch { _cache = []; }
+  try { _meta  = JSON.parse(localStorage.getItem(CACHE_META) || '{}'); }
+  catch { _meta  = {}; }
+}
+
+function _saveCache() {
+  localStorage.setItem(CACHE_KEY, JSON.stringify(_cache.slice(0, MAX_CACHE)));
+  localStorage.setItem(CACHE_META, JSON.stringify(_meta));
+}
+
+// ─── PUBLIC API ───────────────────────────────────────────────────────────────
 
 /**
- * Thêm notification mới + hiện toast
- * @param {string} type  — key trong ICONS / COLORS
- * @param {string} title — tiêu đề ngắn
- * @param {string} body  — mô tả (optional)
+ * Báo một sự kiện notification lên backend.
+ *
+ * Frontend KHÔNG tự tạo ID, KHÔNG tự aggregate, KHÔNG build title để gửi lên.
+ * Chỉ gửi payload thô — backend quyết định cách lưu và đếm.
+ *
+ * @param {'task_done'|'pomodoro_done'|'break_start'|'break_end'} type
+ * @param {string} taskTitle  — tên task (backend lưu vào task_title)
+ * @param {Object} [extra]    — metadata tùy chọn (task_id, duration_sec, break_type…)
  */
-export function add(type, title, body = '') {
-  _load();
-  const notif = {
-    id:   `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    type, title, body,
-    time: new Date().toISOString(),
-    read: false,
-  };
-  _store.unshift(notif);
-  _save();
-  _showToast(notif);
-  _updateBadge();
+export async function add(type, taskTitle = '', extra = {}) {
+  // break_start / break_end: toast ephemeral local, không POST backend
+  if (type === 'break_start' || type === 'break_end') {
+    const raw = { type, task_title: taskTitle, ...extra };
+    _showToast({ type, title: _buildTitle(raw), body: _buildBody(raw) });
+    return;
+  }
+
+  // task_done / pomodoro_done: toast optimistic ngay + POST backend
+  if (type === 'task_done' || type === 'pomodoro_done') {
+    // Toast với count tạm = 1 (backend trả count thật sau)
+    _showToast({ type, title: _buildTitle({ type, count: 1 }), body: '' });
+
+    try {
+      const res = await utils.fetchWithAuth(
+        `${utils.URL_API}/notifications/events`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ type, task_title: taskTitle, ...extra }),
+        },
+        { enableQueue: true }
+      );
+
+      if (res?.ok) {
+        // Backend trả raw record: { id, type, count, task_title, time, read, toasted }
+        // Không có title/body — frontend build khi render
+        const record = await res.json();
+        _mergeRecord(record);
+        _updateBadge();
+        _renderList();
+      }
+    } catch {
+      // offline queue tự retry
+    }
+  }
+}
+
+function _mergeRecord(record) {
+  _loadCache();
+  const idx = _cache.findIndex(n => n.id === record.id);
+  if (idx >= 0) _cache[idx] = record;
+  else          _cache.unshift(record);
+  _saveCache();
 }
 
 export function markAllRead() {
-  _load();
-  _store.forEach(n => { n.read = true; });
-  _save();
+  _loadCache();
+  _cache.forEach(n => { n.read = true; });
+  _saveCache();
   _updateBadge();
   _renderList();
-  // Sync to backend (fire-and-forget, offline queue enabled)
+
   if (!utils.TEST) {
     utils.fetchWithAuth(
       `${utils.URL_API}/notifications/read-all`,
@@ -149,11 +225,12 @@ export function markAllRead() {
 }
 
 export function clearAll() {
-  _store = [];
-  _save();
+  _cache = [];
+  _meta  = {};
+  _saveCache();
   _updateBadge();
   _renderList();
-  // Sync to backend (fire-and-forget, offline queue enabled)
+
   if (!utils.TEST) {
     utils.fetchWithAuth(
       `${utils.URL_API}/notifications`,
@@ -164,53 +241,11 @@ export function clearAll() {
 }
 
 export function getUnreadCount() {
-  _load();
-  return _store.filter(n => !n.read).length;
+  _loadCache();
+  return _cache.filter(n => !n.read).length;
 }
 
-// ─── OVERDUE CHECK (frontend fallback, không cần backend) ─────────────────
-
-const _OVERDUE_SEEN_KEY = 'manask_overdue_seen';
-
-/**
- * Kiểm tra danh sách task có due_date đã qua và tạo notification task_overdue
- * nếu chưa từng notify cho task đó. Gọi sau khi loadData() trả về danh sách task.
- *
- * @param {Array<{id: string|number, name: string, due_date?: string}>} tasks
- */
-export function checkOverdue(tasks) {
-  if (!Array.isArray(tasks) || tasks.length === 0) return;
-
-  let seen;
-  try { seen = new Set(JSON.parse(localStorage.getItem(_OVERDUE_SEEN_KEY) || '[]')); }
-  catch { seen = new Set(); }
-
-  const now = Date.now();
-  let changed = false;
-
-  tasks.forEach(task => {
-    if (!task.due_date) return;
-    const due = new Date(task.due_date).getTime();
-    if (isNaN(due) || due >= now) return;          // chưa overdue
-    const key = String(task.id);
-    if (seen.has(key)) return;                      // đã notify rồi
-
-    add(
-      'task_overdue',
-      _safeT('notif.task_overdue_title', 'Task overdue'),
-      task.name || ''
-    );
-    seen.add(key);
-    changed = true;
-  });
-
-  if (changed) {
-    // Giữ tối đa 500 entries để tránh localStorage bloat
-    localStorage.setItem(_OVERDUE_SEEN_KEY, JSON.stringify([...seen].slice(-500)));
-  }
-}
-
-// ─── TOAST ────────────────────────────────────────────────────────────────
+// ─── TOAST ────────────────────────────────────────────────────────────────────
 
 function _showToast(notif) {
   let wrap = document.getElementById('notif-toast-wrap');
@@ -250,28 +285,28 @@ function _showToast(notif) {
   el.addEventListener('mouseenter', () => clearTimeout(timer));
   el.addEventListener('mouseleave', () => { timer = setTimeout(dismiss, 2000); });
 
-  // Trigger enter animation
   requestAnimationFrame(() => el.classList.add('notif-toast--in'));
 }
 
-// ─── BADGE ────────────────────────────────────────────────────────────────
+// ─── BADGE ────────────────────────────────────────────────────────────────────
 
 function _updateBadge() {
   const badge = document.getElementById('notif-badge');
   if (!badge) return;
-  const count = getUnreadCount();
+  _loadCache();
+  const count = _meta.taskDoneToday ?? 0;
   badge.textContent = count > 99 ? '99+' : String(count);
   badge.hidden = count === 0;
 }
 
-// ─── PANEL ────────────────────────────────────────────────────────────────
+// ─── PANEL ────────────────────────────────────────────────────────────────────
 
 function _renderList() {
   const list = document.getElementById('notif-list');
   if (!list) return;
-  _load();
+  _loadCache();
 
-  if (_store.length === 0) {
+  if (_cache.length === 0) {
     list.innerHTML = `
       <div class="notif-empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
@@ -284,17 +319,22 @@ function _renderList() {
     return;
   }
 
-  list.innerHTML = _store.map(n => `
-    <div class="notif-item${n.read ? '' : ' notif-item--unread'}" style="--nc: ${COLORS[n.type] || '#6366f1'}">
-      <div class="notif-item__icon">${ICONS[n.type] || ''}</div>
-      <div class="notif-item__info">
-        <div class="notif-item__title">${n.title}</div>
-        ${n.body ? `<div class="notif-item__desc">${n.body}</div>` : ''}
-        <div class="notif-item__time">${_relTime(n.time)}</div>
+  // Backend đã sort desc theo time — render thẳng, build title tại đây
+  list.innerHTML = _cache.map(n => {
+    const title = _buildTitle(n);
+    const body  = _buildBody(n);
+    return `
+      <div class="notif-item${n.read ? '' : ' notif-item--unread'}" style="--nc: ${COLORS[n.type] || '#6366f1'}">
+        <div class="notif-item__icon">${ICONS[n.type] || ''}</div>
+        <div class="notif-item__info">
+          <div class="notif-item__title">${title}</div>
+          ${body ? `<div class="notif-item__desc">${body}</div>` : ''}
+          <div class="notif-item__time">${_relTime(n.time)}</div>
+        </div>
+        ${!n.read ? '<div class="notif-item__dot"></div>' : ''}
       </div>
-      ${!n.read ? '<div class="notif-item__dot"></div>' : ''}
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 export function togglePanel() {
@@ -307,7 +347,6 @@ export function togglePanel() {
 function _openPanel(panel) {
   _renderList();
   panel.classList.add('notif-panel--open');
-  // Đánh dấu đã đọc sau 800ms (để user kịp thấy unread dot)
   setTimeout(markAllRead, 800);
 }
 
@@ -315,13 +354,25 @@ function _closePanel(panel) {
   panel.classList.remove('notif-panel--open');
 }
 
-// ─── BACKEND SYNC ─────────────────────────────────────────────────────────
+// ─── BACKEND SYNC ─────────────────────────────────────────────────────────────
+//
+// Backend trả RAW data — không có title/body:
+// {
+//   items: [
+//     {
+//       id:         "uuid-...",
+//       type:       "task_done",
+//       count:      3,
+//       task_title: "Viết unit test",   // cho body của task_overdue
+//       break_type: "short" | "long",   // cho body của break_start (optional)
+//       time:       "2025-01-15T...",
+//       read:       false,
+//       toasted:    false,
+//     }
+//   ],
+//   meta: { taskDoneToday: 3 }
+// }
 
-/**
- * Fetch notifications từ backend và merge vào localStorage.
- * Backend items được ưu tiên (dedup theo id).
- * Silent fail nếu backend chưa có endpoint hoặc offline.
- */
 async function _syncFromBackend() {
   if (utils.TEST) return;
   try {
@@ -330,35 +381,60 @@ async function _syncFromBackend() {
       { method: 'GET' },
       { enableQueue: false }
     );
-    if (!res || !res.ok) return;
+    if (!res?.ok) return;
+
     const data = await res.json();
     if (!Array.isArray(data.items)) return;
 
-    _load();
-    const localIds = new Set(_store.map(n => n.id));
-    // Thêm các item từ backend chưa có ở local
-    for (const item of data.items) {
-      if (!localIds.has(item.id)) _store.push(item);
+    // Ghi đè cache bằng raw data từ backend
+    _cache = data.items;
+    _meta  = data.meta ?? {};
+    _saveCache();
+
+    // Toast các item backend-owned chưa show (toasted: false)
+    // Build title/body theo ngôn ngữ hiện tại của user
+    const needToast = data.items.filter(n => !n.toasted);
+    if (needToast.length) {
+      needToast.forEach(n => _showToast({
+        type:  n.type,
+        title: _buildTitle(n),
+        body:  _buildBody(n),
+      }));
+
+      utils.fetchWithAuth(
+        `${utils.URL_API}/notifications/toasted`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ ids: needToast.map(n => n.id) }),
+        },
+        { enableQueue: true }
+      ).catch(() => {});
     }
-    // Sắp xếp mới nhất trước
-    _store.sort((a, b) => new Date(b.time) - new Date(a.time));
-    _save();
+
     _updateBadge();
     _renderList();
   } catch {
-    // Backend chưa có endpoint hoặc offline — dùng localStorage
+    // Backend chưa ready hoặc offline → dùng cache
   }
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────
+// ─── LANG CHANGE ──────────────────────────────────────────────────────────────
+//
+// Khi user đổi ngôn ngữ qua setLang(), i18n.js dispatch event 'langChanged'.
+// Raw data vẫn còn trong cache → chỉ cần re-render, title tự build đúng ngôn ngữ mới.
+
+window.addEventListener('langChanged', () => {
+  _renderList();
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 
 export function init() {
-  _load();
+  _loadCache();
   _updateBadge();
-  // Fetch từ backend (fire-and-forget, không block UI)
-  _syncFromBackend();
+  _renderList();       // render từ cache ngay (stale-while-revalidate)
+  _syncFromBackend();  // fetch backend ngầm, update nếu có gì mới
 
-  // Đóng panel khi click bên ngoài
   document.addEventListener('click', e => {
     const panel = document.getElementById('notif-panel');
     const wrap  = document.getElementById('notif-bell-wrap');
@@ -374,7 +450,7 @@ export function init() {
   if (clearBtn) clearBtn.addEventListener('click', clearAll);
 }
 
-// Expose globally — cho utils.js và các trang không dùng ES module import
+// Expose globally
 if (typeof window !== 'undefined') {
-  window.Notif = { add, init, togglePanel, markAllRead, clearAll, getUnreadCount, checkOverdue };
+  window.Notif = { add, init, togglePanel, markAllRead, clearAll, getUnreadCount };
 }

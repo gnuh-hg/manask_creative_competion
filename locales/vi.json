@@ -339,6 +339,20 @@
       "close": "Đóng Pomodoro",
       "closeWarning": "Thoát sẽ huỷ phiên pomodoro hiện tại!"
     },
+    "music": {
+      "label": "Âm nhạc",
+      "modalHeader": "Nhạc tập trung",
+      "noneSelected": "Không có nhạc",
+      "noneOption": "— Không phát nhạc —",
+      "defaultBadge": "mặc định",
+      "addTrack": "Thêm bài hát",
+      "addNamePlaceholder": "Tên bài hát...",
+      "addUrlPlaceholder": "Đường dẫn âm thanh (mp3, ogg...)...",
+      "addCancel": "Hủy",
+      "addConfirm": "Thêm",
+      "deleteTitle": "Xóa bài hát",
+      "playError": "Không thể phát bài này. Kiểm tra lại đường dẫn."
+    },
     "btn_start": "Bắt đầu",
     "btn_pause": "Tạm dừng",
     "mode_focus": "Tập trung",
@@ -468,6 +482,13 @@
     "offline_title": "Mất kết nối",
     "offline_body": "Dữ liệu sẽ đồng bộ khi có mạng trở lại",
     "online_title": "Đã kết nối lại!",
-    "online_body": "Đang đồng bộ dữ liệu offline"
+    "online_body": "Đang đồng bộ dữ liệu offline",
+    "task_done_count": "Đã hoàn thành {{count}} task hôm nay",
+    "task_done_count_plural": "Đã hoàn thành {{count}} task hôm nay",
+    "pomodoro_done_count": "Hoàn thành {{count}} phiên Pomodoro hôm nay",
+    "pomodoro_done_count_plural": "Hoàn thành {{count}} phiên Pomodoro hôm nay",
+    "task_overdue_body": "\"{{task_title}}\" đã quá hạn",
+    "streak_title": "🔥 Streak {{count}} ngày liên tiếp!",
+    "streak_body": "Tiếp tục phát huy!"
   }
 }

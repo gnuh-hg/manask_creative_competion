@@ -445,7 +445,433 @@ document.addEventListener('DOMContentLoaded', async function () {
         }, 300);
     }
 
+    // =========================================================
+    // --- MUSIC FEATURE ---
+    // =========================================================
+
+    // Danh sách track mặc định (không thể xóa, không lưu backend)
+    // isDefault: true → backend sẽ không cho phép xóa, UI ẩn nút xóa
+    const DEFAULT_TRACKS = [
+        {
+            id: 'default_lofi',
+            name: 'Lo-Fi Chill',
+            src: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3',
+            isDefault: true,
+            selected: false,
+        },
+        {
+            id: 'default_rain',
+            name: 'Rain & Thunder',
+            // Nguồn: orangefreesounds.com — CC Attribution 4.0, free for commercial use
+            src: 'https://www.orangefreesounds.com/wp-content/uploads/2016/10/Soothing-rain.mp3',
+            isDefault: true,
+            selected: false,
+        },
+        {
+            id: 'default_forest',
+            name: 'Forest Ambience',
+            // Nguồn: orangefreesounds.com — CC Attribution 4.0, free for commercial use
+            src: 'https://www.orangefreesounds.com/wp-content/uploads/2016/04/Rainforest-sounds.mp3',
+            isDefault: true,
+            selected: false,
+        },
+    ];
+
+    // Trạng thái nhạc — musicList là source of truth, đồng bộ từ backend
+    let musicList   = [];
+    let audioPlayer = new Audio();
+    audioPlayer.loop = true;
+
+    // DOM elements — music
+    const musicTrigger      = document.getElementById('musicTrigger');
+    const musicTriggerLabel = document.getElementById('musicTriggerLabel');
+    const musicEq           = document.getElementById('musicEq');
+    const musicVolumeWrap   = document.getElementById('musicVolumeWrap');
+    const musicVolumeSlider = document.getElementById('musicVolumeSlider');
+    const musicVolumeLabel  = document.getElementById('musicVolumeLabel');
+    const musicOverlay      = document.getElementById('musicOverlay');
+    const musicModal        = document.getElementById('musicModal');
+    const musicModalList    = document.getElementById('musicModalList');
+    const musicAddBtn       = document.getElementById('musicAddBtn');
+    const musicAddForm      = document.getElementById('musicAddForm');
+    const musicAddName      = document.getElementById('musicAddName');
+    const musicAddUrl       = document.getElementById('musicAddUrl');
+    const musicAddCancel    = document.getElementById('musicAddCancel');
+    const musicAddConfirm   = document.getElementById('musicAddConfirm');
+
+    // ── GET /pomodoro/music ──────────────────────────────────────
+    // Lấy toàn bộ list nhạc từ backend để render.
+    // Không dùng offline queue cho GET.
+    // Nếu backend lỗi → fallback hiển thị DEFAULT_TRACKS để UI không trống.
+    async function loadMusic() {
+        // Khởi volume từ localStorage (volume không cần sync backend)
+        const savedVol = parseInt(localStorage.getItem('pomodoro_music_volume') ?? '60');
+        audioPlayer.volume = savedVol / 100;
+        musicVolumeSlider.value = savedVol;
+        musicVolumeLabel.textContent = savedVol + '%';
+
+        if (utils.TEST) {
+            // TEST mode: dùng default tracks làm dữ liệu mẫu
+            musicList = DEFAULT_TRACKS.map(t => ({ ...t }));
+            updateMusicTrigger();
+            return;
+        }
+
+        try {
+            const res = await utils.fetchWithAuth(
+                `${utils.URL_API}/pomodoro/music`,
+                { method: 'GET' },
+                {}, // không queue GET
+                utils.generateId(),
+                1
+            );
+
+            if (res.ok) {
+                const data = await res.json();
+                // Backend trả về mảng track; đảm bảo đúng kiểu dữ liệu
+                musicList = Array.isArray(data) ? data : [];
+            } else {
+                // Backend lỗi → fallback default tracks (chỉ hiển thị, không push lên server)
+                console.warn('[Music] GET /pomodoro/music failed, using defaults');
+                musicList = DEFAULT_TRACKS.map(t => ({ ...t }));
+            }
+        } catch (err) {
+            if (err.message === 'Unauthorized') return;
+            // Mất mạng → fallback tương tự, không cảnh báo (sẽ tự sync khi có mạng)
+            console.warn('[Music] GET /pomodoro/music error:', err.message);
+            musicList = DEFAULT_TRACKS.map(t => ({ ...t }));
+        }
+
+        updateMusicTrigger();
+
+        // Nếu có track đang được chọn → phát lại
+        const chosen = musicList.find(tr => tr.selected);
+        if (chosen) playTrack(chosen);
+    }
+
+    // ── PATCH /pomodoro/music — THÊM TRACK MỚI ──────────────────
+    // Backend tạo id; client dùng tmp id optimistic khi offline.
+    // Offline queue được bật: khi có mạng trở lại sẽ flush tự động.
+    async function confirmAddTrack() {
+        const name = musicAddName.value.trim();
+        const src  = musicAddUrl.value.trim();
+
+        if (!name) { musicAddName.focus(); return; }
+        if (!src)  { musicAddUrl.focus();  return; }
+
+        musicAddConfirm.disabled = true;
+
+        // Tạo tmp id để optimistic UI — sẽ được thay bằng id thật sau khi backend phản hồi
+        const tmpId = utils.generateId(); // đã có tiền tố "tmp-" sẵn
+
+        const optimisticTrack = {
+            id:        tmpId,
+            name,
+            src,
+            isDefault: false,
+            selected:  false,
+        };
+
+        if (utils.TEST) {
+            // TEST mode: không gọi API
+            musicList.push(optimisticTrack);
+            _resetAddForm();
+            renderMusicList();
+            return;
+        }
+
+        // Optimistic UI: hiển thị track ngay lập tức
+        musicList.push(optimisticTrack);
+        renderMusicList();
+        _resetAddForm();
+
+        try {
+            const res = await utils.fetchWithAuth(
+                `${utils.URL_API}/pomodoro/music`,
+                {
+                    method: 'PATCH',
+                    body: JSON.stringify({ name, src }),
+                },
+                {
+                    enableQueue:    true,
+                    // optimisticData: backend trả về khi online — dùng để flush queue đúng cách
+                    optimisticData: optimisticTrack,
+                },
+                tmpId, // dùng tmpId làm queue key để DELETE có thể tìm và hủy nếu cần
+                1
+            );
+
+            if (res.ok) {
+                const data = await res.json();
+                // Thay thế tmp id bằng id thật từ backend
+                const realId = data.id;
+                if (realId && realId !== tmpId) {
+                    musicList = musicList.map(tr =>
+                        tr.id === tmpId
+                            ? { ...tr, id: realId, name: data.name ?? name, src: data.src ?? src }
+                            : tr
+                    );
+                    renderMusicList();
+                    updateMusicTrigger();
+                }
+            }
+            // Nếu res.status === 202 (queued) → tmp id giữ nguyên, flush sau
+        } catch (err) {
+            if (err.message === 'Unauthorized') return;
+            // Mất mạng đã được queue xử lý — không cần làm gì thêm
+        }
+    }
+
+    // ── PATCH /pomodoro/music — THAY ĐỔI SELECTION ──────────────
+    // Chọn / bỏ chọn track; id = null nghĩa là "Không phát nhạc".
+    // Dùng offline queue vì thay đổi selection cần persist.
+    async function selectTrack(id) {
+        // Cập nhật state local trước (optimistic)
+        musicList = musicList.map(tr => ({ ...tr, selected: tr.id === id }));
+
+        renderMusicList();
+        updateMusicTrigger();
+
+        // Phát / dừng nhạc
+        const chosen = musicList.find(tr => tr.selected);
+        if (chosen) {
+            playTrack(chosen);
+        } else {
+            stopMusic();
+        }
+
+        closeMusicModal();
+
+        if (utils.TEST) return;
+
+        // Gọi PATCH để lưu selection lên backend
+        // Body: { selected_id } — backend tự xử lý bỏ chọn các track khác
+        try {
+            await utils.fetchWithAuth(
+                `${utils.URL_API}/pomodoro/music`,
+                {
+                    method: 'PATCH',
+                    body: JSON.stringify({ selected_id: id }),
+                },
+                {
+                    enableQueue:    true,
+                    optimisticData: { selected_id: id },
+                },
+                utils.generateId(),
+                1
+            );
+        } catch (err) {
+            if (err.message !== 'Unauthorized') {
+                console.warn('[Music] PATCH selection error:', err.message);
+            }
+        }
+    }
+
+    // ── DELETE /pomodoro/music ───────────────────────────────────
+    // - id có tiền tố "tmp-" → track chưa sync lên server:
+    //     xóa khỏi offline queue (hủy PATCH đang chờ) + xóa khỏi musicList
+    // - id real (không có "tmp-") → gọi DELETE lên backend với offline queue
+    // - isDefault → chặn hoàn toàn, không làm gì
+    async function deleteTrack(id) {
+        const track = musicList.find(tr => tr.id === id);
+        if (!track || track.isDefault) return; // an toàn kép: UI đã ẩn nút, nhưng guard lại
+
+        // Nếu track đang phát → dừng trước
+        if (track.selected) stopMusic();
+
+        // Xóa khỏi local state ngay (optimistic)
+        musicList = musicList.filter(tr => tr.id !== id);
+        renderMusicList();
+        updateMusicTrigger();
+
+        if (utils.TEST) return;
+
+        const isTmp = String(id).startsWith('tmp-');
+
+        if (isTmp) {
+            // Track chưa bao giờ lên server → chỉ cần hủy PATCH đang nằm trong queue
+            // idb.js dùng key = tmpId khi enqueue → deleteData(QUEUE_STORE, tmpId) là đủ
+            try {
+                await import('../idb.js').then(idb =>
+                    idb.deleteData('offlinequeue', id)
+                );
+                console.info(`[Music] Đã hủy queued PATCH cho tmp track: ${id}`);
+            } catch (err) {
+                // Queue có thể đã được flush rồi — bỏ qua
+                console.warn('[Music] Không tìm thấy tmp track trong queue (có thể đã flush):', err.message);
+            }
+        } else {
+            // id thật → gọi DELETE lên backend, queue nếu mất mạng
+            try {
+                await utils.fetchWithAuth(
+                    `${utils.URL_API}/pomodoro/music`,
+                    {
+                        method: 'DELETE',
+                        body: JSON.stringify({ id }),
+                    },
+                    { enableQueue: true },
+                    utils.generateId(),
+                    1
+                );
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    console.warn('[Music] DELETE /pomodoro/music error:', err.message);
+                }
+            }
+        }
+    }
+
+    // ── PLAYBACK ─────────────────────────────────────────────────
+    function playTrack(track) {
+        if (audioPlayer.src === track.src && !audioPlayer.paused) return;
+        audioPlayer.src = track.src;
+        audioPlayer.play().catch(() => {
+            utils.showWarning(t('pomodoro.music.playError'));
+        });
+        musicEq.style.display = 'flex';
+        musicTrigger.classList.add('playing');
+        musicVolumeWrap.style.display = 'flex';
+    }
+
+    function stopMusic() {
+        audioPlayer.pause();
+        audioPlayer.src = '';
+        musicEq.style.display = 'none';
+        musicTrigger.classList.remove('playing');
+        if (!musicList.some(tr => tr.selected)) {
+            musicVolumeWrap.style.display = 'none';
+        }
+    }
+
+    // ── RENDER DANH SÁCH TRONG MODAL ─────────────────────────────
+    function renderMusicList() {
+        musicModalList.innerHTML = '';
+
+        // Option "Không có nhạc" ở đầu
+        const noneSelected = !musicList.some(tr => tr.selected);
+        const noneItem = document.createElement('div');
+        noneItem.className = 'music-item music-item-none' + (noneSelected ? ' selected' : '');
+        noneItem.innerHTML = `
+            <span class="music-item-dot"></span>
+            <span class="music-item-name">${t('pomodoro.music.noneOption')}</span>
+        `;
+        noneItem.addEventListener('click', () => selectTrack(null));
+        musicModalList.appendChild(noneItem);
+
+        // Render từng track
+        musicList.forEach(track => {
+            const item = document.createElement('div');
+            item.className = 'music-item' + (track.selected ? ' selected' : '');
+            item.dataset.id = track.id;
+
+            // Badge "default" hoặc nút xóa; default track không bao giờ có nút xóa
+            const rightEl = track.isDefault
+                ? `<span class="music-item-badge">${t('pomodoro.music.defaultBadge')}</span>`
+                : `<button class="music-item-delete" title="${t('pomodoro.music.deleteTitle')}" data-id="${track.id}">
+                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                       </svg>
+                   </button>`;
+
+            item.innerHTML = `
+                <span class="music-item-dot"></span>
+                <span class="music-item-name">${track.name}</span>
+                ${rightEl}
+            `;
+
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.music-item-delete')) return;
+                selectTrack(track.id);
+            });
+
+            if (!track.isDefault) {
+                item.querySelector('.music-item-delete')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTrack(track.id);
+                });
+            }
+
+            musicModalList.appendChild(item);
+        });
+    }
+
+    // ── CẬP NHẬT TRIGGER BUTTON ──────────────────────────────────
+    function updateMusicTrigger() {
+        const selected = musicList.find(tr => tr.selected);
+        if (selected) {
+            musicTriggerLabel.textContent = selected.name;
+            musicVolumeWrap.style.display = 'flex';
+        } else {
+            musicTriggerLabel.textContent = t('pomodoro.music.noneSelected');
+            musicVolumeWrap.style.display = 'none';
+            musicEq.style.display = 'none';
+            musicTrigger.classList.remove('playing');
+        }
+    }
+
+    // ── MODAL OPEN / CLOSE ────────────────────────────────────────
+    function openMusicModal() {
+        renderMusicList();
+        musicOverlay.classList.add('open');
+        requestAnimationFrame(() => musicModal.classList.add('open'));
+    }
+
+    function closeMusicModal() {
+        musicOverlay.classList.remove('open');
+        musicModal.classList.remove('open');
+        musicAddForm.style.display = 'none';
+        musicAddBtn.style.display  = 'flex';
+    }
+
+    // ── VOLUME ───────────────────────────────────────────────────
+    // Volume lưu localStorage — không cần sync backend
+    function onVolumeChange() {
+        const vol = parseInt(musicVolumeSlider.value);
+        audioPlayer.volume = vol / 100;
+        musicVolumeLabel.textContent = vol + '%';
+        localStorage.setItem('pomodoro_music_volume', vol);
+    }
+
+    // ── STOP NHẠC KHI RỜI TRANG ─────────────────────────────────
+    window.addEventListener('beforeunload', () => {
+        audioPlayer.pause();
+        audioPlayer.src = '';
+    });
+
+    // ── SYNC LẠI SAU KHI CÓ MẠNG TRỞ LẠI ───────────────────────
+    // Khi offline, track user thêm vẫn dùng tmp-id trong musicList.
+    // Sau khi flushQueue() chạy xong (utils.js tự xử lý), backend đã có
+    // id thật — cần loadMusic() lại để đồng bộ id thật vào musicList.
+    // Dùng một lần GET sau khi queue trống thay vì polling liên tục.
+    window.addEventListener('online', () => {
+        // Chờ flushQueue trong utils.js xử lý xong rồi mới reload
+        // Dùng isQueueEmpty() kiểm tra thay vì polling mù
+        const syncAfterFlush = async () => {
+            // Tối đa 10 lần kiểm tra, mỗi lần cách 400ms (tổng ~4s)
+            // Nếu vẫn còn queue sau đó → bỏ qua, tránh treo vô hạn
+            for (let i = 0; i < 10; i++) {
+                if (await utils.isQueueEmpty()) break;
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
+            // Chỉ reload nếu còn tmp-id trong list (tức có gì cần đồng bộ)
+            const hasTmp = musicList.some(tr => String(tr.id).startsWith('tmp-'));
+            if (hasTmp) await loadMusic();
+        };
+        syncAfterFlush();
+    });
+
+    // ── HELPER RESET FORM ────────────────────────────────────────
+    function _resetAddForm() {
+        musicAddName.value = '';
+        musicAddUrl.value  = '';
+        musicAddForm.style.display = 'none';
+        musicAddBtn.style.display  = 'flex';
+        musicAddConfirm.disabled   = false;
+    }
+
+    // =========================================================
     // --- 11. UI EVENT BINDINGS ---
+    // =========================================================
 
     document.getElementById('taskTrigger').addEventListener('click', openTaskModal);
     overlay.addEventListener('click', closeTaskModal);
@@ -472,6 +898,31 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.querySelector('[title="Skip"]')?.addEventListener('click', skipTimer);
     document.querySelector('.close-btn')?.addEventListener('click', closePomodoro);
 
+    // Music events
+    musicTrigger.addEventListener('click', openMusicModal);
+    musicOverlay.addEventListener('click', closeMusicModal);
+    musicVolumeSlider.addEventListener('input', onVolumeChange);
+
+    musicAddBtn.addEventListener('click', () => {
+        musicAddForm.style.display = 'flex';
+        musicAddBtn.style.display  = 'none';
+        musicAddName.focus();
+    });
+
+    musicAddCancel.addEventListener('click', () => {
+        musicAddForm.style.display = 'none';
+        musicAddBtn.style.display  = 'flex';
+        musicAddName.value = '';
+        musicAddUrl.value  = '';
+    });
+
+    musicAddConfirm.addEventListener('click', confirmAddTrack);
+
+    // Cho phép nhấn Enter để xác nhận thêm track
+    musicAddUrl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') confirmAddTrack();
+    });
+
     // --- 12. GLOBAL EXPOSE ---
     window.setMode         = setMode;
     window.toggleTimer     = toggleTimer;
@@ -483,10 +934,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     window.onTaskSearch    = onTaskSearch;
     window.onSettingChange = onSettingChange;
     window.closePomodoro   = closePomodoro;
+    window.openMusicModal  = openMusicModal;
+    window.closeMusicModal = closeMusicModal;
 
     // --- 13. INITIALIZATION ---
     await Promise.all([loadSettings(), loadTasks()]);
     totalSeconds     = getDuration(currentMode);
     remainingSeconds = totalSeconds;
     updateDisplay();
+
+    // Khởi tạo music (sau initI18n để t() hoạt động đúng)
+    loadMusic();
 });
