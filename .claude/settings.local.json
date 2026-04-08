@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__grapuco__get_project_modules"
+    ]
+  }
+}
