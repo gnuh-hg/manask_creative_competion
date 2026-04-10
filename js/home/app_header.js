@@ -1,6 +1,5 @@
 import * as utils from '../../utils.js';
 import { t, setLang, getLang, initI18n } from '../../i18n.js';
-import * as notif from '../notification.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     await initI18n();
@@ -274,27 +273,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     btnLogout.addEventListener('click', function() {
         localStorage.removeItem('access_token');
         window.location.href = '/pages/login.html';
-    });
-
-    // ========== NOTIFICATION BELL ==========
-    notif.init();
-
-    const notifBell = document.getElementById('notif-bell');
-    if (notifBell) {
-        notifBell.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notif.togglePanel();
-            const panel = document.getElementById('notif-panel');
-            notifBell.classList.toggle('active', panel?.classList.contains('notif-panel--open') ?? false);
-        });
-    }
-
-    // Sync bell active state khi panel đóng bởi click ngoài
-    document.addEventListener('click', () => {
-        const panel = document.getElementById('notif-panel');
-        if (notifBell && panel && !panel.classList.contains('notif-panel--open')) {
-            notifBell.classList.remove('active');
-        }
     });
 
     // ========== INITIALIZE ==========

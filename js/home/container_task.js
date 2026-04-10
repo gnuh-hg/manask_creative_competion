@@ -1,7 +1,6 @@
 import * as utils from '../../utils.js';
 import * as idb from '../../idb.js';
 import { t, initI18n } from '../../i18n.js';
-import * as notif from '../notification.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     await initI18n();
@@ -91,7 +90,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 hideEmptyState();
                 items.forEach(item => renderItem(item));
-                notif.checkOverdue(items);
             }
 
             // Load sort & filter settings từ backend
@@ -379,8 +377,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (progressPercent) progressPercent.textContent = '100%';
 
             this.textContent = t('home.btn_done_check');
-
-            notif.add('task_done', t('notif.task_done_title'), data.name);
 
             setTimeout(async () => {
                 if (utils.TEST){

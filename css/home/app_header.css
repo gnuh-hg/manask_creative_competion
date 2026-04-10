@@ -523,38 +523,6 @@
     padding: 0.4rem 0.6rem;
 }
 
-/* ========== NOTIFICATION BELL — đồng nhất với nav-btn ========== */
-/* Override notification.css (load sau) bằng higher specificity */
-.app-header .notif-bell {
-    width: auto;
-    height: auto;
-    padding: 0.4rem 0.625rem;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 20px;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.app-header .notif-bell:hover {
-    background: rgba(99, 102, 241, 0.1);
-    border-color: rgba(99, 102, 241, 0.2);
-    color: var(--text-primary);
-    transform: translateY(-1px);
-}
-
-.app-header .notif-bell.active {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(124, 58, 237, 0.12));
-    border-color: rgba(99, 102, 241, 0.28);
-    color: #a5b4fc;
-}
-
-.app-header .notif-bell__svg {
-    width: 14px;
-    height: 14px;
-}
-
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
     .app-header {
@@ -580,15 +548,6 @@
 
     .nav-btn-text {
         display: none;
-    }
-
-    /* Bell mobile — khớp với nav-btn mobile */
-    .app-header .notif-bell {
-        padding: 0.4rem;
-        width: 36px;
-        height: 36px;
-        justify-content: center;
-        border-radius: 50%;
     }
 
     .profile-dropdown {

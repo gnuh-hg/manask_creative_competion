@@ -47,27 +47,6 @@ input  { font-family: inherit; }
     gap: 8px;
 }
 
-.rm-page-badge {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: rgba(99, 102, 241, 0.14);
-    border: 1px solid rgba(99, 102, 241, 0.28);
-    color: #a5b4fc;
-    vertical-align: middle;
-}
-
-.rm-page-sub {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 4px;
-    min-height: 16px;
-}
-
 /* Save indicator dot */
 .rm-save-dot {
     width: 6px;
@@ -894,59 +873,77 @@ input  { font-family: inherit; }
 /* ── Responsive (mobile) ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
 
-    /* Stack layout: canvas fills, bar docks at bottom */
     body { overflow: hidden; }
 
+    /* Canvas area: viewport minus header minus mobile bar */
     #rm-app {
         position: relative;
-        height: calc(100vh - 65px - 52px); /* viewport - header - mobile-bar */
+        height: calc(100vh - 65px - 52px);
     }
 
-    /* Sidebars slide in from sides as overlays */
+    /* Canvas takes full remaining height */
+    #rm-main { flex: 1; height: 100%; }
+    #cw      { height: 100%; touch-action: none; }
+
+    /* ── Sidebars: bottom-sheet (slide up from bottom) ─────────────── */
     #sb-left, #sb-right {
         position: fixed;
-        top: 65px;
-        height: calc(100vh - 65px - 52px);
+        bottom: 52px;            /* sit on top of mobile bar */
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        height: 50vh;
         z-index: 60;
-        transform: translateX(-110%);
+        transform: translateY(100%);   /* hidden below */
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        width: min(82vw, 300px);
-        box-shadow: var(--shadow-xl);
         border: none;
+        border-top: 1px solid var(--border-light);
+        border-radius: 14px 14px 0 0;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
 
-    #sb-left  { left: 0; border-right: 1px solid var(--border-light); }
-    #sb-right { right: 0; left: auto; transform: translateX(110%); border-left: 1px solid var(--border-light); }
+    #sb-left.mob-open,
+    #sb-right.mob-open { transform: translateY(0); }
 
-    #sb-left.mob-open  { transform: translateX(0); }
-    #sb-right.mob-open { transform: translateX(0); }
+    /* Scroll inside the opened sheet */
+    #sb-left .folder-container  { overflow-y: auto; flex: 1; }
+    #sb-right .sb-body          { overflow-y: auto; flex: 1; }
 
-    /* Backdrop when sidebar is open */
+    /* Drag handle pill */
+    #sb-left::before,
+    #sb-right::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        background: var(--border-light);
+        border-radius: 2px;
+        margin: 8px auto 4px;
+        flex-shrink: 0;
+    }
+
+    /* Backdrop (covers header → mobile bar) */
     .mob-backdrop {
         display: block;
         position: fixed;
         inset: 65px 0 52px 0;
-        background: rgba(0,0,0,0.45);
+        background: rgba(0, 0, 0, 0.45);
         z-index: 55;
         animation: fadeIn 0.2s ease;
     }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Canvas takes full remaining height */
-    #rm-main { flex: 1; height: 100%; }
-    #cw      { height: 100%; }
-
-    /* Hide desktop mini toolbar — actions are in mobile bar */
+    /* Hide desktop-only chrome */
     #mini-toolbar { display: none; }
     #hint-bar     { display: none; }
-    #zoom-badge   { bottom: 8px; }
+    #zoom-badge   { bottom: 60px; left: 10px; }
 
-    /* Header — hide subtitle on very small screens */
-    .rm-page-sub   { display: none; }
-    .rm-page-badge { display: none; }
-
-    /* Mobile bottom bar */
+    /* ── Mobile bottom bar ─────────────────────────────────────────── */
     #rm-mobile-bar {
         display: flex;
         align-items: center;
@@ -960,7 +957,7 @@ input  { font-family: inherit; }
         border-top: 1px solid var(--border-light);
         padding: 0 12px;
         z-index: 50;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.35);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
     }
 
     /* Gradient top border accent */
@@ -980,33 +977,32 @@ input  { font-family: inherit; }
 
     .mob-tog {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         justify-content: center;
-        gap: 3px;
-        padding: 4px 10px;
-        min-width: 72px;
-        height: 40px;
+        gap: 5px;
+        padding: 4px 12px;
+        height: 36px;
+        min-width: 80px;
         border-radius: var(--radius-sm);
-        border: 1px solid transparent;
+        border: 1px solid var(--border-light);
         background: transparent;
         color: var(--text-tertiary);
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
+        font-size: 11px;
+        font-weight: 500;
         transition: all 0.2s ease;
     }
 
     .mob-tog svg {
-        width: 16px;
-        height: 16px;
+        width: 15px;
+        height: 15px;
         flex-shrink: 0;
     }
 
     .mob-tog:hover,
     .mob-tog.active {
-        background: rgba(99,102,241,0.12);
-        border-color: rgba(99,102,241,0.25);
+        background: rgba(99, 102, 241, 0.15);
+        border-color: rgba(99, 102, 241, 0.4);
         color: #a5b4fc;
     }
 
@@ -1020,8 +1016,8 @@ input  { font-family: inherit; }
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         border-radius: var(--radius-sm);
         border: 1px solid var(--border-color);
         background: var(--bg-tertiary);
@@ -1031,8 +1027,7 @@ input  { font-family: inherit; }
     }
 
     .mob-action-btn svg { width: 15px; height: 15px; }
-
-    .mob-action-btn:active { transform: scale(0.93); }
+    .mob-action-btn:active { transform: scale(0.92); }
 
     .mob-action-btn:hover {
         background: var(--bg-hover);
@@ -1041,13 +1036,10 @@ input  { font-family: inherit; }
     }
 
     .mob-action-btn--danger:hover {
-        background: rgba(239,68,68,0.12);
-        border-color: rgba(239,68,68,0.3);
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.3);
         color: #ef4444;
     }
-
-    /* Pinch-zoom: prevent default scroll */
-    #cw { touch-action: none; }
 }
 
 ::-webkit-scrollbar {

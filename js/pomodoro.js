@@ -1,6 +1,5 @@
 import * as utils from '../utils.js';
 import { t, initI18n } from '../i18n.js';
-import * as notif from './notification.js';
 
 document.addEventListener('DOMContentLoaded', async function () {
     await initI18n();
@@ -383,22 +382,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             completedPomodoros++;
             updateDisplay();
 
-            // Notification: phiên focus hoàn thành
-        notif.add(
-            'pomodoro_done',
-            t('notif.pomodoro_done_title'),
-            selectedTask ? selectedTask.name : t('notif.pomodoro_done_body')
-        );
-
         if (!s.disableBreak) {
-                const nextMode = (completedPomodoros % s.longAfter === 0) ? 'long' : 'short';
-                const nextTab  = document.querySelectorAll('.mode-tab')[nextMode === 'short' ? 1 : 2];
-                // Notification: bắt đầu nghỉ
-                notif.add(
-                    'break_start',
-                    t('notif.break_start_title'),
-                    nextMode === 'long' ? t('notif.break_start_long') : t('notif.break_start_short')
-                );
                 setMode(nextMode, nextTab);
                 if (s.autoBreak) setTimeout(() => toggleTimer(), 500);
             } else {
@@ -408,7 +392,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
         } else {
             // Break ended → return to focus
-            notif.add('break_end', t('notif.break_end_title'), '');
             if (completedPomodoros % s.longAfter === 0) completedPomodoros = 0;
             const tab = document.querySelectorAll('.mode-tab')[0];
             setMode('focus', tab);
