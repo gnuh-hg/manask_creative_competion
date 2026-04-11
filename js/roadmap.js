@@ -635,6 +635,79 @@ function createNodeEl(nid, item) {
         document.addEventListener('mouseup', onUp);
     });
 
+    // Drag (touch) — long-press 250ms then drag node
+    (function() {
+        const HOLD_MS = 250;
+        let holdTimer = null;
+        let touchMoving = false;
+        let startTX = 0, startTY = 0;
+        let startNX = 0, startNY = 0;
+        let activeTouchId = null;
+
+        function cancelHold() {
+            if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+        }
+
+        el.addEventListener('touchstart', e => {
+            if (e.target.classList.contains('port') || e.target.closest('.nd-del')) return;
+            e.stopPropagation();
+            const t = e.touches[0];
+            activeTouchId = t.identifier;
+            startTX = t.clientX; startTY = t.clientY;
+            startNX = nodes[nid].x; startNY = nodes[nid].y;
+            touchMoving = false;
+
+            holdTimer = setTimeout(() => {
+                holdTimer = null;
+                touchMoving = true;
+                selectNd(nid);
+                el.classList.add('touch-dragging');
+                if (navigator.vibrate) navigator.vibrate(30);
+            }, HOLD_MS);
+        }, { passive: true });
+
+        el.addEventListener('touchmove', e => {
+            const t = Array.from(e.touches).find(t => t.identifier === activeTouchId);
+            if (!t) return;
+
+            // Cancel hold if moved too early
+            if (holdTimer) {
+                const dx = t.clientX - startTX, dy = t.clientY - startTY;
+                if (Math.hypot(dx, dy) > 6) cancelHold();
+                return;
+            }
+
+            if (!touchMoving) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Position = (touch - canvas offset - pan) / zoom, offset by grab point
+            const rect = cw.getBoundingClientRect();
+            const grabOffX = (startTX - rect.left - panX) / zoom - startNX;
+            const grabOffY = (startTY - rect.top  - panY) / zoom - startNY;
+            nodes[nid].x = Math.max(0, (t.clientX - rect.left - panX) / zoom - grabOffX);
+            nodes[nid].y = Math.max(0, (t.clientY - rect.top  - panY) / zoom - grabOffY);
+            el.style.left = nodes[nid].x + 'px';
+            el.style.top  = nodes[nid].y + 'px';
+            renderEdges();
+        }, { passive: false });
+
+        el.addEventListener('touchend', () => {
+            cancelHold();
+            el.classList.remove('touch-dragging');
+            if (touchMoving) saveState();
+            touchMoving = false;
+            activeTouchId = null;
+        }, { passive: true });
+
+        el.addEventListener('touchcancel', () => {
+            cancelHold();
+            el.classList.remove('touch-dragging');
+            touchMoving = false;
+            activeTouchId = null;
+        }, { passive: true });
+    })();
+
     return el;
 }
 
@@ -1054,18 +1127,32 @@ function setupMobileBar() {
     // Touch-drag: drag items from left sidebar onto canvas
     setupTouchDrag();
 
-    // Two-finger pinch zoom on canvas
-    let touches = {}, lastDist = null;
+    // ── Single-finger pan + two-finger pinch zoom on canvas ──
+    let lastDist   = null;
+    let panTouch   = null; // { id, startX, startY, lastX, lastY }
+    let isPanTouch = false;
 
     cw.addEventListener('touchstart', e => {
-        Array.from(e.touches).forEach(t => { touches[t.identifier] = { x: t.clientX, y: t.clientY }; });
-        if (e.touches.length === 2) {
+        if (e.touches.length === 1) {
+            // Only pan if touch started on background (not a node/port)
+            const bg = e.target === cw || e.target.id === 'cnv' ||
+                       e.target.id === 'canvas-transform' || e.target.id === 'edge-g' ||
+                       e.target.closest('#edge-svg');
+            if (bg) {
+                const t = e.touches[0];
+                panTouch = { id: t.identifier, lastX: t.clientX, lastY: t.clientY };
+                isPanTouch = true;
+            }
+        } else if (e.touches.length === 2) {
+            isPanTouch = false;
+            panTouch = null;
             lastDist = getTouchDist(e.touches);
         }
     }, { passive: true });
 
     cw.addEventListener('touchmove', e => {
         if (e.touches.length === 2) {
+            // Pinch zoom
             e.preventDefault();
             const d = getTouchDist(e.touches);
             if (lastDist) {
@@ -1079,10 +1166,24 @@ function setupMobileBar() {
                 updateTransform();
             }
             lastDist = d;
+        } else if (e.touches.length === 1 && isPanTouch && panTouch) {
+            // Single-finger pan
+            e.preventDefault();
+            const t = Array.from(e.touches).find(t => t.identifier === panTouch.id);
+            if (!t) return;
+            panX += t.clientX - panTouch.lastX;
+            panY += t.clientY - panTouch.lastY;
+            panTouch.lastX = t.clientX;
+            panTouch.lastY = t.clientY;
+            updateTransform();
         }
     }, { passive: false });
 
-    cw.addEventListener('touchend', () => { lastDist = null; saveState(); });
+    cw.addEventListener('touchend', e => {
+        if (e.touches.length < 2) lastDist = null;
+        if (e.touches.length === 0) { isPanTouch = false; panTouch = null; }
+        saveState();
+    });
 }
 
 function toggleMobSidebar(side) {
@@ -1160,40 +1261,65 @@ function attachTouchDrag(el) {
     if (el._touchDragBound) return;
     el._touchDragBound = true;
 
-    // Ghost element shown while dragging
-    let ghost = null;
-    let dragging = false;
+    const LONG_PRESS_MS = 300;
     const iid = el.dataset.iid;
+
+    let ghost      = null;
+    let dragging   = false;
+    let pressTimer = null;
+    let startT     = null; // touch coords at touchstart
+
+    function cancelPress() {
+        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    }
+
+    function spawnGhost(t0) {
+        ghost = el.cloneNode(true);
+        ghost.style.cssText = `
+            position: fixed; z-index: 9999; pointer-events: none;
+            opacity: 0.82; transform: scale(1.08);
+            border-radius: 6px; background: var(--bg-hover);
+            padding: 6px 12px; font-size: 13px;
+            color: var(--text-primary); white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: none;
+        `;
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 28) + 'px';
+        document.body.appendChild(ghost);
+        // Haptic feedback if available
+        if (navigator.vibrate) navigator.vibrate(40);
+    }
 
     el.addEventListener('touchstart', e => {
         if (!iid) return;
         dragging = false;
+        startT = { x: e.touches[0].clientX, y: e.touches[0].clientY };
 
-        // Create ghost
-        ghost = el.cloneNode(true);
-        ghost.style.cssText = `
-            position: fixed; z-index: 9999; pointer-events: none;
-            opacity: 0.75; transform: scale(1.05);
-            border-radius: 6px; background: var(--bg-hover);
-            padding: 6px 10px; font-size: 13px;
-            color: var(--text-primary); white-space: nowrap;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-            transition: none;
-        `;
-        const t0 = e.touches[0];
-        ghost.style.left = (t0.clientX - 40) + 'px';
-        ghost.style.top  = (t0.clientY - 20) + 'px';
-        document.body.appendChild(ghost);
+        pressTimer = setTimeout(() => {
+            pressTimer = null;
+            dragging = true; // drag mode armed
+            spawnGhost(e.touches[0]);
+        }, LONG_PRESS_MS);
     }, { passive: true });
 
     el.addEventListener('touchmove', e => {
-        if (!ghost) return;
-        e.preventDefault(); // prevent scroll while dragging
-        dragging = true;
-
         const t0 = e.touches[0];
-        ghost.style.left = (t0.clientX - 40) + 'px';
-        ghost.style.top  = (t0.clientY - 20) + 'px';
+
+        // If not yet in drag mode: cancel press if finger moved > 8px
+        if (!dragging) {
+            const dx = t0.clientX - startT.x;
+            const dy = t0.clientY - startT.y;
+            if (Math.hypot(dx, dy) > 8) cancelPress();
+            return; // let scroll happen normally
+        }
+
+        e.preventDefault(); // drag mode: block scroll
+
+        if (ghost) {
+            ghost.style.left = (t0.clientX - 40) + 'px';
+            ghost.style.top  = (t0.clientY - 28) + 'px';
+        }
 
         // Highlight canvas when over it
         const cwEl = document.getElementById('cw');
@@ -1206,10 +1332,12 @@ function attachTouchDrag(el) {
     }, { passive: false });
 
     el.addEventListener('touchend', e => {
+        cancelPress();
         if (ghost) { ghost.remove(); ghost = null; }
         document.getElementById('cw')?.classList.remove('drag-over');
 
-        if (!dragging || !iid) return;
+        if (!dragging || !iid) { dragging = false; return; }
+        dragging = false;
 
         const t0 = e.changedTouches[0];
         const cwEl = document.getElementById('cw');
@@ -1219,7 +1347,6 @@ function attachTouchDrag(el) {
         if (t0.clientX < r.left || t0.clientX > r.right ||
             t0.clientY < r.top  || t0.clientY > r.bottom) return;
 
-        // Close the sidebar before adding the node
         closeAllMobSidebars();
 
         const cx = (t0.clientX - r.left - panX) / zoom;
@@ -1228,6 +1355,8 @@ function attachTouchDrag(el) {
     }, { passive: true });
 
     el.addEventListener('touchcancel', () => {
+        cancelPress();
+        dragging = false;
         if (ghost) { ghost.remove(); ghost = null; }
         document.getElementById('cw')?.classList.remove('drag-over');
     }, { passive: true });
