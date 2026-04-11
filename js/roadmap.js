@@ -1302,16 +1302,21 @@ function attachTouchDrag(el) {
         touchId = null;
         if (!t || !iid) return;
 
-        const cwEl = document.getElementById('cw');
-        if (!cwEl) return;
-        const r = cwEl.getBoundingClientRect();
-        if (t.clientX < r.left || t.clientX > r.right ||
-            t.clientY < r.top  || t.clientY > r.bottom) return;
-
+        // Close sidebar FIRST so the canvas expands to full height,
+        // then use requestAnimationFrame to let layout settle before
+        // measuring rect and adding the node.
         closeAllMobSidebars();
-        const cx = (t.clientX - r.left - panX) / zoom;
-        const cy = (t.clientY - r.top  - panY) / zoom;
-        addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+
+        const tx = t.clientX, ty = t.clientY; // capture before any layout shift
+        requestAnimationFrame(() => {
+            const cwEl = document.getElementById('cw');
+            if (!cwEl) return;
+            const r = cwEl.getBoundingClientRect();
+            // Accept drop anywhere on screen (sidebar was covering canvas area)
+            const cx = (tx - r.left - panX) / zoom;
+            const cy = (ty - r.top  - panY) / zoom;
+            addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+        });
     }
 
     function onDragCancel() {
