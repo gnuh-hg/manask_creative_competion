@@ -1261,135 +1261,65 @@ function attachTouchDrag(el) {
     if (el._touchDragBound) return;
     el._touchDragBound = true;
 
-    const LONG_PRESS_MS = 300;
     const iid = el.dataset.iid;
+    let ghost    = null;
+    let dragging = false;
 
-    let ghost      = null;
-    let pressTimer = null;
-    let touchId    = null;
-    let startX = 0, startY = 0;
+    el.addEventListener('touchstart', e => {
+        if (!iid) return;
+        dragging = false;
+        const t0 = e.touches[0];
+        ghost = el.cloneNode(true);
+        ghost.style.cssText = `
+            position: fixed; z-index: 9999; pointer-events: none;
+            opacity: 0.88; transform: scale(1.08);
+            border-radius: 6px; background: var(--bg-tertiary);
+            border: 1px solid var(--accent-primary);
+            padding: 6px 12px; font-size: 13px;
+            color: var(--text-primary); white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: none;
+        `;
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 28) + 'px';
+        document.body.appendChild(ghost);
+    }, { passive: true });
 
-    // These are added to document ONLY after long-press fires,
-    // so { passive: false } + preventDefault() is always honoured.
-    function onDragMove(e) {
-        const t = getTouchById(e.touches, touchId);
-        if (!t) return;
+    el.addEventListener('touchmove', e => {
+        if (!ghost) return;
         e.preventDefault();
+        dragging = true;
+        const t0 = e.touches[0];
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 28) + 'px';
+        document.getElementById('cw')?.classList.add('drag-over');
+    }, { passive: false });
 
-        if (ghost) {
-            ghost.style.left = (t.clientX - 40) + 'px';
-            ghost.style.top  = (t.clientY - 28) + 'px';
-        }
-
-        const cwEl = document.getElementById('cw');
-        if (cwEl) {
-            const r = cwEl.getBoundingClientRect();
-            const over = t.clientX >= r.left && t.clientX <= r.right &&
-                         t.clientY >= r.top  && t.clientY <= r.bottom;
-            cwEl.classList.toggle('drag-over', over);
-        }
-    }
-
-    function onDragEnd(e) {
-        document.removeEventListener('touchmove',   onDragMove,   { passive: false });
-        document.removeEventListener('touchend',    onDragEnd);
-        document.removeEventListener('touchcancel', onDragCancel);
-
+    el.addEventListener('touchend', e => {
         if (ghost) { ghost.remove(); ghost = null; }
         document.getElementById('cw')?.classList.remove('drag-over');
+        if (!dragging || !iid) { dragging = false; return; }
+        dragging = false;
 
-        const t = getTouchById(e.changedTouches, touchId);
-        touchId = null;
-        if (!t || !iid) return;
+        const t0 = e.changedTouches[0];
+        const tx = t0.clientX, ty = t0.clientY;
 
-        // Close sidebar FIRST so the canvas expands to full height,
-        // then use requestAnimationFrame to let layout settle before
-        // measuring rect and adding the node.
         closeAllMobSidebars();
-
-        const tx = t.clientX, ty = t.clientY; // capture before any layout shift
         requestAnimationFrame(() => {
             const cwEl = document.getElementById('cw');
             if (!cwEl) return;
             const r = cwEl.getBoundingClientRect();
-            // Accept drop anywhere on screen (sidebar was covering canvas area)
             const cx = (tx - r.left - panX) / zoom;
             const cy = (ty - r.top  - panY) / zoom;
             addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
         });
-    }
+    }, { passive: true });
 
-    function onDragCancel() {
-        document.removeEventListener('touchmove',   onDragMove,   { passive: false });
-        document.removeEventListener('touchend',    onDragEnd);
-        document.removeEventListener('touchcancel', onDragCancel);
+    el.addEventListener('touchcancel', () => {
         if (ghost) { ghost.remove(); ghost = null; }
         document.getElementById('cw')?.classList.remove('drag-over');
-        touchId = null;
-    }
-
-    // Early-cancel helper: listens for finger movement BEFORE long-press fires
-    function onEarlyMove(e) {
-        const t = getTouchById(e.touches, touchId);
-        if (!t) return;
-        if (Math.hypot(t.clientX - startX, t.clientY - startY) > 8) {
-            // Finger moved — cancel the timer, let normal scroll proceed
-            clearTimeout(pressTimer); pressTimer = null;
-            document.removeEventListener('touchmove', onEarlyMove);
-        }
-    }
-
-    el.addEventListener('touchstart', e => {
-        if (!iid || pressTimer) return;
-        const t = e.touches[0];
-        touchId = t.identifier;
-        startX  = t.clientX;
-        startY  = t.clientY;
-
-        // Watch for early movement to cancel press
-        document.addEventListener('touchmove', onEarlyMove, { passive: true });
-
-        pressTimer = setTimeout(() => {
-            pressTimer = null;
-            document.removeEventListener('touchmove', onEarlyMove);
-
-            // Spawn ghost at current finger position (re-query touches)
-            const liveT = getTouchById(document.querySelectorAll
-                ? (() => { /* fallback below */ })() : [], touchId) || { clientX: startX, clientY: startY };
-
-            ghost = el.cloneNode(true);
-            ghost.style.cssText = `
-                position: fixed; z-index: 9999; pointer-events: none;
-                opacity: 0.88; transform: scale(1.08);
-                border-radius: 6px; background: var(--bg-tertiary);
-                border: 1px solid var(--accent-primary);
-                padding: 6px 12px; font-size: 13px;
-                color: var(--text-primary); white-space: nowrap;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-                transition: none;
-            `;
-            ghost.style.left = (startX - 40) + 'px';
-            ghost.style.top  = (startY - 28) + 'px';
-            document.body.appendChild(ghost);
-
-            if (navigator.vibrate) navigator.vibrate(40);
-
-            // NOW attach move/end to document with passive:false so preventDefault works
-            document.addEventListener('touchmove',   onDragMove,   { passive: false });
-            document.addEventListener('touchend',    onDragEnd,    { passive: true  });
-            document.addEventListener('touchcancel', onDragCancel, { passive: true  });
-        }, LONG_PRESS_MS);
+        dragging = false;
     }, { passive: true });
-
-    // Clean up if finger lifts before long-press fires
-    el.addEventListener('touchend', () => {
-        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-        document.removeEventListener('touchmove', onEarlyMove);
-    }, { passive: true });
-}
-
-function getTouchById(touchList, id) {
-    return Array.from(touchList).find(t => t.identifier === id) || null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
