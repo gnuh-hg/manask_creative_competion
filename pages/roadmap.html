@@ -9,9 +9,7 @@
     <!-- Shared design tokens (same as statistics/pomodoro) -->
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/base.css">
-    <!-- Sidebar-nav item styles (reused from home) -->
-    <link rel="stylesheet" href="../css/home/sidebar_nav.css">
-    <!-- Roadmap-specific styles (overrides + canvas) -->
+    <!-- Roadmap-specific styles (includes all needed sidebar item styles) -->
     <link rel="stylesheet" href="../css/roadmap.css">
 
     <script type="module" src="../js/roadmap.js" defer></script>
@@ -160,32 +158,6 @@
             </svg>
             <span data-i18n="roadmap.mob_components">Thành phần</span>
         </button>
-
-        <!-- Center quick actions -->
-        <div class="mob-actions">
-            <button class="mob-action-btn" id="mob-layout" title="Sắp xếp">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-            </button>
-            <button class="mob-action-btn" id="mob-zoom-reset" title="Reset zoom">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                </svg>
-            </button>
-            <button class="mob-action-btn mob-action-btn--danger" id="mob-clear" title="Xóa tất cả">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                </svg>
-            </button>
-        </div>
 
         <!-- Toggle right sidebar -->
         <button class="mob-tog" id="mob-btn-right" aria-label="Roadmaps">

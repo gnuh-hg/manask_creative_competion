@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap Builder v4</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#161923;--bg3:#1e2433;--bg4:#252d3f;
+  --border:#2a3347;--border2:#3a4562;
+  --text:#e2e8f4;--text2:#8a9bbf;--text3:#5a6a8a;
+  --accent:#4f8ef7;--accent2:#3b72d9;
+  --green:#22c87a;--purple:#8b6cf7;--red:#f75454;--orange:#f7944f;
+  --rad:10px;--rad-sm:6px;
+  --font:'DM Sans',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--font);color:var(--text)}
+
+#app{display:flex;height:100vh;overflow:hidden}
+
+/* ── LEFT SIDEBAR ── */
+#sb-left{width:220px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2)}
+#sb-left-head{padding:14px 14px 10px;border-bottom:1px solid var(--border)}
+#sb-left-head h3{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+#sb-search{width:100%;font-size:12px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--rad-sm);background:var(--bg3);color:var(--text);outline:none;font-family:var(--font)}
+#sb-search:focus{border-color:var(--accent)}
+#sb-left-body{flex:1;overflow-y:auto;padding:6px 0 12px}
+#sb-left-body::-webkit-scrollbar{width:3px}
+#sb-left-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.sb-sec{font-size:9px;font-weight:600;color:var(--text3);padding:10px 14px 4px;letter-spacing:.1em;text-transform:uppercase}
+.sb-row{display:flex;align-items:center;gap:8px;padding:6px 14px;cursor:grab;font-size:12px;color:var(--text2);user-select:none;transition:background .1s,color .1s;border-radius:0}
+.sb-row:hover{background:var(--bg3);color:var(--text)}
+.sb-row:active{opacity:.6;cursor:grabbing}
+.sb-dot{width:8px;height:8px;flex-shrink:0;border-radius:50%}
+.sb-nm{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative}
+
+/* ── CANVAS ── */
+#cw{flex:1;position:relative;overflow:hidden;background:var(--bg);cursor:default;
+  background-image:radial-gradient(var(--border) 1px,transparent 1px);
+  background-size:28px 28px}
+#cw.panning{cursor:grabbing}
+
+#canvas-transform{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+
+#edge-svg{position:absolute;top:0;left:0;overflow:visible;z-index:2;pointer-events:none}
+#cnv{position:absolute;top:0;left:0;z-index:3}
+
+/* ── NODES ── */
+.nd{position:absolute;min-width:148px;max-width:175px;border-radius:var(--rad);border:1.5px solid var(--border2);background:var(--bg2);padding:10px 12px 11px;user-select:none;transition:box-shadow .15s,border-color .15s;cursor:move}
+.nd:hover{border-color:var(--accent2)}
+.nd.sel{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,142,247,.2)}
+.nd-hdr{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.nd-ico{width:12px;height:12px;flex-shrink:0;border-radius:3px}
+.nd-lbl{font-size:9px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase}
+.nd-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.35;word-break:break-word}
+.nd-parent{font-size:10px;color:var(--text3);margin-top:3px}
+.nd-del{position:absolute;top:5px;right:6px;width:18px;height:18px;border-radius:50%;background:rgba(247,84,84,.15);color:var(--red);font-size:11px;display:none;align-items:center;justify-content:center;cursor:pointer;line-height:1;border:1px solid rgba(247,84,84,.3);transition:background .1s}
+.nd-del:hover{background:rgba(247,84,84,.3)}
+.nd.sel .nd-del{display:flex}
+
+/* Ports */
+.ports{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .15s}
+.nd:hover .ports,.nd.sel .ports,.nd.port-active .ports{opacity:1}
+.port{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);cursor:crosshair;pointer-events:all;z-index:4;transition:transform .1s,background .1s}
+.port:hover{transform:scale(1.3);background:var(--green)}
+.port.port-pending{background:var(--orange);transform:scale(1.2)}
+.port[data-p=top]{top:-7px;left:calc(50% - 7px)}
+.port[data-p=bottom]{bottom:-7px;left:calc(50% - 7px)}
+.port[data-p=left]{left:-7px;top:calc(50% - 7px)}
+.port[data-p=right]{right:-7px;top:calc(50% - 7px)}
+
+/* ── EMPTY STATE ── */
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:.25;z-index:0}
+#empty svg{width:44px;height:44px;margin-bottom:12px}
+#empty p{font-size:13px;color:var(--text2);text-align:center;line-height:1.7}
+
+/* ── ZOOM INDICATOR ── */
+#zoom-badge{position:absolute;bottom:14px;left:14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rad-sm);padding:4px 10px;font-size:11px;font-family:var(--font-mono);color:var(--text2);z-index:10;pointer-events:none}
+
+/* ── HINT BAR ── */
+#hint-bar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--text3);z-index:10;pointer-events:none;white-space:nowrap;transition:opacity .2s}
+
+/* ── EDGE POPUP ── */
+#edge-popup{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rad);padding:14px;z-index:999;display:none;min-width:230px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#edge-popup h4{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.ep-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ep-row label{font-size:11px;color:var(--text2);width:60px;flex-shrink:0}
+.ep-btns{display:flex;gap:4px;flex:1}
+.ep-b{font-size:11px;padding:3px 9px;border:1px solid var(--border2);border-radius:4px;background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .1s;font-family:var(--font)}
+.ep-b.on{background:var(--accent2);border-color:var(--accent);color:#fff}
+.ep-b:hover:not(.on){background:var(--bg3)}
+.ep-input{flex:1;font-size:11px;padding:4px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--bg3);color:var(--text);outline:none;font-family:var(--font)}
+.ep-input:focus{border-color:var(--accent)}
+.ep-close{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.ep-close:hover{background:var(--bg3);color:var(--text)}
+.ep-del{width:100%;margin-top:6px;padding:5px;border:1px solid rgba(247,84,84,.3);border-radius:4px;background:transparent;color:var(--red);font-size:11px;cursor:pointer;font-family:var(--font);transition:background .1s}
+.ep-del:hover{background:rgba(247,84,84,.1)}
+
+/* ── RIGHT SIDEBAR ── */
+#sb-right{width:230px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2)}
+#sb-right-head{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+#sb-right-head h3{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+#btn-new-rm{font-size:11px;padding:4px 10px;border:1px solid var(--border2);border-radius:var(--rad-sm);background:transparent;color:var(--accent);cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .12s;display:flex;align-items:center;gap:4px}
+#btn-new-rm:hover{background:rgba(79,142,247,.1);border-color:var(--accent)}
+#sb-right-body{flex:1;overflow-y:auto;padding:8px 8px 12px}
+#sb-right-body::-webkit-scrollbar{width:3px}
+#sb-right-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+.rm-item{border:1px solid var(--border);border-radius:var(--rad-sm);margin-bottom:6px;cursor:pointer;transition:all .12s;overflow:hidden;background:var(--bg3)}
+.rm-item:hover{border-color:var(--border2)}
+.rm-item.active{border-color:var(--accent);background:rgba(79,142,247,.07)}
+.rm-item-head{display:flex;align-items:center;padding:8px 10px 6px;gap:6px}
+.rm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--accent)}
+.rm-title{flex:1;font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rm-title-input{flex:1;font-size:12px;font-weight:500;background:transparent;border:none;border-bottom:1px solid var(--accent);color:var(--text);outline:none;font-family:var(--font);padding:0 2px}
+.rm-btns{display:flex;gap:2px;flex-shrink:0}
+.rm-btn{width:20px;height:20px;border-radius:4px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;transition:all .1s}
+.rm-btn:hover{background:var(--bg4);color:var(--text)}
+.rm-btn.danger:hover{background:rgba(247,84,84,.15);color:var(--red)}
+.rm-meta{padding:0 10px 7px;font-size:10px;color:var(--text3);display:flex;gap:8px}
+.rm-meta span{display:flex;align-items:center;gap:3px}
+
+/* ── MINI TOOLBAR (bottom center canvas) ── */
+#mini-toolbar{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:5px 10px;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.mt-btn{font-size:11px;padding:4px 10px;border-radius:12px;border:none;background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .12s;font-family:var(--font);display:flex;align-items:center;gap:4px}
+.mt-btn:hover{background:var(--bg3);color:var(--text)}
+.mt-btn.on{background:rgba(79,142,247,.2);color:var(--accent)}
+.mt-sep{width:1px;height:16px;background:var(--border2);margin:0 2px}
+
+/* Mobile */
+/* Mobile bottom bar — ẩn trên desktop */
+#mobile-bar{display:none}
+.mob-tog{display:none}
+.mob-center-btn{display:none}
+#mobile-hint{display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--text3);z-index:10;pointer-events:none}
+
+@media(max-width:768px){
+  /* Layout dọc: canvas trên, bottom-bar giữa, sheet bên dưới */
+  #app{flex-direction:column}
+  #hint-bar{display:none}
+  #mobile-hint{display:flex}
+
+  /* Sidebar: ẩn mặc định, trượt lên bằng max-height */
+  #sb-left,#sb-right{
+    width:100%;flex-direction:column;
+    border-right:none;border-left:none;border-top:1px solid var(--border2);
+    flex-shrink:0;order:3;
+    max-height:0;overflow:hidden;
+    transition:max-height .32s cubic-bezier(.4,0,.2,1);
+  }
+  #sb-left.mob-open,#sb-right.mob-open{max-height:44vh}
+  #sb-left-body,#sb-right-body{overflow-y:auto;max-height:calc(44vh - 50px)}
+
+  /* Canvas: luôn flex:1, tự co khi sheet mở */
+  #main{order:1;flex:1 1 auto;min-height:0}
+  #cw{height:100%}
+
+  /* Ẩn mini-toolbar trên mobile — đã có nút tương đương trong bottom bar */
+  #mini-toolbar{display:none}
+  #zoom-badge{bottom:60px}
+
+  /* Bottom bar */
+  #mobile-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    order:2;flex-shrink:0;width:100%;height:52px;
+    background:var(--bg2);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border2);
+    padding:0 12px;gap:8px;
+  }
+  .mob-tog{
+    display:flex;flex-direction:row;align-items:center;justify-content:center;
+    gap:6px;flex:1;max-width:130px;height:36px;
+    border-radius:10px;border:1px solid var(--border2);
+    background:transparent;color:var(--text2);cursor:pointer;
+    font-family:var(--font);font-size:11px;font-weight:500;
+    transition:background .15s,border-color .15s,color .15s;
+  }
+  .mob-tog svg{width:15px;height:15px;flex-shrink:0}
+  .mob-tog.active{background:rgba(79,142,247,.15);border-color:var(--accent);color:var(--accent)}
+  .mob-center{display:flex;gap:5px;align-items:center}
+  .mob-center-btn{
+    display:flex;align-items:center;justify-content:center;
+    width:34px;height:34px;border-radius:9px;
+    border:1px solid var(--border2);background:transparent;
+    color:var(--text2);cursor:pointer;font-size:15px;
+    font-family:var(--font);transition:background .12s;
+  }
+  .mob-center-btn:active{background:var(--bg3)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- LEFT SIDEBAR: components -->
+  <div id="sb-left">
+    <div id="sb-left-head">
+      <h3>Thành phần</h3>
+      <input id="sb-search" placeholder="Tìm kiếm…" oninput="renderSB(this.value)">
+    </div>
+    <div id="sb-left-body" id="sb-body"></div>
+  </div>
+
+  <!-- MAIN CANVAS AREA -->
+  <div id="main">
+    <div id="cw">
+      <div id="canvas-transform">
+        <svg id="edge-svg"><defs id="svg-defs"></defs><g id="edge-g"></g><path id="prev-path" d="" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5,3" fill="none" opacity=".6" pointer-events="none"/></svg>
+        <div id="cnv"></div>
+      </div>
+      <div id="empty">
+        <svg viewBox="0 0 44 44" fill="none"><rect x="2" y="2" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/><rect x="26" y="2" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="26" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/><rect x="26" y="26" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/></svg>
+        <p>Kéo thành phần vào đây<br>hoặc tạo roadmap mới</p>
+      </div>
+      <div id="zoom-badge">100%</div>
+      <div id="hint-bar">Kéo thả để thêm · Click phần nền để di chuyển màn hình · Ctrl+Scroll để zoom</div>
+      <div id="mobile-hint">Chạm để kéo · 2 ngón để zoom</div>
+      <!-- Mini toolbar -->
+      <div id="mini-toolbar">
+        <button class="mt-btn" onclick="autoLayout()">⚡ Sắp xếp</button>
+        <div class="mt-sep"></div>
+        <button class="mt-btn" onclick="clearAll()">🗑 Xóa tất cả</button>
+        <div class="mt-sep"></div>
+        <button class="mt-btn" onclick="zoomReset()">⊡ Reset zoom</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR: saved roadmaps -->
+  <div id="sb-right">
+    <div id="sb-right-head">
+      <h3>Roadmaps</h3>
+      <button id="btn-new-rm" onclick="newRoadmap()">＋ Tạo mới</button>
+    </div>
+    <div id="sb-right-body"></div>
+  </div>
+  <!-- Mobile bottom bar — TRONG #app để không bị overflow:hidden cắt -->
+  <div id="mobile-bar">
+    <button class="mob-tog" id="mob-btn-left" onclick="toggleMobSidebar('left')">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+        <rect x="2" y="4" width="7" height="12" rx="2"/>
+        <line x1="12" y1="7" x2="18" y2="7"/><line x1="12" y1="10" x2="18" y2="10"/><line x1="12" y1="13" x2="18" y2="13"/>
+      </svg>
+      Thành phần
+    </button>
+    <div class="mob-center">
+      <button class="mob-center-btn" onclick="autoLayout()">⚡</button>
+      <button class="mob-center-btn" onclick="zoomReset()">⊡</button>
+      <button class="mob-center-btn" onclick="clearAll()">🗑</button>
+    </div>
+    <button class="mob-tog" id="mob-btn-right" onclick="toggleMobSidebar('right')">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+        <rect x="11" y="4" width="7" height="12" rx="2"/>
+        <line x1="2" y1="7" x2="8" y2="7"/><line x1="2" y1="10" x2="8" y2="10"/><line x1="2" y1="13" x2="8" y2="13"/>
+      </svg>
+      Roadmaps
+    </button>
+  </div>
+</div>
+
+<!-- Edge edit popup -->
+<div id="edge-popup">
+  <button class="ep-close" onclick="closeEdgePopup()">✕</button>
+  <h4>Chỉnh sửa kết nối</h4>
+  <div class="ep-row">
+    <label>Chiều mũi tên</label>
+    <div class="ep-btns">
+      <button class="ep-b" id="epa-none" onclick="setEdgeArrow('none')">—</button>
+      <button class="ep-b" id="epa-one" onclick="setEdgeArrow('one')">→</button>
+      <button class="ep-b" id="epa-two" onclick="setEdgeArrow('two')">↔</button>
+    </div>
+  </div>
+  <div class="ep-row">
+    <label>Kiểu đường</label>
+    <div class="ep-btns">
+      <button class="ep-b" id="eps-solid" onclick="setEdgeStyle('solid')">─</button>
+      <button class="ep-b" id="eps-dashed" onclick="setEdgeStyle('dashed')">╌</button>
+      <button class="ep-b" id="eps-dotted" onclick="setEdgeStyle('dotted')">···</button>
+      <button class="ep-b" id="eps-faded" onclick="setEdgeStyle('faded')">░</button>
+    </div>
+  </div>
+  <div class="ep-row">
+    <label>Tên</label>
+    <input class="ep-input" id="ep-label-input" placeholder="(bỏ trống)" oninput="setEdgeLabel(this.value)">
+  </div>
+  <button class="ep-del" onclick="deleteEdgeFromPopup()">🗑 Xóa kết nối này</button>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const ITEMS=[
+  {id:'f1',type:'folder',name:'Năm học 2025',color:'#8a9bbf'},
+  {id:'f2',type:'folder',name:'Công việc',color:'#6b7a9b'},
+  {id:'p1',type:'project',name:'Đồ án tốt nghiệp',parent:'f1',color:'#8b6cf7'},
+  {id:'p2',type:'project',name:'Học kỳ hè',parent:'f1',color:'#6b4dd4'},
+  {id:'p3',type:'project',name:'Freelance Web',parent:'f2',color:'#4f52d4'},
+  {id:'t1',type:'task',name:'Nghiên cứu đề tài',parent:'p1',color:'#22c87a'},
+  {id:'t2',type:'task',name:'Viết proposal',parent:'p1',color:'#22c87a'},
+  {id:'t3',type:'task',name:'Thu thập dữ liệu',parent:'p1',color:'#22c87a'},
+  {id:'t4',type:'task',name:'Xây dựng mô hình AI',parent:'p1',color:'#22c87a'},
+  {id:'t5',type:'task',name:'Bảo vệ luận văn',parent:'p1',color:'#22c87a'},
+  {id:'t6',type:'task',name:'Ôn tập Toán',parent:'p2',color:'#1da870'},
+  {id:'t7',type:'task',name:'Khóa học ML',parent:'p2',color:'#1da870'},
+  {id:'t8',type:'task',name:'Thiết kế UI',parent:'p3',color:'#4f8ef7'},
+  {id:'t9',type:'task',name:'Phát triển backend',parent:'p3',color:'#4f8ef7'},
+  {id:'t10',type:'task',name:'Deploy & bàn giao',parent:'p3',color:'#4f8ef7'},
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+let nodes={}, edges=[], nCnt=0;
+let selNode=null;
+let connPortFirst=null; // {nid, port} after first port click
+let ctxEdgeIdx=null;
+
+// Pan/Zoom
+let panX=0, panY=0, zoom=1;
+let isPanning=false, panStart={x:0,y:0};
+
+// Roadmaps storage
+let roadmaps=[]; // [{id,name,nodes,edges,nCnt}]
+let activeRmId=null;
+
+// Edge popup
+let activeEdgeIdx=null;
+
+// ── INIT ──────────────────────────────────────────────────────
+function init(){
+  // Load or create default roadmap
+  const saved=localStorage.getItem('roadmap_v4');
+  if(saved){
+    try{
+      const data=JSON.parse(saved);
+      roadmaps=data.roadmaps||[];
+      activeRmId=data.activeRmId||null;
+    }catch(e){}
+  }
+  if(!roadmaps.length){
+    const id='rm_'+Date.now();
+    roadmaps=[{id,name:'Roadmap đầu tiên',nodes:{},edges:[],nCnt:0,panX:0,panY:0,zoom:1}];
+    activeRmId=id;
+  }
+  loadActiveRoadmap();
+  renderSB();
+  renderRoadmapList();
+  setupEventListeners();
+  updateTransform();
+}
+
+// ── SAVE / LOAD ───────────────────────────────────────────────
+function saveState(){
+  const rm=getRoadmap(activeRmId);
+  if(rm){
+    rm.nodes=JSON.parse(JSON.stringify(nodes));
+    rm.edges=JSON.parse(JSON.stringify(edges));
+    rm.nCnt=nCnt;
+    rm.panX=panX; rm.panY=panY; rm.zoom=zoom;
+  }
+  localStorage.setItem('roadmap_v4',JSON.stringify({roadmaps,activeRmId}));
+}
+function getRoadmap(id){return roadmaps.find(r=>r.id===id)}
+function loadActiveRoadmap(){
+  const rm=getRoadmap(activeRmId);
+  if(!rm) return;
+  nodes=JSON.parse(JSON.stringify(rm.nodes||{}));
+  edges=JSON.parse(JSON.stringify(rm.edges||[]));
+  nCnt=rm.nCnt||0;
+  panX=rm.panX||0; panY=rm.panY||0; zoom=rm.zoom||1;
+
+  // Rebuild DOM
+  document.getElementById('cnv').innerHTML='';
+  Object.entries(nodes).forEach(([nid,nd])=>rebuildNode(nid,nd));
+  renderEdges();
+  updateTransform();
+  updateEmpty();
+  connPortFirst=null;
+}
+
+function rebuildNode(nid,nd){
+  const item=nd.item;
+  const el=createNodeEl(nid,item);
+  el.style.left=nd.x+'px';el.style.top=nd.y+'px';
+  document.getElementById('cnv').appendChild(el);
+}
+
+// ── SIDEBAR LEFT ──────────────────────────────────────────────
+function renderSB(filter=''){
+  const body=document.querySelector('#sb-left-body');
+  body.innerHTML='';
+  const grp={folder:[],project:[],task:[]};
+  ITEMS.filter(i=>i.name.toLowerCase().includes((filter||'').toLowerCase())).forEach(i=>grp[i.type].push(i));
+  const lbl={folder:'Folder',project:'Project',task:'Task'};
+  ['folder','project','task'].forEach(t=>{
+    if(!grp[t].length) return;
+    const s=document.createElement('div');s.className='sb-sec';s.textContent=lbl[t];body.appendChild(s);
+    grp[t].forEach(item=>{
+      const row=document.createElement('div');row.className='sb-row';row.draggable=true;row.dataset.iid=item.id;
+      const dot=document.createElement('div');dot.className='sb-dot';
+      dot.style.background=item.color;
+      if(item.type==='task'){dot.style.background='transparent';dot.style.border=`1.5px solid ${item.color}`;}
+      if(item.type==='folder'){dot.style.borderRadius='50%';}
+      if(item.type==='project'){dot.style.borderRadius='3px';}
+      const nm=document.createElement('span');nm.className='sb-nm';nm.textContent=item.name;nm.title=item.name;
+      row.appendChild(dot);row.appendChild(nm);
+      row.addEventListener('dragstart',e=>e.dataTransfer.setData('iid',item.id));
+      // Touch drag for mobile
+      row.addEventListener('touchstart',e=>{
+        e._iid=item.id;
+      },{passive:true});
+      body.appendChild(row);
+    });
+  });
+}
+
+// ── ROADMAP LIST (right sidebar) ──────────────────────────────
+function renderRoadmapList(){
+  const body=document.getElementById('sb-right-body');
+  body.innerHTML='';
+  if(!roadmaps.length){
+    body.innerHTML='<div style="padding:20px;text-align:center;font-size:12px;color:var(--text3)">Chưa có roadmap nào</div>';
+    return;
+  }
+  roadmaps.forEach(rm=>{
+    const item=document.createElement('div');
+    item.className='rm-item'+(rm.id===activeRmId?' active':'');
+    item.dataset.rmid=rm.id;
+
+    const nodeCount=Object.keys(rm.nodes||{}).length;
+    const edgeCount=(rm.edges||[]).length;
+
+    item.innerHTML=`
+      <div class="rm-item-head">
+        <div class="rm-dot" style="background:${rmColor(rm.id)}"></div>
+        <span class="rm-title" title="${rm.name}">${rm.name}</span>
+        <div class="rm-btns">
+          <button class="rm-btn" title="Đổi tên" onclick="renameRm(event,'${rm.id}')">✎</button>
+          <button class="rm-btn danger" title="Xóa" onclick="deleteRm(event,'${rm.id}')">✕</button>
+        </div>
+      </div>
+      <div class="rm-meta">
+        <span>📦 ${nodeCount} node</span>
+        <span>🔗 ${edgeCount} kết nối</span>
+      </div>`;
+    item.addEventListener('click',e=>{
+      if(e.target.classList.contains('rm-btn')||e.target.closest('.rm-btn')) return;
+      if(e.target.classList.contains('rm-title-input')) return;
+      switchRoadmap(rm.id);
+    });
+    body.appendChild(item);
+  });
+}
+
+function rmColor(id){
+  const colors=['#4f8ef7','#22c87a','#8b6cf7','#f7944f','#f75454','#22c8c8'];
+  let h=0;for(let i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))&0xffff;
+  return colors[h%colors.length];
+}
+
+function newRoadmap(){
+  saveState();
+  const id='rm_'+Date.now();
+  const name='Roadmap '+(roadmaps.length+1);
+  roadmaps.push({id,name,nodes:{},edges:[],nCnt:0,panX:0,panY:0,zoom:1});
+  activeRmId=id;
+  nodes={};edges=[];nCnt=0;panX=0;panY=0;zoom=1;
+  document.getElementById('cnv').innerHTML='';
+  renderEdges();updateTransform();updateEmpty();
+  renderRoadmapList();
+  saveState();
+}
+
+function switchRoadmap(id){
+  if(id===activeRmId) return;
+  saveState();
+  activeRmId=id;
+  loadActiveRoadmap();
+  renderRoadmapList();
+  saveState();
+}
+
+function deleteRm(e,id){
+  e.stopPropagation();
+  if(roadmaps.length<=1){alert('Cần ít nhất 1 roadmap!');return;}
+  if(!confirm('Xóa roadmap này?')) return;
+  roadmaps=roadmaps.filter(r=>r.id!==id);
+  if(activeRmId===id){
+    activeRmId=roadmaps[0].id;
+    loadActiveRoadmap();
+  }
+  renderRoadmapList();
+  saveState();
+}
+
+function renameRm(e,id){
+  e.stopPropagation();
+  const item=document.querySelector(`.rm-item[data-rmid="${id}"]`);
+  if(!item) return;
+  const titleEl=item.querySelector('.rm-title');
+  const rm=getRoadmap(id);
+  if(!rm) return;
+  const inp=document.createElement('input');
+  inp.className='rm-title-input';inp.value=rm.name;
+  titleEl.replaceWith(inp);inp.focus();inp.select();
+  function done(){
+    const v=inp.value.trim()||rm.name;
+    rm.name=v;
+    const span=document.createElement('span');
+    span.className='rm-title';span.title=v;span.textContent=v;
+    inp.replaceWith(span);
+    renderRoadmapList();saveState();
+  }
+  inp.addEventListener('blur',done);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')done();if(e.key==='Escape'){done();}});
+}
+
+// ── PAN / ZOOM ────────────────────────────────────────────────
+const cw=document.getElementById('cw');
+const ct=document.getElementById('canvas-transform');
+
+function updateTransform(){
+  ct.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`;
+  document.getElementById('zoom-badge').textContent=Math.round(zoom*100)+'%';
+}
+
+function zoomReset(){zoom=1;panX=0;panY=0;updateTransform();saveState();}
+
+function setupEventListeners(){
+  // Ctrl+Scroll zoom
+  cw.addEventListener('wheel',e=>{
+    if(!e.ctrlKey&&!e.metaKey) return;
+    e.preventDefault();
+    const rect=cw.getBoundingClientRect();
+    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+    const delta=e.deltaY>0?0.96:1.04;
+    const newZoom=Math.max(0.2,Math.min(4,zoom*delta));
+    // Zoom toward cursor
+    panX=mx-(mx-panX)*(newZoom/zoom);
+    panY=my-(my-panY)*(newZoom/zoom);
+    zoom=newZoom;
+    updateTransform();saveState();
+  },{passive:false});
+
+  // Panning — click on canvas background
+  cw.addEventListener('mousedown',e=>{
+    if(e.target!==cw&&e.target.id!=='cnv'&&e.target.id!=='edge-svg'&&e.target.id!=='canvas-transform'&&!e.target.closest('#edge-svg')) return;
+    isPanning=true;
+    panStart={x:e.clientX-panX,y:e.clientY-panY};
+    cw.classList.add('panning');
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!isPanning) return;
+    panX=e.clientX-panStart.x; panY=e.clientY-panStart.y;
+    updateTransform();
+  });
+  document.addEventListener('mouseup',e=>{
+    if(isPanning){isPanning=false;cw.classList.remove('panning');saveState();}
+  });
+
+  // Click canvas to deselect / cancel connect
+  cw.addEventListener('click',e=>{
+    if(e.target===cw||e.target.id==='cnv'||e.target.id==='canvas-transform'){
+      selectNd(null);
+      connPortFirst=null;
+      clearPendingPorts();setPrev('');
+    }
+    closeEdgePopup();
+  });
+
+  // Drop from sidebar
+  cw.addEventListener('dragover',e=>e.preventDefault());
+  cw.addEventListener('drop',e=>{
+    e.preventDefault();
+    const iid=e.dataTransfer.getData('iid');if(!iid) return;
+    const r=cw.getBoundingClientRect();
+    const cx=(e.clientX-r.left-panX)/zoom;
+    const cy=(e.clientY-r.top-panY)/zoom;
+    addNode(iid,Math.max(0,cx-80),Math.max(0,cy-36));
+  });
+
+  // Keyboard
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){connPortFirst=null;clearPendingPorts();setPrev('');}
+    if((e.key==='Delete'||e.key==='Backspace')&&selNode&&document.activeElement.tagName!=='INPUT') delNode(selNode);
+  });
+
+  // Mobile touch: two-finger pinch zoom
+  let touches={};let lastDist=null;let lastMid=null;
+  cw.addEventListener('touchstart',e=>{
+    Array.from(e.touches).forEach(t=>{touches[t.identifier]={x:t.clientX,y:t.clientY};});
+    if(e.touches.length===2){
+      lastDist=getTouchDist(e.touches);
+      lastMid=getTouchMid(e.touches,cw.getBoundingClientRect());
+    }
+  },{passive:true});
+  cw.addEventListener('touchmove',e=>{
+    if(e.touches.length===2){
+      e.preventDefault();
+      const d=getTouchDist(e.touches);
+      if(lastDist){
+        const delta=d/lastDist;
+        const rect=cw.getBoundingClientRect();
+        const mid=getTouchMid(e.touches,rect);
+        const newZoom=Math.max(0.2,Math.min(4,zoom*delta));
+        panX=mid.x-(mid.x-panX)*(newZoom/zoom);
+        panY=mid.y-(mid.y-panY)*(newZoom/zoom);
+        zoom=newZoom;updateTransform();
+      }
+      lastDist=d;
+    }
+  },{passive:false});
+  cw.addEventListener('touchend',()=>{lastDist=null;saveState();});
+}
+
+function getTouchDist(ts){
+  return Math.hypot(ts[0].clientX-ts[1].clientX,ts[0].clientY-ts[1].clientY);
+}
+function getTouchMid(ts,rect){
+  return{x:((ts[0].clientX+ts[1].clientX)/2)-rect.left, y:((ts[0].clientY+ts[1].clientY)/2)-rect.top};
+}
+
+// ── NODE CREATE ───────────────────────────────────────────────
+function addNode(itemId,x,y){
+  const item=ITEMS.find(i=>i.id===itemId);if(!item) return;
+  const nid='n'+(++nCnt);
+  nodes[nid]={x,y,item};
+  const el=createNodeEl(nid,item);
+  el.style.left=x+'px';el.style.top=y+'px';
+  document.getElementById('cnv').appendChild(el);
+  updateEmpty();selectNd(nid);saveState();
+}
+
+function createNodeEl(nid,item){
+  const el=document.createElement('div');
+  el.id='nd-'+nid;el.className='nd';
+  const tl={folder:'Folder',project:'Project',task:'Task'};
+  const icoStyle=item.type==='task'
+    ?`border-radius:50%;border:2px solid ${item.color};background:transparent`
+    :`border-radius:${item.type==='folder'?'50%':'3px'};background:${item.color}`;
+  const parentItem=item.parent?ITEMS.find(i=>i.id===item.parent):null;
+  el.innerHTML=`
+    <div class="nd-hdr">
+      <div class="nd-ico" style="${icoStyle}"></div>
+      <span class="nd-lbl">${tl[item.type]}</span>
+    </div>
+    <div class="nd-name">${item.name}</div>
+    ${parentItem?`<div class="nd-parent">↳ ${parentItem.name}</div>`:''}
+    <div class="nd-del" onclick="delNode('${nid}')">✕</div>
+    <div class="ports">
+      <div class="port" data-p="top"    data-nid="${nid}"></div>
+      <div class="port" data-p="bottom" data-nid="${nid}"></div>
+      <div class="port" data-p="left"   data-nid="${nid}"></div>
+      <div class="port" data-p="right"  data-nid="${nid}"></div>
+    </div>`;
+
+  // Port click: first click marks source, second connects
+  el.querySelectorAll('.port').forEach(port=>{
+    port.addEventListener('click',e=>{
+      e.stopPropagation();
+      handlePortClick(nid,port.dataset.p,port);
+    });
+    // Touch: tap port = port click
+    port.addEventListener('touchend',e=>{
+      e.preventDefault();e.stopPropagation();
+      handlePortClick(nid,port.dataset.p,port);
+    },{passive:false});
+  });
+
+  // Node drag (mouse)
+  el.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('port')||e.target.classList.contains('nd-del')) return;
+    e.stopPropagation();
+    selectNd(nid);
+    e.preventDefault();
+    const startX=e.clientX/zoom-nodes[nid].x;
+    const startY=e.clientY/zoom-nodes[nid].y;
+    function onMove(mv){
+      const nx=Math.max(0,mv.clientX/zoom-startX);
+      const ny=Math.max(0,mv.clientY/zoom-startY);
+      nodes[nid].x=nx;nodes[nid].y=ny;
+      el.style.left=nx+'px';el.style.top=ny+'px';
+      renderEdges();
+    }
+    function onUp(){
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      saveState();
+    }
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  });
+
+  // Node touch drag (mobile single finger on node body)
+  el.addEventListener('touchstart',e=>{
+    if(e.target.classList.contains('port')||e.target.classList.contains('nd-del')) return;
+    if(e.touches.length!==1) return;
+    e.stopPropagation();
+    selectNd(nid);
+    const t0=e.touches[0];
+    const startX=t0.clientX/zoom-nodes[nid].x;
+    const startY=t0.clientY/zoom-nodes[nid].y;
+    function onMove(mv){
+      if(mv.touches.length!==1) return;
+      const t=mv.touches[0];
+      const nx=Math.max(0,t.clientX/zoom-startX);
+      const ny=Math.max(0,t.clientY/zoom-startY);
+      nodes[nid].x=nx;nodes[nid].y=ny;
+      el.style.left=nx+'px';el.style.top=ny+'px';
+      renderEdges();
+    }
+    function onEnd(){
+      el.removeEventListener('touchmove',onMove);
+      el.removeEventListener('touchend',onEnd);
+      saveState();
+    }
+    el.addEventListener('touchmove',onMove,{passive:true});
+    el.addEventListener('touchend',onEnd);
+  },{passive:true});
+
+  return el;
+}
+
+// ── PORT CONNECTION LOGIC ─────────────────────────────────────
+function handlePortClick(nid,portName,portEl){
+  if(!connPortFirst){
+    // First click: mark as source
+    connPortFirst={nid,port:portName};
+    portEl.classList.add('port-pending');
+    ndEl(nid)?.classList.add('port-active');
+    updateHint('Nhấn vào ô tròn ở node đích để nối · Esc huỷ');
+  } else {
+    if(connPortFirst.nid===nid){
+      // Same node: cancel
+      connPortFirst=null;clearPendingPorts();setPrev('');
+      updateHint('Kéo thả để thêm · Click phần nền để di chuyển màn hình · Ctrl+Scroll để zoom');
+      return;
+    }
+    // Second click on different node: create edge
+    const dup=edges.find(e=>e.from===connPortFirst.nid&&e.to===nid&&e.fromPort===connPortFirst.port&&e.toPort===portName);
+    if(!dup){
+      edges.push({from:connPortFirst.nid,to:nid,fromPort:connPortFirst.port,toPort:portName,etype:'one',style:'solid',label:''});
+    }
+    connPortFirst=null;clearPendingPorts();setPrev('');
+    renderEdges();saveState();
+    updateHint('Kéo thả để thêm · Click phần nền để di chuyển màn hình · Ctrl+Scroll để zoom');
+  }
+}
+
+function clearPendingPorts(){
+  document.querySelectorAll('.port-pending').forEach(p=>p.classList.remove('port-pending'));
+  document.querySelectorAll('.port-active').forEach(n=>n.classList.remove('port-active'));
+}
+
+function updateHint(msg){
+  document.getElementById('hint-bar').textContent=msg;
+}
+
+// Preview line for connect
+document.addEventListener('mousemove',e=>{
+  if(!connPortFirst) return;
+  const rect=cw.getBoundingClientRect();
+  const mx=(e.clientX-rect.left-panX)/zoom;
+  const my=(e.clientY-rect.top-panY)/zoom;
+  const A=portXY(connPortFirst.nid,connPortFirst.port);
+  setPrev(`M${A.x},${A.y} Q${(A.x+mx)/2},${A.y} ${mx},${my}`);
+});
+
+// ── GEOMETRY ──────────────────────────────────────────────────
+function ndEl(nid){return document.getElementById('nd-'+nid)}
+function ndBox(nid){
+  const n=nodes[nid];const el=ndEl(nid);
+  return{x:n.x,y:n.y,w:el?el.offsetWidth:150,h:el?el.offsetHeight:70};
+}
+function portXY(nid,p){
+  const b=ndBox(nid);
+  const cx=b.x+b.w/2,cy=b.y+b.h/2;
+  if(p==='top')    return{x:cx,y:b.y};
+  if(p==='bottom') return{x:cx,y:b.y+b.h};
+  if(p==='left')   return{x:b.x,y:cy};
+  if(p==='right')  return{x:b.x+b.w,y:cy};
+  return{x:cx,y:cy};
+}
+function cubicD(A,fp,B,tp){
+  const d=70;
+  const c1={x:fp==='right'?A.x+d:fp==='left'?A.x-d:A.x, y:fp==='bottom'?A.y+d:fp==='top'?A.y-d:A.y};
+  const c2={x:tp==='right'?B.x+d:tp==='left'?B.x-d:B.x, y:tp==='bottom'?B.y+d:tp==='top'?B.y-d:B.y};
+  return`M${A.x},${A.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${B.x},${B.y}`;
+}
+function bestPorts(from,to){
+  const f=ndBox(from),t=ndBox(to);
+  const dx=(t.x+t.w/2)-(f.x+f.w/2),dy=(t.y+t.h/2)-(f.y+f.h/2);
+  if(Math.abs(dy)>=Math.abs(dx)) return{fp:dy>0?'bottom':'top',tp:dy>0?'top':'bottom'};
+  return{fp:dx>0?'right':'left',tp:dx>0?'left':'right'};
+}
+
+// ── EDGES RENDER ──────────────────────────────────────────────
+function ensureMarkers(){
+  const defs=document.getElementById('svg-defs');
+  if(defs.innerHTML) return;
+  const mkColors=[
+    {id:'mk-default',color:'#8a9bbf'},
+    {id:'mk-green',color:'#22c87a'},
+    {id:'mk-purple',color:'#8b6cf7'},
+    {id:'mk-blue',color:'#4f8ef7'},
+    {id:'mk-orange',color:'#f7944f'},
+  ];
+  mkColors.forEach(({id,color})=>{
+    defs.innerHTML+=`<marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 Z" fill="${color}"/></marker>`;
+  });
+}
+
+function getMarker(color){
+  if(color==='#22c87a'||color==='#1da870') return'mk-green';
+  if(color==='#8b6cf7'||color==='#6b4dd4'||color==='#4f52d4') return'mk-purple';
+  if(color==='#4f8ef7') return'mk-blue';
+  if(color==='#f7944f') return'mk-orange';
+  return'mk-default';
+}
+
+function getDashArray(style){
+  if(style==='dashed') return'8,5';
+  if(style==='dotted') return'2,4';
+  return null;
+}
+
+function renderEdges(){
+  ensureMarkers();
+  const g=document.getElementById('edge-g');
+  while(g.firstChild) g.removeChild(g.firstChild);
+
+  edges.forEach((e,i)=>{
+    if(!nodes[e.from]||!nodes[e.to]) return;
+    // Use stored ports if available, else auto
+    let fp=e.fromPort,tp=e.toPort;
+    if(!fp||!tp){const bp=bestPorts(e.from,e.to);fp=bp.fp;tp=bp.tp;}
+    const A=portXY(e.from,fp),B=portXY(e.to,tp);
+    const d=cubicD(A,fp,B,tp);
+    const col=nodes[e.from].item.color||'#8a9bbf';
+    const mk=getMarker(col);
+    const opacity=e.style==='faded'?0.25:0.85;
+    const da=getDashArray(e.style);
+
+    // Hit area
+    const hit=document.createElementNS('http://www.w3.org/2000/svg','path');
+    hit.setAttribute('d',d);hit.setAttribute('stroke','transparent');hit.setAttribute('stroke-width','14');
+    hit.setAttribute('fill','none');hit.style.pointerEvents='stroke';hit.style.cursor='pointer';
+    hit.addEventListener('click',ev=>{ev.stopPropagation();openEdgePopup(ev,i);});
+
+    // Visual path
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',d);path.setAttribute('stroke',col);path.setAttribute('stroke-width','1.8');
+    path.setAttribute('fill','none');path.setAttribute('opacity',opacity);
+    path.style.pointerEvents='none';
+    if(da) path.setAttribute('stroke-dasharray',da);
+    if(e.etype==='two') path.setAttribute('marker-start',`url(#${mk})`);
+    if(e.etype==='one') path.setAttribute('marker-end',`url(#${mk})`);
+
+    g.appendChild(hit);g.appendChild(path);
+
+    // Label
+    if(e.label){
+      const mx=(A.x+B.x)/2,my=(A.y+B.y)/2;
+      const tw=e.label.length*6.5+10;
+      const lbg=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      lbg.setAttribute('x',mx-tw/2);lbg.setAttribute('y',my-15);
+      lbg.setAttribute('width',tw);lbg.setAttribute('height',14);lbg.setAttribute('rx',4);
+      lbg.setAttribute('fill','#1e2433');lbg.setAttribute('opacity','0.9');
+      lbg.style.pointerEvents='none';
+      const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+      lbl.setAttribute('x',mx);lbl.setAttribute('y',my-4);
+      lbl.setAttribute('text-anchor','middle');lbl.setAttribute('font-size','10');
+      lbl.setAttribute('fill',col);lbl.setAttribute('opacity','0.9');
+      lbl.style.pointerEvents='none';
+      lbl.setAttribute('font-family','DM Sans,sans-serif');
+      lbl.textContent=e.label;
+      g.appendChild(lbg);g.appendChild(lbl);
+    }
+  });
+}
+
+function setPrev(d){document.getElementById('prev-path').setAttribute('d',d);}
+
+// ── EDGE POPUP ────────────────────────────────────────────────
+function openEdgePopup(ev,i){
+  activeEdgeIdx=i;
+  const e=edges[i];
+  // Sync UI
+  ['none','one','two'].forEach(v=>document.getElementById('epa-'+v)?.classList.toggle('on',e.etype===v));
+  ['solid','dashed','dotted','faded'].forEach(v=>document.getElementById('eps-'+v)?.classList.toggle('on',e.style===v));
+  document.getElementById('ep-label-input').value=e.label||'';
+
+  const popup=document.getElementById('edge-popup');
+  popup.style.display='block';
+  // Position near click, keep in viewport
+  let left=ev.clientX+10, top=ev.clientY-10;
+  const pw=240,ph=200;
+  if(left+pw>window.innerWidth) left=ev.clientX-pw-10;
+  if(top+ph>window.innerHeight) top=window.innerHeight-ph-10;
+  popup.style.left=left+'px';popup.style.top=top+'px';
+}
+
+function closeEdgePopup(){
+  document.getElementById('edge-popup').style.display='none';
+  activeEdgeIdx=null;
+}
+
+function setEdgeArrow(v){
+  if(activeEdgeIdx==null) return;
+  edges[activeEdgeIdx].etype=v;
+  ['none','one','two'].forEach(x=>document.getElementById('epa-'+x)?.classList.toggle('on',x===v));
+  renderEdges();saveState();
+}
+
+function setEdgeStyle(v){
+  if(activeEdgeIdx==null) return;
+  edges[activeEdgeIdx].style=v;
+  ['solid','dashed','dotted','faded'].forEach(x=>document.getElementById('eps-'+x)?.classList.toggle('on',x===v));
+  renderEdges();saveState();
+}
+
+function setEdgeLabel(v){
+  if(activeEdgeIdx==null) return;
+  edges[activeEdgeIdx].label=v;
+  renderEdges();saveState();
+}
+
+function deleteEdgeFromPopup(){
+  if(activeEdgeIdx==null) return;
+  edges.splice(activeEdgeIdx,1);
+  closeEdgePopup();renderEdges();saveState();
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#edge-popup')) return;
+});
+
+// ── NODE MANAGEMENT ───────────────────────────────────────────
+function selectNd(nid){
+  if(selNode) ndEl(selNode)?.classList.remove('sel');
+  selNode=nid;
+  if(nid) ndEl(nid)?.classList.add('sel');
+}
+
+function delNode(nid){
+  ndEl(nid)?.remove();
+  delete nodes[nid];
+  edges=edges.filter(e=>e.from!==nid&&e.to!==nid);
+  if(selNode===nid) selNode=null;
+  renderEdges();updateEmpty();saveState();
+}
+
+function updateEmpty(){
+  document.getElementById('empty').style.display=Object.keys(nodes).length?'none':'';
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function clearAll(){
+  if(!confirm('Xóa tất cả node và kết nối?')) return;
+  document.getElementById('cnv').innerHTML='';
+  nodes={};edges=[];selNode=null;nCnt=0;connPortFirst=null;
+  clearPendingPorts();setPrev('');renderEdges();updateEmpty();saveState();
+}
+
+function autoLayout(){
+  const ids=Object.keys(nodes);if(!ids.length) return;
+  const cols=Math.max(2,Math.ceil(Math.sqrt(ids.length)));
+  ids.forEach((nid,i)=>{
+    const col=i%cols,row=Math.floor(i/cols);
+    nodes[nid].x=30+col*210;nodes[nid].y=30+row*150;
+    const el=ndEl(nid);if(el){el.style.left=nodes[nid].x+'px';el.style.top=nodes[nid].y+'px';}
+  });
+  renderEdges();saveState();
+}
+
+// ── MOBILE SIDEBAR TOGGLE ─────────────────────────────────────
+function toggleMobSidebar(side){
+  const sbL=document.getElementById('sb-left');
+  const sbR=document.getElementById('sb-right');
+  const btnL=document.getElementById('mob-btn-left');
+  const btnR=document.getElementById('mob-btn-right');
+  if(side==='left'){
+    const opening=!sbL.classList.contains('mob-open');
+    sbL.classList.toggle('mob-open',opening);
+    sbR.classList.remove('mob-open');
+    btnL.classList.toggle('active',opening);
+    btnR.classList.remove('active');
+  } else {
+    const opening=!sbR.classList.contains('mob-open');
+    sbR.classList.toggle('mob-open',opening);
+    sbL.classList.remove('mob-open');
+    btnR.classList.toggle('active',opening);
+    btnL.classList.remove('active');
+  }
+}
+function closeMobileSidebars(){
+  document.getElementById('sb-left').classList.remove('mob-open');
+  document.getElementById('sb-right').classList.remove('mob-open');
+  document.getElementById('mob-btn-left')?.classList.remove('active');
+  document.getElementById('mob-btn-right')?.classList.remove('active');
+}
+
+// ── BOOT ──────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

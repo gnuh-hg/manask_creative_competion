@@ -1042,10 +1042,17 @@ function setupMobileBar() {
     btnLeft.addEventListener('click',  () => toggleMobSidebar('left'));
     btnRight.addEventListener('click', () => toggleMobSidebar('right'));
 
-    // Mirror mini toolbar actions in mobile bar
-    document.getElementById('mob-layout')?.addEventListener('click', autoLayout);
-    document.getElementById('mob-zoom-reset')?.addEventListener('click', zoomReset);
-    document.getElementById('mob-clear')?.addEventListener('click', clearAll);
+    // Close sidebars when user taps directly on the canvas area
+    document.getElementById('rm-main')?.addEventListener('touchstart', () => {
+        const sbLeft  = document.getElementById('sb-left');
+        const sbRight = document.getElementById('sb-right');
+        if (sbLeft?.classList.contains('mob-open') || sbRight?.classList.contains('mob-open')) {
+            closeAllMobSidebars();
+        }
+    }, { passive: true });
+
+    // Touch-drag: drag items from left sidebar onto canvas
+    setupTouchDrag();
 
     // Two-finger pinch zoom on canvas
     let touches = {}, lastDist = null;
@@ -1101,18 +1108,8 @@ function toggleMobSidebar(side) {
     }
 }
 
-function toggleBackdrop(show) {
-    let bd = document.getElementById('mob-backdrop');
-    if (show) {
-        if (bd) return;
-        bd = document.createElement('div');
-        bd.id = 'mob-backdrop';
-        bd.className = 'mob-backdrop';
-        bd.addEventListener('click', closeAllMobSidebars);
-        document.body.appendChild(bd);
-    } else {
-        bd?.remove();
-    }
+function toggleBackdrop(_show) {
+    // Backdrop removed — sidebars close via tap-outside on #rm-main instead
 }
 
 function closeAllMobSidebars() {
@@ -1120,7 +1117,6 @@ function closeAllMobSidebars() {
     document.getElementById('sb-right')?.classList.remove('mob-open');
     document.getElementById('mob-btn-left')?.classList.remove('active');
     document.getElementById('mob-btn-right')?.classList.remove('active');
-    toggleBackdrop(false);
 }
 
 function getTouchDist(ts) {
@@ -1132,6 +1128,109 @@ function getTouchMid(ts, rect) {
         x: ((ts[0].clientX + ts[1].clientX) / 2) - rect.left,
         y: ((ts[0].clientY + ts[1].clientY) / 2) - rect.top
     };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOUCH DRAG — drag items from sidebar onto canvas (mobile)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Call once at setup. Uses a MutationObserver so items rendered later
+ * (after API load) also get touch drag attached automatically.
+ */
+function setupTouchDrag() {
+    const sbLeft = document.getElementById('sb-left');
+    if (!sbLeft) return;
+
+    // Attach to any already-rendered items
+    sbLeft.querySelectorAll('.project-item-child, .folder-drag-area').forEach(attachTouchDrag);
+
+    // Watch for new items rendered by loadItems()
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(m => m.addedNodes.forEach(node => {
+            if (!(node instanceof HTMLElement)) return;
+            node.querySelectorAll('.project-item-child, .folder-drag-area').forEach(attachTouchDrag);
+            if (node.matches?.('.project-item-child, .folder-drag-area')) attachTouchDrag(node);
+        }));
+    });
+    observer.observe(sbLeft, { childList: true, subtree: true });
+}
+
+function attachTouchDrag(el) {
+    if (el._touchDragBound) return;
+    el._touchDragBound = true;
+
+    // Ghost element shown while dragging
+    let ghost = null;
+    let dragging = false;
+    const iid = el.dataset.iid;
+
+    el.addEventListener('touchstart', e => {
+        if (!iid) return;
+        dragging = false;
+
+        // Create ghost
+        ghost = el.cloneNode(true);
+        ghost.style.cssText = `
+            position: fixed; z-index: 9999; pointer-events: none;
+            opacity: 0.75; transform: scale(1.05);
+            border-radius: 6px; background: var(--bg-hover);
+            padding: 6px 10px; font-size: 13px;
+            color: var(--text-primary); white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            transition: none;
+        `;
+        const t0 = e.touches[0];
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 20) + 'px';
+        document.body.appendChild(ghost);
+    }, { passive: true });
+
+    el.addEventListener('touchmove', e => {
+        if (!ghost) return;
+        e.preventDefault(); // prevent scroll while dragging
+        dragging = true;
+
+        const t0 = e.touches[0];
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 20) + 'px';
+
+        // Highlight canvas when over it
+        const cwEl = document.getElementById('cw');
+        if (cwEl) {
+            const r = cwEl.getBoundingClientRect();
+            const over = t0.clientX >= r.left && t0.clientX <= r.right &&
+                         t0.clientY >= r.top  && t0.clientY <= r.bottom;
+            cwEl.classList.toggle('drag-over', over);
+        }
+    }, { passive: false });
+
+    el.addEventListener('touchend', e => {
+        if (ghost) { ghost.remove(); ghost = null; }
+        document.getElementById('cw')?.classList.remove('drag-over');
+
+        if (!dragging || !iid) return;
+
+        const t0 = e.changedTouches[0];
+        const cwEl = document.getElementById('cw');
+        if (!cwEl) return;
+
+        const r = cwEl.getBoundingClientRect();
+        if (t0.clientX < r.left || t0.clientX > r.right ||
+            t0.clientY < r.top  || t0.clientY > r.bottom) return;
+
+        // Close the sidebar before adding the node
+        closeAllMobSidebars();
+
+        const cx = (t0.clientX - r.left - panX) / zoom;
+        const cy = (t0.clientY - r.top  - panY) / zoom;
+        addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+    }, { passive: true });
+
+    el.addEventListener('touchcancel', () => {
+        if (ghost) { ghost.remove(); ghost = null; }
+        document.getElementById('cw')?.classList.remove('drag-over');
+    }, { passive: true });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

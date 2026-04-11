@@ -11,6 +11,211 @@
     --border-light: #3f3f46;
 }
 
+/* ==========================================================================
+   SIDEBAR_NAV — chỉ những phần roadmap thực sự dùng
+   (trích từ sidebar_nav.css, bỏ: global reset, :root vars, .sidebar-nav layout,
+    .sidebar-actions, .add-button, .modal-more, drag-ghost, modal overlay/box,
+    color-palette, confirm-box, sidebar-overlay/toggle-btn, responsive blocks)
+   ========================================================================== */
+
+/* ── Folder container & list wrapper ────────────────────────────────────── */
+.folder-container {
+    flex: 1;
+    padding: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.list-wrapper {
+    width: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* ── Folder item (parent) ────────────────────────────────────────────────── */
+.folder-item {
+    width: 100%;
+    margin-bottom: 4px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.folder-item div.item-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px;
+    margin: 0;
+    background-color: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.folder-item div.item-header:hover {
+    background-color: var(--bg-hover);
+}
+
+.folder-item div.item-header:active {
+    transform: scale(0.98);
+}
+
+.folder-item div.item-header p.label {
+    position: relative;
+    flex: 1;
+    margin-left: 0;
+    margin-right: auto;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Folder icons */
+.folder-item div.item-header svg {
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    margin-right: 4px;
+}
+
+.folder-item div.item-header svg.folder-icon {
+    width: 22px;
+    height: 22px;
+}
+
+.folder-item div.item-header svg.folder-icon path {
+    stroke-width: 0;
+    fill-opacity: 0.9;
+    transition: fill 0.2s ease;
+}
+
+.folder-item div.item-header:hover svg.folder-icon path {
+    fill-opacity: 1;
+}
+
+/* Expand/collapse chevrons */
+.folder-item div.item-header svg.icon-collapsed,
+.folder-item div.item-header svg.icon-expanded {
+    width: 15px;
+    height: 15px;
+    margin-right: 4px;
+}
+
+.folder-item div.item-header svg polyline {
+    fill: none;
+    stroke: var(--text-secondary);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.folder-item div.item-header:hover svg polyline {
+    stroke: var(--text-primary);
+}
+
+.folder-item div.item-header svg.icon-expanded {
+    display: none;
+}
+
+.folder-item.is-expanded div.item-header svg.icon-collapsed {
+    display: none;
+}
+
+.folder-item.is-expanded div.item-header svg.icon-expanded {
+    display: block;
+}
+
+/* Folder content (children) */
+.folder-item div.item-content {
+    display: none;
+    margin-left: 12px;
+    background-color: transparent;
+    animation: sn-slideDown 0.2s ease;
+}
+
+.folder-item.is-expanded > .item-content {
+    display: block;
+}
+
+.folder-item:hover > div.item-content {
+    border-left: 1px solid var(--border-color);
+    margin-left: 11px;
+}
+
+@keyframes sn-slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.item-content .list-wrapper {
+    min-height: 10px;
+}
+
+/* ── Project item (child / leaf) ─────────────────────────────────────────── */
+.project-item-child {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px;
+    margin-left: 0;
+    background-color: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.project-item-child:hover {
+    background-color: var(--bg-hover);
+}
+
+.project-item-child:active {
+    transform: scale(0.98);
+}
+
+.project-item-child p {
+    flex: 1;
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.project-item-child svg.project-icon {
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    margin-left: 5px;
+    flex-shrink: 0;
+}
+
+.project-item-child svg.project-icon circle {
+    stroke-width: 0;
+    filter: drop-shadow(0 0 3px currentColor);
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.project-item-child:hover svg.project-icon circle {
+    opacity: 1;
+}
+
+/* ── Accessibility ───────────────────────────────────────────────────────── */
+.folder-item div.item-header:focus-visible,
+.project-item-child:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
 /* ── Override base.css body — roadmap cần full-height, không padding ─────── */
 html, body {
     height: 100%;
@@ -873,173 +1078,172 @@ input  { font-family: inherit; }
 /* ── Responsive (mobile) ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
 
-    body { overflow: hidden; }
-
-    /* Canvas area: viewport minus header minus mobile bar */
-    #rm-app {
-        position: relative;
-        height: calc(100vh - 65px - 52px);
-    }
-
-    /* Canvas takes full remaining height */
-    #rm-main { flex: 1; height: 100%; }
-    #cw      { height: 100%; touch-action: none; }
-
-    /* ── Sidebars: bottom-sheet (slide up from bottom) ─────────────── */
-    #sb-left, #sb-right {
-        position: fixed;
-        bottom: 52px;            /* sit on top of mobile bar */
-        left: 0;
-        right: 0;
-        top: auto;
-        width: 100%;
-        height: 50vh;
-        z-index: 60;
-        transform: translateY(100%);   /* hidden below */
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border: none;
-        border-top: 1px solid var(--border-light);
-        border-radius: 14px 14px 0 0;
-        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
+    /* ── Layout: flex column để stack các phần ── */
+    html, body { 
+        height: 100vh;
         display: flex;
         flex-direction: column;
         overflow: hidden;
     }
-
-    #sb-left.mob-open,
-    #sb-right.mob-open { transform: translateY(0); }
-
-    /* Scroll inside the opened sheet */
-    #sb-left .folder-container  { overflow-y: auto; flex: 1; }
-    #sb-right .sb-body          { overflow-y: auto; flex: 1; }
-
-    /* Drag handle pill */
-    #sb-left::before,
-    #sb-right::before {
-        content: '';
-        display: block;
-        width: 36px;
-        height: 4px;
-        background: var(--border-light);
-        border-radius: 2px;
-        margin: 8px auto 4px;
+    
+    body > .rm-page-header {
+        order: 1;
         flex-shrink: 0;
     }
-
-    /* Backdrop (covers header → mobile bar) */
-    .mob-backdrop {
-        display: block;
-        position: fixed;
-        inset: 65px 0 52px 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 55;
-        animation: fadeIn 0.2s ease;
+    
+    #rm-app {
+        display: flex;
+        flex-direction: column;
+        order: 2;
+        flex: 1;
+        overflow: hidden;
+        height: auto;
     }
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    /* ── LEFT SIDEBAR ── */
+    #sb-left {
+        position: fixed;
+        bottom: 52px;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        height: auto;
+        z-index: 60;
+        max-height: 0;
+        overflow: hidden;
+        border: none;
+        border-top: 1px solid var(--border-color);
+        border-radius: 0;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--bg-secondary);
+    }
 
-    /* Hide desktop-only chrome */
-    #mini-toolbar { display: none; }
-    #hint-bar     { display: none; }
-    #zoom-badge   { bottom: 60px; left: 10px; }
+    #sb-left.mob-open {
+        max-height: 30vh;
+    }
+
+    /* ── RIGHT SIDEBAR ── */
+    #sb-right {
+        position: fixed;
+        bottom: 52px;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        height: auto;
+        z-index: 60;
+        max-height: 0;
+        overflow: hidden;
+        border: none;
+        border-top: 1px solid var(--border-color);
+        border-radius: 0;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--bg-secondary);
+    }
+
+    #sb-right.mob-open {
+        max-height: 30vh;
+    }
+
+    /* ── Sidebar headers ── */
+    #sb-left .sb-head,
+    #sb-right .sb-head {
+        flex-shrink: 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* ── Sidebar bodies (scrollable) ── */
+    #sb-left .sb-body,
+    #sb-right .sb-body {
+        flex: 1;
+        overflow-y: auto;
+        max-height: calc(30vh - 50px);
+    }
 
     /* ── Mobile bottom bar ─────────────────────────────────────────── */
     #rm-mobile-bar {
+        order: 3;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
+        position: relative;
+        flex-shrink: 0;
+        width: 100%;
         height: 52px;
-        background: rgba(22, 22, 28, 0.97);
+        background: rgba(22, 22, 28, 0.98);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border-top: 1px solid var(--border-light);
         padding: 0 12px;
         z-index: 50;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+        gap: 8px;
+        margin-top: auto;
     }
 
-    /* Gradient top border accent */
-    #rm-mobile-bar::before {
+    /* Accent line */
+    #rm-mobile-bar::after {
         content: '';
         position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 1px;
-        background: linear-gradient(90deg,
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+            90deg,
             transparent 0%,
-            rgba(99,102,241,0.5) 30%,
-            rgba(124,58,237,0.6) 50%,
-            rgba(99,102,241,0.5) 70%,
-            transparent 100%);
+            rgba(99, 102, 241, 0.5) 30%,
+            rgba(124, 58, 237, 0.6) 50%,
+            rgba(99, 102, 241, 0.5) 70%,
+            transparent 100%
+        );
         pointer-events: none;
     }
 
+    /* ── Mobile toggle buttons ── */
     .mob-tog {
         display: flex;
-        flex-direction: row;
         align-items: center;
         justify-content: center;
-        gap: 5px;
-        padding: 4px 12px;
+        gap: 6px;
+        padding: 5px 12px;
         height: 36px;
-        min-width: 80px;
+        min-width: 0;
+        flex: 1;
+        max-width: none;
         border-radius: var(--radius-sm);
         border: 1px solid var(--border-light);
         background: transparent;
         color: var(--text-tertiary);
         font-size: 11px;
         font-weight: 500;
-        transition: all 0.2s ease;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+        cursor: pointer;
     }
 
     .mob-tog svg {
-        width: 15px;
-        height: 15px;
+        width: 14px;
+        height: 14px;
         flex-shrink: 0;
     }
 
-    .mob-tog:hover,
+    .mob-tog:active {
+        transform: scale(0.95);
+    }
+
     .mob-tog.active {
         background: rgba(99, 102, 241, 0.15);
-        border-color: rgba(99, 102, 241, 0.4);
+        border-color: rgba(99, 102, 241, 0.5);
         color: #a5b4fc;
     }
 
-    .mob-actions {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .mob-action-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border-color);
-        background: var(--bg-tertiary);
-        color: var(--text-secondary);
-        transition: all 0.15s;
-        padding: 0;
-    }
-
-    .mob-action-btn svg { width: 15px; height: 15px; }
-    .mob-action-btn:active { transform: scale(0.92); }
-
-    .mob-action-btn:hover {
-        background: var(--bg-hover);
-        border-color: var(--border-light);
-        color: var(--text-primary);
-    }
-
-    .mob-action-btn--danger:hover {
-        background: rgba(239, 68, 68, 0.12);
-        border-color: rgba(239, 68, 68, 0.3);
-        color: #ef4444;
-    }
 }
 
 ::-webkit-scrollbar {
