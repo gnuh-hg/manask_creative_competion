@@ -1338,10 +1338,9 @@ function attachTouchDrag(el) {
             return;
         }
     
-        const t0 = e.changedTouches[0]; // ← thay vì lastX/lastY
+        const t0 = e.changedTouches[0];
         const tx = t0.clientX;
         const ty = t0.clientY;
-        cleanup(true);
     
         closeAllMobSidebars();
         requestAnimationFrame(() => {
@@ -1351,6 +1350,7 @@ function attachTouchDrag(el) {
             const cx = (tx - r.left - panX) / zoom;
             const cy = (ty - r.top  - panY) / zoom;
             addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+            cleanup(true); // ← dời xuống đây
         });
     }, { passive: true });
 
