@@ -121,7 +121,7 @@ function renderSidebarItem(item, wrapper) {
                     <polyline points="5,8 12,16 19,8"/>
                 </svg>
                 <!-- drag zone: icon + label -->
-                <div class="folder-drag-area" draggable="true" data-iid="${item.id}">
+                <div class="folder-drag-area" data-iid="${item.id}">
                     <svg class="folder-icon" viewBox="0 0 64 64">
                         <path d="M8 20 H22 L26 16 H44 Q50 16 50 22 V40 Q50 48 42 48 H16 Q8 48 8 40 Z"
                               fill="${color}"/>
@@ -136,7 +136,7 @@ function renderSidebarItem(item, wrapper) {
     } else {
         // PROJECT or TASK
         html = `
-        <li class="project-item-child" data-id="${item.id}" draggable="true" data-iid="${item.id}">
+        <li class="project-item-child" data-id="${item.id}" data-iid="${item.id}">
             <svg class="project-icon" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="40" fill="${color}"/>
             </svg>
@@ -146,6 +146,11 @@ function renderSidebarItem(item, wrapper) {
 
     wrapper.insertAdjacentHTML('beforeend', html);
     attachSidebarEvents(wrapper.lastElementChild);
+}
+
+/** Trả về true nếu thiết bị dùng màn hình cảm ứng (mobile/tablet) */
+function isTouchDevice() {
+    return window.matchMedia('(pointer: coarse)').matches;
 }
 
 /** Attach expand/collapse + drag events — no CRUD */
@@ -165,22 +170,31 @@ function attachSidebarEvents(item) {
             toggleFolder(item);
         });
 
-        // Drag folder to canvas
         const dragArea = item.querySelector('.folder-drag-area');
-        dragArea?.addEventListener('dragstart', e => {
-            e.stopPropagation();
-            e.dataTransfer.setData('iid', dragArea.dataset.iid);
-            e.dataTransfer.effectAllowed = 'copy';
-        });
+
+        // Chỉ dùng HTML5 drag API trên desktop — mobile dùng attachTouchDrag
+        if (!isTouchDevice()) {
+            dragArea?.setAttribute('draggable', 'true');
+            dragArea?.addEventListener('dragstart', e => {
+                e.stopPropagation();
+                e.dataTransfer.setData('iid', dragArea.dataset.iid);
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+        }
+
         // Click on drag area still toggles folder
         dragArea?.addEventListener('click', () => toggleFolder(item));
     }
 
     if (item.classList.contains('project-item-child')) {
-        item.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('iid', item.dataset.iid);
-            e.dataTransfer.effectAllowed = 'copy';
-        });
+        // Chỉ dùng HTML5 drag API trên desktop — mobile dùng attachTouchDrag
+        if (!isTouchDevice()) {
+            item.setAttribute('draggable', 'true');
+            item.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('iid', item.dataset.iid);
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+        }
     }
 }
 
