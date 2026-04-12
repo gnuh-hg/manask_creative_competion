@@ -148,12 +148,11 @@ function renderSidebarItem(item, wrapper) {
     attachSidebarEvents(wrapper.lastElementChild);
 }
 
-/** Attach expand/collapse + drag events — no CRUD */
+/** Attach expand/collapse events — drag được xử lý hoàn toàn bởi Sortable */
 function attachSidebarEvents(item) {
     if (item.classList.contains('folder-item')) {
-        // Expand/collapse on chevrons or header (not drag zone)
         item.querySelector('.item-header').addEventListener('click', function (e) {
-            if (e.target.closest('.folder-drag-area')) return; // let drag handle it
+            if (e.target.closest('.folder-drag-area')) return;
             toggleFolder(item);
         });
         item.querySelector('.icon-collapsed')?.addEventListener('click', e => {
@@ -164,24 +163,9 @@ function attachSidebarEvents(item) {
             e.stopPropagation();
             toggleFolder(item);
         });
-
-        // Drag folder to canvas
-        const dragArea = item.querySelector('.folder-drag-area');
-        dragArea?.addEventListener('dragstart', e => {
-            e.stopPropagation();
-            e.dataTransfer.setData('iid', dragArea.dataset.iid);
-            e.dataTransfer.effectAllowed = 'copy';
-        });
-        // Click on drag area still toggles folder
-        dragArea?.addEventListener('click', () => toggleFolder(item));
+        item.querySelector('.folder-drag-area')?.addEventListener('click', () => toggleFolder(item));
     }
-
-    if (item.classList.contains('project-item-child')) {
-        item.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('iid', item.dataset.iid);
-            e.dataTransfer.effectAllowed = 'copy';
-        });
-    }
+    // project-item-child: không cần gắn gì thêm, Sortable lo hết
 }
 
 function toggleFolder(item) {
@@ -1036,25 +1020,7 @@ function setupEventListeners() {
         closeEdgePopup();
     });
 
-    // Drop from left sidebar
-    cw.addEventListener('dragover', e => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
-        cw.classList.add('drag-over');
-    });
 
-    cw.addEventListener('dragleave', () => cw.classList.remove('drag-over'));
-
-    cw.addEventListener('drop', e => {
-        e.preventDefault();
-        cw.classList.remove('drag-over');
-        const iid = e.dataTransfer.getData('iid');
-        if (!iid) return;
-        const r  = cw.getBoundingClientRect();
-        const cx = (e.clientX - r.left - panX) / zoom;
-        const cy = (e.clientY - r.top  - panY) / zoom;
-        addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
-    });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', e => {
@@ -1295,17 +1261,23 @@ function setupTouchDrag() {
                 if (dropX < cwRect.left || dropX > cwRect.right ||
                     dropY < cwRect.top  || dropY > cwRect.bottom) return;
 
-                closeAllMobSidebars();
-
-                // Chờ transition sidebar đóng xong rồi tính tọa độ canvas
-                setTimeout(() => {
-                    requestAnimationFrame(() => {
-                        const r  = cw.getBoundingClientRect();
-                        const cx = (dropX - r.left - panX) / zoom;
-                        const cy = (dropY - r.top  - panY) / zoom;
-                        addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
-                    });
-                }, 300);
+                const isMobile = window.matchMedia('(pointer: coarse)').matches;
+                if (isMobile) {
+                    closeAllMobSidebars();
+                    setTimeout(() => {
+                        requestAnimationFrame(() => {
+                            const r  = cw.getBoundingClientRect();
+                            const cx = (dropX - r.left - panX) / zoom;
+                            const cy = (dropY - r.top  - panY) / zoom;
+                            addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+                        });
+                    }, 300);
+                } else {
+                    const r  = cw.getBoundingClientRect();
+                    const cx = (dropX - r.left - panX) / zoom;
+                    const cy = (dropY - r.top  - panY) / zoom;
+                    addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+                }
             },
         });
     }
