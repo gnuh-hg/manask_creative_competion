@@ -1261,23 +1261,14 @@ function setupTouchDrag() {
                 if (dropX < cwRect.left || dropX > cwRect.right ||
                     dropY < cwRect.top  || dropY > cwRect.bottom) return;
 
-                const isMobile = window.matchMedia('(pointer: coarse)').matches;
-                if (isMobile) {
-                    closeAllMobSidebars();
-                    setTimeout(() => {
-                        requestAnimationFrame(() => {
-                            const r  = cw.getBoundingClientRect();
-                            const cx = (dropX - r.left - panX) / zoom;
-                            const cy = (dropY - r.top  - panY) / zoom;
-                            addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
-                        });
-                    }, 300);
-                } else {
-                    const r  = cw.getBoundingClientRect();
-                    const cx = (dropX - r.left - panX) / zoom;
-                    const cy = (dropY - r.top  - panY) / zoom;
-                    addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
-                }
+                // Tính tọa độ canvas ngay tại điểm thả — trước khi sidebar đóng
+                const r  = cw.getBoundingClientRect();
+                const cx = (dropX - r.left - panX) / zoom;
+                const cy = (dropY - r.top  - panY) / zoom;
+                addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+
+                // Đóng sidebar sau khi đã tính xong tọa độ
+                closeAllMobSidebars();
             },
         });
     }
