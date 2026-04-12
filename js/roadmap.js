@@ -1129,22 +1129,19 @@ function setupMobileBar() {
 
     // ── Single-finger pan + two-finger pinch zoom on canvas ──
     let lastDist   = null;
-    let panTouch   = null; // { id, startX, startY, lastX, lastY }
-    let isPanTouch = false;
+    let panTouch   = null; // { id, lastX, lastY }
+    let activeTouchIds = new Set();
 
     cw.addEventListener('touchstart', e => {
+        // Track all touch IDs
+        Array.from(e.touches).forEach(t => activeTouchIds.add(t.identifier));
+        
         if (e.touches.length === 1) {
-            // Only pan if touch started on background (not a node/port)
-            const bg = e.target === cw || e.target.id === 'cnv' ||
-                       e.target.id === 'canvas-transform' || e.target.id === 'edge-g' ||
-                       e.target.closest('#edge-svg');
-            if (bg) {
-                const t = e.touches[0];
-                panTouch = { id: t.identifier, lastX: t.clientX, lastY: t.clientY };
-                isPanTouch = true;
-            }
+            // Single touch: prepare for pan
+            const t = e.touches[0];
+            panTouch = { id: t.identifier, lastX: t.clientX, lastY: t.clientY };
         } else if (e.touches.length === 2) {
-            isPanTouch = false;
+            // Two fingers: pinch zoom
             panTouch = null;
             lastDist = getTouchDist(e.touches);
         }
@@ -1154,8 +1151,9 @@ function setupMobileBar() {
         if (e.touches.length === 2) {
             // Pinch zoom
             e.preventDefault();
+            panTouch = null; // Cancel any pan
             const d = getTouchDist(e.touches);
-            if (lastDist) {
+            if (lastDist && d > 0) {
                 const delta   = d / lastDist;
                 const rect    = cw.getBoundingClientRect();
                 const mid     = getTouchMid(e.touches, rect);
@@ -1166,7 +1164,7 @@ function setupMobileBar() {
                 updateTransform();
             }
             lastDist = d;
-        } else if (e.touches.length === 1 && isPanTouch && panTouch) {
+        } else if (e.touches.length === 1 && panTouch) {
             // Single-finger pan
             e.preventDefault();
             const t = Array.from(e.touches).find(t => t.identifier === panTouch.id);
@@ -1180,8 +1178,18 @@ function setupMobileBar() {
     }, { passive: false });
 
     cw.addEventListener('touchend', e => {
+        // Clean up ended touch IDs
+        Array.from(e.changedTouches).forEach(t => activeTouchIds.delete(t.identifier));
+        
         if (e.touches.length < 2) lastDist = null;
-        if (e.touches.length === 0) { isPanTouch = false; panTouch = null; }
+        if (e.touches.length === 0) { 
+            panTouch = null;
+            activeTouchIds.clear();
+        } else if (e.touches.length === 1) {
+            // Transition from 2-finger to 1-finger: reset pan
+            const t = e.touches[0];
+            panTouch = { id: t.identifier, lastX: t.clientX, lastY: t.clientY };
+        }
         saveState();
     });
 }
@@ -1262,13 +1270,20 @@ function attachTouchDrag(el) {
     el._touchDragBound = true;
 
     const iid = el.dataset.iid;
-    let ghost    = null;
-    let dragging = false;
+    let ghost       = null;
+    let dragging    = false;
+    let dragHoldTimer = null;
+    let startTouchX = 0, startTouchY = 0;
+    const DRAG_HOLD_MS = 200;  // Delay before drag starts
+    const DRAG_THRESHOLD = 10;  // Min distance before drag confirmed
 
     el.addEventListener('touchstart', e => {
         if (!iid) return;
         dragging = false;
         const t0 = e.touches[0];
+        startTouchX = t0.clientX;
+        startTouchY = t0.clientY;
+        
         ghost = el.cloneNode(true);
         ghost.style.cssText = `
             position: fixed; z-index: 9999; pointer-events: none;
@@ -1283,19 +1298,37 @@ function attachTouchDrag(el) {
         ghost.style.left = (t0.clientX - 40) + 'px';
         ghost.style.top  = (t0.clientY - 28) + 'px';
         document.body.appendChild(ghost);
+        
+        // Delay before drag confirmed
+        dragHoldTimer = setTimeout(() => {
+            dragHoldTimer = null;
+            dragging = true;
+        }, DRAG_HOLD_MS);
     }, { passive: true });
 
     el.addEventListener('touchmove', e => {
-        if (!ghost) return;
-        e.preventDefault();
-        dragging = true;
+        if (!ghost || !iid) return;
+        
         const t0 = e.touches[0];
-        ghost.style.left = (t0.clientX - 40) + 'px';
-        ghost.style.top  = (t0.clientY - 28) + 'px';
-        document.getElementById('cw')?.classList.add('drag-over');
+        const dx = t0.clientX - startTouchX;
+        const dy = t0.clientY - startTouchY;
+        const dist = Math.hypot(dx, dy);
+        
+        // Cancel drag if moved too early (before hold time)
+        if (dragHoldTimer && dist < DRAG_THRESHOLD) return;
+        if (dragHoldTimer) { clearTimeout(dragHoldTimer); dragHoldTimer = null; dragging = true; }
+        
+        // Only prevent default after drag is confirmed
+        if (dragging) {
+            e.preventDefault();
+            ghost.style.left = (t0.clientX - 40) + 'px';
+            ghost.style.top  = (t0.clientY - 28) + 'px';
+            document.getElementById('cw')?.classList.add('drag-over');
+        }
     }, { passive: false });
 
     el.addEventListener('touchend', e => {
+        if (dragHoldTimer) { clearTimeout(dragHoldTimer); dragHoldTimer = null; }
         if (ghost) { ghost.remove(); ghost = null; }
         document.getElementById('cw')?.classList.remove('drag-over');
         if (!dragging || !iid) { dragging = false; return; }
@@ -1316,6 +1349,7 @@ function attachTouchDrag(el) {
     }, { passive: true });
 
     el.addEventListener('touchcancel', () => {
+        if (dragHoldTimer) { clearTimeout(dragHoldTimer); dragHoldTimer = null; }
         if (ghost) { ghost.remove(); ghost = null; }
         document.getElementById('cw')?.classList.remove('drag-over');
         dragging = false;
