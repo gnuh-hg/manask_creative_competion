@@ -1332,15 +1332,17 @@ function attachTouchDrag(el) {
 
     el.addEventListener('touchend', e => {
         clearTimeout(holdTimer); holdTimer = null;
-
+    
         if (!dragActive || !iid) {
             cleanup(true);
             return;
         }
-
-        const tx = lastX, ty = lastY;
+    
+        const t0 = e.changedTouches[0]; // ← thay vì lastX/lastY
+        const tx = t0.clientX;
+        const ty = t0.clientY;
         cleanup(true);
-
+    
         closeAllMobSidebars();
         requestAnimationFrame(() => {
             const cwEl = document.getElementById('cw');
