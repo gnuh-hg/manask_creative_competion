@@ -1072,6 +1072,18 @@ input  { font-family: inherit; }
     background-image: radial-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px);
 }
 
+.sortable-drag {
+    opacity: 0.88;
+    transform: scale(1.05);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--accent-primary);
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.sortable-ghost {
+    opacity: 0.3;
+}
+
 /* ── Mobile bottom bar (hidden on desktop) ───────────────────────────────── */
 #rm-mobile-bar { display: none; }
 
