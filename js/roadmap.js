@@ -635,12 +635,18 @@ function createNodeEl(nid, item) {
         document.addEventListener('mouseup', onUp);
     });
 
-    // Drag (touch) — drag node immediately on canvas
+    // Drag (touch) — long-press 250ms then drag node
     (function() {
+        const HOLD_MS = 250;
+        let holdTimer = null;
         let touchMoving = false;
         let startTX = 0, startTY = 0;
         let startNX = 0, startNY = 0;
         let activeTouchId = null;
+
+        function cancelHold() {
+            if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+        }
 
         el.addEventListener('touchstart', e => {
             if (e.target.classList.contains('port') || e.target.closest('.nd-del')) return;
@@ -650,17 +656,30 @@ function createNodeEl(nid, item) {
             startTX = t.clientX; startTY = t.clientY;
             startNX = nodes[nid].x; startNY = nodes[nid].y;
             touchMoving = false;
-            selectNd(nid);
+
+            holdTimer = setTimeout(() => {
+                holdTimer = null;
+                touchMoving = true;
+                selectNd(nid);
+                el.classList.add('touch-dragging');
+                if (navigator.vibrate) navigator.vibrate(30);
+            }, HOLD_MS);
         }, { passive: true });
 
         el.addEventListener('touchmove', e => {
             const t = Array.from(e.touches).find(t => t.identifier === activeTouchId);
             if (!t) return;
-            
+
+            // Cancel hold if moved too early
+            if (holdTimer) {
+                const dx = t.clientX - startTX, dy = t.clientY - startTY;
+                if (Math.hypot(dx, dy) > 6) cancelHold();
+                return;
+            }
+
+            if (!touchMoving) return;
             e.preventDefault();
             e.stopPropagation();
-            touchMoving = true;
-            el.classList.add('touch-dragging');
 
             // Position = (touch - canvas offset - pan) / zoom, offset by grab point
             const rect = cw.getBoundingClientRect();
@@ -674,6 +693,7 @@ function createNodeEl(nid, item) {
         }, { passive: false });
 
         el.addEventListener('touchend', () => {
+            cancelHold();
             el.classList.remove('touch-dragging');
             if (touchMoving) saveState();
             touchMoving = false;
@@ -681,6 +701,7 @@ function createNodeEl(nid, item) {
         }, { passive: true });
 
         el.addEventListener('touchcancel', () => {
+            cancelHold();
             el.classList.remove('touch-dragging');
             touchMoving = false;
             activeTouchId = null;
@@ -1108,19 +1129,22 @@ function setupMobileBar() {
 
     // ── Single-finger pan + two-finger pinch zoom on canvas ──
     let lastDist   = null;
-    let panTouch   = null; // { id, lastX, lastY }
-    let activeTouchIds = new Set();
+    let panTouch   = null; // { id, startX, startY, lastX, lastY }
+    let isPanTouch = false;
 
     cw.addEventListener('touchstart', e => {
-        // Track all touch IDs
-        Array.from(e.touches).forEach(t => activeTouchIds.add(t.identifier));
-        
         if (e.touches.length === 1) {
-            // Single touch: prepare for pan
-            const t = e.touches[0];
-            panTouch = { id: t.identifier, lastX: t.clientX, lastY: t.clientY };
+            // Only pan if touch started on background (not a node/port)
+            const bg = e.target === cw || e.target.id === 'cnv' ||
+                       e.target.id === 'canvas-transform' || e.target.id === 'edge-g' ||
+                       e.target.closest('#edge-svg');
+            if (bg) {
+                const t = e.touches[0];
+                panTouch = { id: t.identifier, lastX: t.clientX, lastY: t.clientY };
+                isPanTouch = true;
+            }
         } else if (e.touches.length === 2) {
-            // Two fingers: pinch zoom
+            isPanTouch = false;
             panTouch = null;
             lastDist = getTouchDist(e.touches);
         }
@@ -1130,9 +1154,8 @@ function setupMobileBar() {
         if (e.touches.length === 2) {
             // Pinch zoom
             e.preventDefault();
-            panTouch = null; // Cancel any pan
             const d = getTouchDist(e.touches);
-            if (lastDist && d > 0) {
+            if (lastDist) {
                 const delta   = d / lastDist;
                 const rect    = cw.getBoundingClientRect();
                 const mid     = getTouchMid(e.touches, rect);
@@ -1143,7 +1166,7 @@ function setupMobileBar() {
                 updateTransform();
             }
             lastDist = d;
-        } else if (e.touches.length === 1 && panTouch) {
+        } else if (e.touches.length === 1 && isPanTouch && panTouch) {
             // Single-finger pan
             e.preventDefault();
             const t = Array.from(e.touches).find(t => t.identifier === panTouch.id);
@@ -1157,18 +1180,8 @@ function setupMobileBar() {
     }, { passive: false });
 
     cw.addEventListener('touchend', e => {
-        // Clean up ended touch IDs
-        Array.from(e.changedTouches).forEach(t => activeTouchIds.delete(t.identifier));
-        
         if (e.touches.length < 2) lastDist = null;
-        if (e.touches.length === 0) { 
-            panTouch = null;
-            activeTouchIds.clear();
-        } else if (e.touches.length === 1) {
-            // Transition from 2-finger to 1-finger: reset pan
-            const t = e.touches[0];
-            panTouch = { id: t.identifier, lastX: t.clientX, lastY: t.clientY };
-        }
+        if (e.touches.length === 0) { isPanTouch = false; panTouch = null; }
         saveState();
     });
 }
@@ -1249,83 +1262,40 @@ function attachTouchDrag(el) {
     el._touchDragBound = true;
 
     const iid = el.dataset.iid;
-    let ghost       = null;
-    let dragging    = false;
-    let dragHoldTimer = null;
-    let startTouchX = 0, startTouchY = 0;
-    const DRAG_HOLD_MS = 300;  // Delay before drag starts (allow scroll in this time)
-    const DRAG_THRESHOLD = 8;  // Min distance to confirm drag action
+    let ghost    = null;
+    let dragging = false;
 
     el.addEventListener('touchstart', e => {
         if (!iid) return;
         dragging = false;
-        ghost = null;
         const t0 = e.touches[0];
-        startTouchX = t0.clientX;
-        startTouchY = t0.clientY;
-        
-        // Delay before confirming drag — allows user to scroll during this time
-        dragHoldTimer = setTimeout(() => {
-            dragHoldTimer = null;
-            dragging = true;
-            // Create ghost only when drag is confirmed
-            ghost = el.cloneNode(true);
-            ghost.style.cssText = `
-                position: fixed; z-index: 9999; pointer-events: none;
-                opacity: 0.88; transform: scale(1.08);
-                border-radius: 6px; background: var(--bg-tertiary);
-                border: 1px solid var(--accent-primary);
-                padding: 6px 12px; font-size: 13px;
-                color: var(--text-primary); white-space: nowrap;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-                transition: none;
-            `;
-            ghost.style.left = (t0.clientX - 40) + 'px';
-            ghost.style.top  = (t0.clientY - 28) + 'px';
-            document.body.appendChild(ghost);
-            document.getElementById('cw')?.classList.add('drag-over');
-        }, DRAG_HOLD_MS);
+        ghost = el.cloneNode(true);
+        ghost.style.cssText = `
+            position: fixed; z-index: 9999; pointer-events: none;
+            opacity: 0.88; transform: scale(1.08);
+            border-radius: 6px; background: var(--bg-tertiary);
+            border: 1px solid var(--accent-primary);
+            padding: 6px 12px; font-size: 13px;
+            color: var(--text-primary); white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: none;
+        `;
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 28) + 'px';
+        document.body.appendChild(ghost);
     }, { passive: true });
 
     el.addEventListener('touchmove', e => {
+        if (!ghost) return;
+        e.preventDefault();
+        dragging = true;
         const t0 = e.touches[0];
-        const dx = t0.clientX - startTouchX;
-        const dy = t0.clientY - startTouchY;
-        const dist = Math.hypot(dx, dy);
-        
-        // If dragging not confirmed yet and moved too much, cancel and force drag start
-        if (dragHoldTimer && dist > DRAG_THRESHOLD) {
-            clearTimeout(dragHoldTimer);
-            dragHoldTimer = null;
-            dragging = true;
-            // Create ghost immediately
-            if (!ghost) {
-                ghost = el.cloneNode(true);
-                ghost.style.cssText = `
-                    position: fixed; z-index: 9999; pointer-events: none;
-                    opacity: 0.88; transform: scale(1.08);
-                    border-radius: 6px; background: var(--bg-tertiary);
-                    border: 1px solid var(--accent-primary);
-                    padding: 6px 12px; font-size: 13px;
-                    color: var(--text-primary); white-space: nowrap;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-                    transition: none;
-                `;
-                document.body.appendChild(ghost);
-                document.getElementById('cw')?.classList.add('drag-over');
-            }
-        }
-        
-        // Update ghost position only if dragging confirmed
-        if (dragging && ghost) {
-            e.preventDefault();
-            ghost.style.left = (t0.clientX - 40) + 'px';
-            ghost.style.top  = (t0.clientY - 28) + 'px';
-        }
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 28) + 'px';
+        document.getElementById('cw')?.classList.add('drag-over');
     }, { passive: false });
 
     el.addEventListener('touchend', e => {
-        if (dragHoldTimer) { clearTimeout(dragHoldTimer); dragHoldTimer = null; }
         if (ghost) { ghost.remove(); ghost = null; }
         document.getElementById('cw')?.classList.remove('drag-over');
         if (!dragging || !iid) { dragging = false; return; }
@@ -1346,7 +1316,6 @@ function attachTouchDrag(el) {
     }, { passive: true });
 
     el.addEventListener('touchcancel', () => {
-        if (dragHoldTimer) { clearTimeout(dragHoldTimer); dragHoldTimer = null; }
         if (ghost) { ghost.remove(); ghost = null; }
         document.getElementById('cw')?.classList.remove('drag-over');
         dragging = false;
