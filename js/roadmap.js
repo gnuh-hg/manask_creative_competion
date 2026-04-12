@@ -1002,6 +1002,8 @@ function setupEventListeners() {
 
     // Pan on canvas background
     cw.addEventListener('mousedown', e => {
+        // Bỏ qua synthetic mouse events do trình duyệt mobile tạo ra sau touch events
+        if (e.sourceCapabilities?.firesTouchEvents) return;
         const bg = e.target === cw || e.target.id === 'cnv' ||
                    e.target.id === 'edge-svg' || e.target.id === 'canvas-transform' ||
                    e.target.closest('#edge-svg');
@@ -1116,9 +1118,13 @@ function setupMobileBar() {
     btnRight.addEventListener('click', () => toggleMobSidebar('right'));
 
     // Close sidebars when user taps directly on the canvas area
-    document.getElementById('rm-main')?.addEventListener('touchstart', () => {
+    // BUG FIX #1: nhận event để kiểm tra target — không đóng sidebar nếu người dùng
+    // đang chạm VÀO sidebar (họ có thể đang bắt đầu long-press drag)
+    document.getElementById('rm-main')?.addEventListener('touchstart', (e) => {
         const sbLeft  = document.getElementById('sb-left');
         const sbRight = document.getElementById('sb-right');
+        if (sbLeft?.classList.contains('mob-open') && sbLeft.contains(e.target)) return;
+        if (sbRight?.classList.contains('mob-open') && sbRight.contains(e.target)) return;
         if (sbLeft?.classList.contains('mob-open') || sbRight?.classList.contains('mob-open')) {
             closeAllMobSidebars();
         }
@@ -1278,8 +1284,15 @@ function attachTouchDrag(el) {
         document.getElementById('cw')?.classList.remove('drag-over');
     }
 
+    // BUG FIX #3: ngăn native HTML5 drag-and-drop (draggable="true") kích hoạt trên
+    // mobile — tránh "hiệu ứng máy tính" và touchcancel do trình duyệt chiếm quyền
+    el.addEventListener('dragstart', e => e.preventDefault());
+
     el.addEventListener('touchstart', e => {
         if (!iid) return;
+        // BUG FIX #2: không restart nếu đang trong drag — tránh ngón tay thứ 2
+        // chạm vào el reset dragActive=false khiến touchend bỏ qua addNode()
+        if (dragActive) return;
         const t0 = e.touches[0];
         startX = lastX = t0.clientX;
         startY = lastY = t0.clientY;
@@ -1338,7 +1351,11 @@ function attachTouchDrag(el) {
             return;
         }
 
-        const tx = lastX, ty = lastY;
+        // BUG FIX #4: dùng changedTouches để lấy vị trí chính xác khi nhấc ngón tay,
+        // thay vì lastX/lastY từ touchmove cuối (có thể hơi lệch)
+        const t0 = e.changedTouches?.[0];
+        const tx = t0?.clientX ?? lastX;
+        const ty = t0?.clientY ?? lastY;
         cleanup(true);
 
         closeAllMobSidebars();
