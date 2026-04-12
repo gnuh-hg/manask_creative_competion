@@ -1262,7 +1262,7 @@ function attachTouchDrag(el) {
     el._touchDragBound = true;
 
     const iid = el.dataset.iid;
-    const HOLD_MS   = 300;   // ms giữ ngón tay để kích hoạt drag
+    const HOLD_MS   = 500;   // ms giữ ngón tay để kích hoạt drag
     const MOVE_SLOP = 8;     // px di chuyển tối đa trong lúc chờ long-press
 
     let ghost      = null;
@@ -1333,22 +1333,30 @@ function attachTouchDrag(el) {
     el.addEventListener('touchend', e => {
         clearTimeout(holdTimer); holdTimer = null;
 
+        console.log('[touchend] dragActive:', dragActive, '| iid:', iid);  // ← thêm
+
         if (!dragActive || !iid) {
             cleanup(true);
             return;
         }
 
         const tx = lastX, ty = lastY;
+        console.log('[touchend] tx/ty:', tx, ty);  // ← thêm
         cleanup(true);
 
         closeAllMobSidebars();
         requestAnimationFrame(() => {
             const cwEl = document.getElementById('cw');
+            console.log('[touchend] cwEl:', cwEl);  // ← thêm
+
             if (!cwEl) return;
             const r = cwEl.getBoundingClientRect();
             const cx = (tx - r.left - panX) / zoom;
             const cy = (ty - r.top  - panY) / zoom;
+            console.log('[touchend] cx/cy:', cx, cy, '| panX/Y:', panX, panY, '| zoom:', zoom);  // ← thêm
+
             addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+            console.log('[touchend] addNode called');  // ← thêm
         });
     }, { passive: true });
 
