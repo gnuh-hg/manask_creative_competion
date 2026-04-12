@@ -1253,56 +1253,74 @@ function attachTouchDrag(el) {
     let dragging    = false;
     let dragHoldTimer = null;
     let startTouchX = 0, startTouchY = 0;
-    const DRAG_HOLD_MS = 200;  // Delay before drag starts
-    const DRAG_THRESHOLD = 10;  // Min distance before drag confirmed
+    const DRAG_HOLD_MS = 300;  // Delay before drag starts (allow scroll in this time)
+    const DRAG_THRESHOLD = 8;  // Min distance to confirm drag action
 
     el.addEventListener('touchstart', e => {
         if (!iid) return;
         dragging = false;
+        ghost = null;
         const t0 = e.touches[0];
         startTouchX = t0.clientX;
         startTouchY = t0.clientY;
         
-        ghost = el.cloneNode(true);
-        ghost.style.cssText = `
-            position: fixed; z-index: 9999; pointer-events: none;
-            opacity: 0.88; transform: scale(1.08);
-            border-radius: 6px; background: var(--bg-tertiary);
-            border: 1px solid var(--accent-primary);
-            padding: 6px 12px; font-size: 13px;
-            color: var(--text-primary); white-space: nowrap;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            transition: none;
-        `;
-        ghost.style.left = (t0.clientX - 40) + 'px';
-        ghost.style.top  = (t0.clientY - 28) + 'px';
-        document.body.appendChild(ghost);
-        
-        // Delay before drag confirmed
+        // Delay before confirming drag — allows user to scroll during this time
         dragHoldTimer = setTimeout(() => {
             dragHoldTimer = null;
             dragging = true;
+            // Create ghost only when drag is confirmed
+            ghost = el.cloneNode(true);
+            ghost.style.cssText = `
+                position: fixed; z-index: 9999; pointer-events: none;
+                opacity: 0.88; transform: scale(1.08);
+                border-radius: 6px; background: var(--bg-tertiary);
+                border: 1px solid var(--accent-primary);
+                padding: 6px 12px; font-size: 13px;
+                color: var(--text-primary); white-space: nowrap;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                transition: none;
+            `;
+            ghost.style.left = (t0.clientX - 40) + 'px';
+            ghost.style.top  = (t0.clientY - 28) + 'px';
+            document.body.appendChild(ghost);
+            document.getElementById('cw')?.classList.add('drag-over');
         }, DRAG_HOLD_MS);
     }, { passive: true });
 
     el.addEventListener('touchmove', e => {
-        if (!ghost || !iid) return;
-        
         const t0 = e.touches[0];
         const dx = t0.clientX - startTouchX;
         const dy = t0.clientY - startTouchY;
         const dist = Math.hypot(dx, dy);
         
-        // Cancel drag if moved too early (before hold time)
-        if (dragHoldTimer && dist < DRAG_THRESHOLD) return;
-        if (dragHoldTimer) { clearTimeout(dragHoldTimer); dragHoldTimer = null; dragging = true; }
+        // If dragging not confirmed yet and moved too much, cancel and force drag start
+        if (dragHoldTimer && dist > DRAG_THRESHOLD) {
+            clearTimeout(dragHoldTimer);
+            dragHoldTimer = null;
+            dragging = true;
+            // Create ghost immediately
+            if (!ghost) {
+                ghost = el.cloneNode(true);
+                ghost.style.cssText = `
+                    position: fixed; z-index: 9999; pointer-events: none;
+                    opacity: 0.88; transform: scale(1.08);
+                    border-radius: 6px; background: var(--bg-tertiary);
+                    border: 1px solid var(--accent-primary);
+                    padding: 6px 12px; font-size: 13px;
+                    color: var(--text-primary); white-space: nowrap;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                    transition: none;
+                `;
+                document.body.appendChild(ghost);
+                document.getElementById('cw')?.classList.add('drag-over');
+            }
+        }
         
-        // Only prevent default after drag is confirmed
-        if (dragging) {
+        // Update ghost position only if dragging confirmed
+        if (dragging && ghost) {
             e.preventDefault();
             ghost.style.left = (t0.clientX - 40) + 'px';
             ghost.style.top  = (t0.clientY - 28) + 'px';
-            document.getElementById('cw')?.classList.add('drag-over');
         }
     }, { passive: false });
 
