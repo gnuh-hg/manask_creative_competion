@@ -1332,16 +1332,15 @@ function attachTouchDrag(el) {
 
     el.addEventListener('touchend', e => {
         clearTimeout(holdTimer); holdTimer = null;
-    
+
         if (!dragActive || !iid) {
             cleanup(true);
             return;
         }
-    
-        const t0 = e.changedTouches[0];
-        const tx = t0.clientX;
-        const ty = t0.clientY;
-    
+
+        const tx = lastX, ty = lastY;
+        cleanup(true);
+
         closeAllMobSidebars();
         requestAnimationFrame(() => {
             const cwEl = document.getElementById('cw');
@@ -1350,7 +1349,6 @@ function attachTouchDrag(el) {
             const cx = (tx - r.left - panX) / zoom;
             const cy = (ty - r.top  - panY) / zoom;
             addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
-            cleanup(true); // ← dời xuống đây
         });
     }, { passive: true });
 
