@@ -1274,6 +1274,7 @@ function attachTouchDrag(el) {
     let ghost      = null;
     let holdTimer  = null;
     let dragActive = false;  // true sau khi long-press xác nhận
+    let isTouching = false;  // true khi đang có touch active (để guard dragstart)
     let startX = 0, startY = 0;
     let lastX  = 0, lastY  = 0;
 
@@ -1282,26 +1283,29 @@ function attachTouchDrag(el) {
         el.classList.remove('drag-ghost');           // khôi phục source element
         if (removeGhost && ghost) { ghost.remove(); ghost = null; }
         dragActive = false;
+        isTouching = false;
         document.getElementById('cw')?.classList.remove('drag-over');
     }
 
-    // BUG FIX #3: ngăn native HTML5 drag-and-drop (draggable="true") kích hoạt trên
-    // mobile — tránh "hiệu ứng máy tính" và touchcancel do trình duyệt chiếm quyền
-    el.addEventListener('dragstart', e => e.preventDefault());
+    // BUG FIX #3: chỉ chặn native DnD khi đang touch (mobile) — desktop vẫn drag được
+    el.addEventListener('dragstart', e => { if (isTouching) e.preventDefault(); });
 
     el.addEventListener('touchstart', e => {
         if (!iid) return;
         // BUG FIX #2: không restart nếu đang trong drag — tránh ngón tay thứ 2
         // chạm vào el reset dragActive=false khiến touchend bỏ qua addNode()
         if (dragActive) return;
+        isTouching = true;
         const t0 = e.touches[0];
         startX = lastX = t0.clientX;
         startY = lastY = t0.clientY;
         dragActive = false;
 
-        // Tạo floating ghost (dùng class, chỉ set position động inline)
+        // Tạo floating ghost: classList.add để GIỮ class gốc (không xoá) → kế thừa
+        // toàn bộ style của .project-item-child/.folder-drag-area (tên, icon, màu...)
         ghost = el.cloneNode(true);
-        ghost.className = 'touch-drag-ghost';
+        ghost.classList.add('touch-drag-ghost');
+        ghost.style.opacity = '0';
         ghost.style.left = (t0.clientX - 40) + 'px';
         ghost.style.top  = (t0.clientY - 28) + 'px';
         document.body.appendChild(ghost);

@@ -1080,22 +1080,17 @@ input  { font-family: inherit; }
     background-color: var(--bg-hover) !important;
 }
 
-/* 2. Floating clone: bản sao nổi theo ngón tay */
+/* 2. Floating clone: ADD vào class gốc (không thay thế) — giữ nguyên look của sidebar item */
 .touch-drag-ghost {
-    position: fixed;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0;
-    transform: scale(1.08);
-    border-radius: 6px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--accent-primary);
-    padding: 6px 12px;
-    font-size: 13px;
-    color: var(--text-primary);
-    white-space: nowrap;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    transition: none;
+    position: fixed !important;
+    z-index: 9999 !important;
+    pointer-events: none !important;
+    transform: scale(1.05) !important;
+    border: 1px solid var(--accent-primary) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+    transition: none !important;
+    cursor: grabbing !important;
 }
 
 /* ── Mobile bottom bar (hidden on desktop) ───────────────────────────────── */
