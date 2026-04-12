@@ -1072,6 +1072,32 @@ input  { font-family: inherit; }
     background-image: radial-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px);
 }
 
+/* ── Touch drag ghosts ───────────────────────────────────────────────────── */
+/* 1. Source indicator: element gốc mờ + viền đứt khi đang bị kéo */
+.drag-ghost {
+    opacity: 0.35 !important;
+    border: 1px dashed var(--accent-primary) !important;
+    background-color: var(--bg-hover) !important;
+}
+
+/* 2. Floating clone: bản sao nổi theo ngón tay */
+.touch-drag-ghost {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(1.08);
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--accent-primary);
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    transition: none;
+}
+
 /* ── Mobile bottom bar (hidden on desktop) ───────────────────────────────── */
 #rm-mobile-bar { display: none; }
 

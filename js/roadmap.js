@@ -1279,6 +1279,7 @@ function attachTouchDrag(el) {
 
     function cleanup(removeGhost) {
         clearTimeout(holdTimer); holdTimer = null;
+        el.classList.remove('drag-ghost');           // khôi phục source element
         if (removeGhost && ghost) { ghost.remove(); ghost = null; }
         dragActive = false;
         document.getElementById('cw')?.classList.remove('drag-over');
@@ -1298,18 +1299,9 @@ function attachTouchDrag(el) {
         startY = lastY = t0.clientY;
         dragActive = false;
 
-        // Tạo ghost sẵn nhưng ẩn — chỉ hiện sau khi long-press
+        // Tạo floating ghost (dùng class, chỉ set position động inline)
         ghost = el.cloneNode(true);
-        ghost.style.cssText = `
-            position: fixed; z-index: 9999; pointer-events: none;
-            opacity: 0; transform: scale(1.08);
-            border-radius: 6px; background: var(--bg-tertiary);
-            border: 1px solid var(--accent-primary);
-            padding: 6px 12px; font-size: 13px;
-            color: var(--text-primary); white-space: nowrap;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            transition: none;
-        `;
+        ghost.className = 'touch-drag-ghost';
         ghost.style.left = (t0.clientX - 40) + 'px';
         ghost.style.top  = (t0.clientY - 28) + 'px';
         document.body.appendChild(ghost);
@@ -1318,6 +1310,7 @@ function attachTouchDrag(el) {
             holdTimer = null;
             dragActive = true;
             ghost.style.opacity = '0.88';
+            el.classList.add('drag-ghost');          // source indicator: el gốc mờ + viền đứt
             if (navigator.vibrate) navigator.vibrate(30);
         }, HOLD_MS);
     }, { passive: true });
