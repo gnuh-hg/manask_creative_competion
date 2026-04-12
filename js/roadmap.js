@@ -148,11 +148,12 @@ function renderSidebarItem(item, wrapper) {
     attachSidebarEvents(wrapper.lastElementChild);
 }
 
-/** Attach expand/collapse events — drag được xử lý hoàn toàn bởi Sortable */
+/** Attach expand/collapse + drag events — no CRUD */
 function attachSidebarEvents(item) {
     if (item.classList.contains('folder-item')) {
+        // Expand/collapse on chevrons or header (not drag zone)
         item.querySelector('.item-header').addEventListener('click', function (e) {
-            if (e.target.closest('.folder-drag-area')) return;
+            if (e.target.closest('.folder-drag-area')) return; // let drag handle it
             toggleFolder(item);
         });
         item.querySelector('.icon-collapsed')?.addEventListener('click', e => {
@@ -163,9 +164,24 @@ function attachSidebarEvents(item) {
             e.stopPropagation();
             toggleFolder(item);
         });
-        item.querySelector('.folder-drag-area')?.addEventListener('click', () => toggleFolder(item));
+
+        // Drag folder to canvas
+        const dragArea = item.querySelector('.folder-drag-area');
+        dragArea?.addEventListener('dragstart', e => {
+            e.stopPropagation();
+            e.dataTransfer.setData('iid', dragArea.dataset.iid);
+            e.dataTransfer.effectAllowed = 'copy';
+        });
+        // Click on drag area still toggles folder
+        dragArea?.addEventListener('click', () => toggleFolder(item));
     }
-    // project-item-child: không cần gắn gì thêm, Sortable lo hết
+
+    if (item.classList.contains('project-item-child')) {
+        item.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('iid', item.dataset.iid);
+            e.dataTransfer.effectAllowed = 'copy';
+        });
+    }
 }
 
 function toggleFolder(item) {
@@ -1020,7 +1036,25 @@ function setupEventListeners() {
         closeEdgePopup();
     });
 
+    // Drop from left sidebar
+    cw.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        cw.classList.add('drag-over');
+    });
 
+    cw.addEventListener('dragleave', () => cw.classList.remove('drag-over'));
+
+    cw.addEventListener('drop', e => {
+        e.preventDefault();
+        cw.classList.remove('drag-over');
+        const iid = e.dataTransfer.getData('iid');
+        if (!iid) return;
+        const r  = cw.getBoundingClientRect();
+        const cx = (e.clientX - r.left - panX) / zoom;
+        const cy = (e.clientY - r.top  - panY) / zoom;
+        addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+    });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', e => {
@@ -1198,93 +1232,129 @@ function getTouchMid(ts, rect) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TOUCH DRAG — dùng SortableJS để kéo item từ sidebar vào canvas
+// TOUCH DRAG — drag items from sidebar onto canvas (mobile)
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Khởi tạo Sortable trên tất cả ul.list-wrapper trong sidebar trái.
- * MutationObserver tự động gắn vào list mới khi loadItems() render xong.
+ * Call once at setup. Uses a MutationObserver so items rendered later
+ * (after API load) also get touch drag attached automatically.
  */
 function setupTouchDrag() {
     const sbLeft = document.getElementById('sb-left');
-    if (!sbLeft || typeof Sortable === 'undefined') return;
+    if (!sbLeft) return;
 
-    function makeSortable(listEl) {
-        if (listEl._sortableInited) return;
-        listEl._sortableInited = true;
+    // Attach to any already-rendered items
+    sbLeft.querySelectorAll('.project-item-child, .folder-drag-area').forEach(attachTouchDrag);
 
-        Sortable.create(listEl, {
-            group: {
-                name: 'rm-sidebar',
-                pull: 'clone', // kéo ra ngoài tạo bản clone
-                put: false,    // không cho thả ngược vào sidebar
-            },
-            sort: false,           // không sắp xếp trong sidebar
-            delay: 300,            // long-press 300ms mới kích hoạt
-            delayOnTouchOnly: true,
-            touchStartThreshold: 5,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            filter: '.rm-search-empty', // không kéo được item empty-state
-
-            onStart() {
-                if (navigator.vibrate) navigator.vibrate(30);
-                cw.classList.add('drag-over');
-            },
-
-            onEnd(evt) {
-                cw.classList.remove('drag-over');
-
-                // Xóa clone Sortable đã chèn vào DOM
-                if (evt.clone?.parentNode) evt.clone.remove();
-                // Đưa item gốc về đúng vị trí cũ trong sidebar
-                if (evt.item?.parentNode !== evt.from) {
-                    evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] || null);
-                }
-
-                // Lấy iid từ item hoặc phần tử con của nó
-                const iid = evt.item.dataset.iid
-                    || evt.item.querySelector('[data-iid]')?.dataset.iid;
-                if (!iid) return;
-
-                // Tọa độ điểm thả (touch hoặc mouse)
-                const orig  = evt.originalEvent;
-                const touch = orig?.changedTouches?.[0] || orig;
-                if (!touch) return;
-
-                const dropX = touch.clientX;
-                const dropY = touch.clientY;
-
-                // Chỉ tạo node nếu thả vào trong vùng canvas
-                const cwRect = cw.getBoundingClientRect();
-                if (dropX < cwRect.left || dropX > cwRect.right ||
-                    dropY < cwRect.top  || dropY > cwRect.bottom) return;
-
-                // Tính tọa độ canvas ngay tại điểm thả — trước khi sidebar đóng
-                const r  = cw.getBoundingClientRect();
-                const cx = (dropX - r.left - panX) / zoom;
-                const cy = (dropY - r.top  - panY) / zoom;
-                addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
-
-                // Đóng sidebar sau khi đã tính xong tọa độ
-                closeAllMobSidebars();
-            },
-        });
-    }
-
-    // Gắn vào tất cả list đã render sẵn
-    sbLeft.querySelectorAll('ul.list-wrapper').forEach(makeSortable);
-
-    // Gắn tự động khi loadItems() thêm list mới vào DOM
+    // Watch for new items rendered by loadItems()
     const observer = new MutationObserver(mutations => {
         mutations.forEach(m => m.addedNodes.forEach(node => {
             if (!(node instanceof HTMLElement)) return;
-            node.querySelectorAll('ul.list-wrapper').forEach(makeSortable);
-            if (node.matches?.('ul.list-wrapper')) makeSortable(node);
+            node.querySelectorAll('.project-item-child, .folder-drag-area').forEach(attachTouchDrag);
+            if (node.matches?.('.project-item-child, .folder-drag-area')) attachTouchDrag(node);
         }));
     });
     observer.observe(sbLeft, { childList: true, subtree: true });
+}
+
+function attachTouchDrag(el) {
+    if (el._touchDragBound) return;
+    el._touchDragBound = true;
+
+    const iid = el.dataset.iid;
+    const HOLD_MS   = 300;   // ms giữ ngón tay để kích hoạt drag
+    const MOVE_SLOP = 8;     // px di chuyển tối đa trong lúc chờ long-press
+
+    let ghost      = null;
+    let holdTimer  = null;
+    let dragActive = false;  // true sau khi long-press xác nhận
+    let startX = 0, startY = 0;
+    let lastX  = 0, lastY  = 0;
+
+    function cleanup(removeGhost) {
+        clearTimeout(holdTimer); holdTimer = null;
+        if (removeGhost && ghost) { ghost.remove(); ghost = null; }
+        dragActive = false;
+        document.getElementById('cw')?.classList.remove('drag-over');
+    }
+
+    el.addEventListener('touchstart', e => {
+        if (!iid) return;
+        const t0 = e.touches[0];
+        startX = lastX = t0.clientX;
+        startY = lastY = t0.clientY;
+        dragActive = false;
+
+        // Tạo ghost sẵn nhưng ẩn — chỉ hiện sau khi long-press
+        ghost = el.cloneNode(true);
+        ghost.style.cssText = `
+            position: fixed; z-index: 9999; pointer-events: none;
+            opacity: 0; transform: scale(1.08);
+            border-radius: 6px; background: var(--bg-tertiary);
+            border: 1px solid var(--accent-primary);
+            padding: 6px 12px; font-size: 13px;
+            color: var(--text-primary); white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: none;
+        `;
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 28) + 'px';
+        document.body.appendChild(ghost);
+
+        holdTimer = setTimeout(() => {
+            holdTimer = null;
+            dragActive = true;
+            ghost.style.opacity = '0.88';
+            if (navigator.vibrate) navigator.vibrate(30);
+        }, HOLD_MS);
+    }, { passive: true });
+
+    el.addEventListener('touchmove', e => {
+        const t0 = e.touches[0];
+        lastX = t0.clientX;
+        lastY = t0.clientY;
+
+        if (!dragActive) {
+            // Ngón tay di chuyển trước khi long-press xong → huỷ, cho scroll
+            const dx = t0.clientX - startX, dy = t0.clientY - startY;
+            if (Math.hypot(dx, dy) > MOVE_SLOP) {
+                cleanup(true);
+            }
+            return; // KHÔNG gọi preventDefault → scroll hoạt động bình thường
+        }
+
+        // Drag đã active → chặn scroll, di chuyển ghost
+        e.preventDefault();
+        ghost.style.left = (t0.clientX - 40) + 'px';
+        ghost.style.top  = (t0.clientY - 28) + 'px';
+        document.getElementById('cw')?.classList.add('drag-over');
+    }, { passive: false }); // phải false để có thể gọi preventDefault khi cần
+
+    el.addEventListener('touchend', e => {
+        clearTimeout(holdTimer); holdTimer = null;
+
+        if (!dragActive || !iid) {
+            cleanup(true);
+            return;
+        }
+
+        const tx = lastX, ty = lastY;
+        cleanup(true);
+
+        closeAllMobSidebars();
+        requestAnimationFrame(() => {
+            const cwEl = document.getElementById('cw');
+            if (!cwEl) return;
+            const r = cwEl.getBoundingClientRect();
+            const cx = (tx - r.left - panX) / zoom;
+            const cy = (ty - r.top  - panY) / zoom;
+            addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+        });
+    }, { passive: true });
+
+    el.addEventListener('touchcancel', () => {
+        cleanup(true);
+    }, { passive: true });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
