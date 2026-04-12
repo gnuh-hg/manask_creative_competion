@@ -1258,9 +1258,6 @@ function setupTouchDrag() {
 }
 
 function attachTouchDrag(el) {
-    if (el._touchDragBound) return;
-    el._touchDragBound = true;
-
     const iid = el.dataset.iid;
     const HOLD_MS   = 500;   // ms giữ ngón tay để kích hoạt drag
     const MOVE_SLOP = 8;     // px di chuyển tối đa trong lúc chờ long-press
