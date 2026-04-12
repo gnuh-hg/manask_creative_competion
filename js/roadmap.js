@@ -171,6 +171,7 @@ function attachSidebarEvents(item) {
             e.stopPropagation();
             e.dataTransfer.setData('iid', dragArea.dataset.iid);
             e.dataTransfer.effectAllowed = 'copy';
+            attachDragGhost(e, dragArea);
         });
         // Click on drag area still toggles folder
         dragArea?.addEventListener('click', () => toggleFolder(item));
@@ -180,8 +181,24 @@ function attachSidebarEvents(item) {
         item.addEventListener('dragstart', e => {
             e.dataTransfer.setData('iid', item.dataset.iid);
             e.dataTransfer.effectAllowed = 'copy';
+            attachDragGhost(e, item);
         });
     }
+}
+
+/** Tạo ghost có viền xanh cho desktop drag, dùng setDragImage thay native screenshot */
+function attachDragGhost(e, sourceEl) {
+    const ghost = sourceEl.cloneNode(true);
+    ghost.classList.add('touch-drag-ghost');
+    ghost.style.opacity = '1';
+    // Đặt off-screen để không thấy trước khi drag engine dùng nó
+    ghost.style.top  = '-9999px';
+    ghost.style.left = '-9999px';
+    document.body.appendChild(ghost);
+    // offset (40, 20) → ngón tay/con trỏ ở giữa-trái ghost
+    e.dataTransfer.setDragImage(ghost, 40, 20);
+    // Xoá sau 1 frame — drag engine đã chụp ảnh rồi
+    requestAnimationFrame(() => ghost.remove());
 }
 
 function toggleFolder(item) {
@@ -1263,6 +1280,37 @@ function setupTouchDrag() {
     observer.observe(sbLeft, { childList: true, subtree: true });
 }
 
+/**
+ * Build ghost element cho touch drag — không clone, tự dựng icon + name.
+ * Tránh phụ thuộc vào CSS context của sidebar (selector quá cụ thể gây icon vỡ).
+ */
+function buildTouchGhost(el) {
+    const isFolder = el.classList.contains('folder-drag-area');
+
+    // Lấy tên item
+    const nameEl = el.querySelector('p');
+    const name   = nameEl ? nameEl.textContent.trim() : '';
+
+    // Lấy màu icon từ DOM
+    let iconSvg;
+    if (isFolder) {
+        const color = el.querySelector('svg.folder-icon path')?.getAttribute('fill') || '#6366f1';
+        iconSvg = `<svg viewBox="0 0 64 64" class="ghost-icon">
+            <path d="M8 20 H22 L26 16 H44 Q50 16 50 22 V40 Q50 48 42 48 H16 Q8 48 8 40 Z" fill="${color}"/>
+        </svg>`;
+    } else {
+        const color = el.querySelector('svg.project-icon circle')?.getAttribute('fill') || '#6366f1';
+        iconSvg = `<svg viewBox="0 0 100 100" class="ghost-icon ghost-icon--dot">
+            <circle cx="50" cy="50" r="40" fill="${color}"/>
+        </svg>`;
+    }
+
+    const ghost = document.createElement('div');
+    ghost.className = 'touch-drag-ghost';
+    ghost.innerHTML = `${iconSvg}<span class="ghost-label">${name}</span>`;
+    return ghost;
+}
+
 function attachTouchDrag(el) {
     if (el._touchDragBound) return;
     el._touchDragBound = true;
@@ -1301,10 +1349,8 @@ function attachTouchDrag(el) {
         startY = lastY = t0.clientY;
         dragActive = false;
 
-        // Tạo floating ghost: classList.add để GIỮ class gốc (không xoá) → kế thừa
-        // toàn bộ style của .project-item-child/.folder-drag-area (tên, icon, màu...)
-        ghost = el.cloneNode(true);
-        ghost.classList.add('touch-drag-ghost');
+        // Build ghost sạch (không clone) → tránh phụ thuộc CSS context của sidebar
+        ghost = buildTouchGhost(el);
         ghost.style.opacity = '0';
         ghost.style.left = (t0.clientX - 40) + 'px';
         ghost.style.top  = (t0.clientY - 28) + 'px';

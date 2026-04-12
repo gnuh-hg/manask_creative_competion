@@ -1080,17 +1080,40 @@ input  { font-family: inherit; }
     background-color: var(--bg-hover) !important;
 }
 
-/* 2. Floating clone: ADD vào class gốc (không thay thế) — giữ nguyên look của sidebar item */
+/* 2. Touch drag ghost — self-contained, không phụ thuộc CSS context của sidebar */
 .touch-drag-ghost {
-    position: fixed !important;
-    z-index: 9999 !important;
-    pointer-events: none !important;
-    transform: scale(1.05) !important;
-    border: 1px solid var(--accent-primary) !important;
-    border-radius: 6px !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-    transition: none !important;
-    cursor: grabbing !important;
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    white-space: nowrap;
+    max-width: 240px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+    border: 1.5px solid var(--accent-primary);
+    border-radius: 6px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+    transform: scale(1.05);
+    transition: none;
+}
+.touch-drag-ghost .ghost-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+.touch-drag-ghost .ghost-icon--dot {
+    width: 10px;
+    height: 10px;
+}
+.touch-drag-ghost .ghost-label {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ── Mobile bottom bar (hidden on desktop) ───────────────────────────────── */
