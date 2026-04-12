@@ -1262,17 +1262,34 @@ function attachTouchDrag(el) {
     el._touchDragBound = true;
 
     const iid = el.dataset.iid;
-    let ghost    = null;
-    let dragging = false;
+    const HOLD_MS   = 300;   // ms giữ ngón tay để kích hoạt drag
+    const MOVE_SLOP = 8;     // px di chuyển tối đa trong lúc chờ long-press
+
+    let ghost      = null;
+    let holdTimer  = null;
+    let dragActive = false;  // true sau khi long-press xác nhận
+    let startX = 0, startY = 0;
+    let lastX  = 0, lastY  = 0;
+
+    function cleanup(removeGhost) {
+        clearTimeout(holdTimer); holdTimer = null;
+        if (removeGhost && ghost) { ghost.remove(); ghost = null; }
+        dragActive = false;
+        document.getElementById('cw')?.classList.remove('drag-over');
+    }
 
     el.addEventListener('touchstart', e => {
         if (!iid) return;
-        dragging = false;
         const t0 = e.touches[0];
+        startX = lastX = t0.clientX;
+        startY = lastY = t0.clientY;
+        dragActive = false;
+
+        // Tạo ghost sẵn nhưng ẩn — chỉ hiện sau khi long-press
         ghost = el.cloneNode(true);
         ghost.style.cssText = `
             position: fixed; z-index: 9999; pointer-events: none;
-            opacity: 0.88; transform: scale(1.08);
+            opacity: 0; transform: scale(1.08);
             border-radius: 6px; background: var(--bg-tertiary);
             border: 1px solid var(--accent-primary);
             padding: 6px 12px; font-size: 13px;
@@ -1283,26 +1300,46 @@ function attachTouchDrag(el) {
         ghost.style.left = (t0.clientX - 40) + 'px';
         ghost.style.top  = (t0.clientY - 28) + 'px';
         document.body.appendChild(ghost);
+
+        holdTimer = setTimeout(() => {
+            holdTimer = null;
+            dragActive = true;
+            ghost.style.opacity = '0.88';
+            if (navigator.vibrate) navigator.vibrate(30);
+        }, HOLD_MS);
     }, { passive: true });
 
     el.addEventListener('touchmove', e => {
-        if (!ghost) return;
-        e.preventDefault();
-        dragging = true;
         const t0 = e.touches[0];
+        lastX = t0.clientX;
+        lastY = t0.clientY;
+
+        if (!dragActive) {
+            // Ngón tay di chuyển trước khi long-press xong → huỷ, cho scroll
+            const dx = t0.clientX - startX, dy = t0.clientY - startY;
+            if (Math.hypot(dx, dy) > MOVE_SLOP) {
+                cleanup(true);
+            }
+            return; // KHÔNG gọi preventDefault → scroll hoạt động bình thường
+        }
+
+        // Drag đã active → chặn scroll, di chuyển ghost
+        e.preventDefault();
         ghost.style.left = (t0.clientX - 40) + 'px';
         ghost.style.top  = (t0.clientY - 28) + 'px';
         document.getElementById('cw')?.classList.add('drag-over');
-    }, { passive: false });
+    }, { passive: false }); // phải false để có thể gọi preventDefault khi cần
 
     el.addEventListener('touchend', e => {
-        if (ghost) { ghost.remove(); ghost = null; }
-        document.getElementById('cw')?.classList.remove('drag-over');
-        if (!dragging || !iid) { dragging = false; return; }
-        dragging = false;
+        clearTimeout(holdTimer); holdTimer = null;
 
-        const t0 = e.changedTouches[0];
-        const tx = t0.clientX, ty = t0.clientY;
+        if (!dragActive || !iid) {
+            cleanup(true);
+            return;
+        }
+
+        const tx = lastX, ty = lastY;
+        cleanup(true);
 
         closeAllMobSidebars();
         requestAnimationFrame(() => {
@@ -1316,9 +1353,7 @@ function attachTouchDrag(el) {
     }, { passive: true });
 
     el.addEventListener('touchcancel', () => {
-        if (ghost) { ghost.remove(); ghost = null; }
-        document.getElementById('cw')?.classList.remove('drag-over');
-        dragging = false;
+        cleanup(true);
     }, { passive: true });
 }
 
