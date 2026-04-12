@@ -635,18 +635,12 @@ function createNodeEl(nid, item) {
         document.addEventListener('mouseup', onUp);
     });
 
-    // Drag (touch) — long-press 250ms then drag node
+    // Drag (touch) — drag node immediately on canvas
     (function() {
-        const HOLD_MS = 250;
-        let holdTimer = null;
         let touchMoving = false;
         let startTX = 0, startTY = 0;
         let startNX = 0, startNY = 0;
         let activeTouchId = null;
-
-        function cancelHold() {
-            if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
-        }
 
         el.addEventListener('touchstart', e => {
             if (e.target.classList.contains('port') || e.target.closest('.nd-del')) return;
@@ -656,30 +650,17 @@ function createNodeEl(nid, item) {
             startTX = t.clientX; startTY = t.clientY;
             startNX = nodes[nid].x; startNY = nodes[nid].y;
             touchMoving = false;
-
-            holdTimer = setTimeout(() => {
-                holdTimer = null;
-                touchMoving = true;
-                selectNd(nid);
-                el.classList.add('touch-dragging');
-                if (navigator.vibrate) navigator.vibrate(30);
-            }, HOLD_MS);
+            selectNd(nid);
         }, { passive: true });
 
         el.addEventListener('touchmove', e => {
             const t = Array.from(e.touches).find(t => t.identifier === activeTouchId);
             if (!t) return;
-
-            // Cancel hold if moved too early
-            if (holdTimer) {
-                const dx = t.clientX - startTX, dy = t.clientY - startTY;
-                if (Math.hypot(dx, dy) > 6) cancelHold();
-                return;
-            }
-
-            if (!touchMoving) return;
+            
             e.preventDefault();
             e.stopPropagation();
+            touchMoving = true;
+            el.classList.add('touch-dragging');
 
             // Position = (touch - canvas offset - pan) / zoom, offset by grab point
             const rect = cw.getBoundingClientRect();
@@ -693,7 +674,6 @@ function createNodeEl(nid, item) {
         }, { passive: false });
 
         el.addEventListener('touchend', () => {
-            cancelHold();
             el.classList.remove('touch-dragging');
             if (touchMoving) saveState();
             touchMoving = false;
@@ -701,7 +681,6 @@ function createNodeEl(nid, item) {
         }, { passive: true });
 
         el.addEventListener('touchcancel', () => {
-            cancelHold();
             el.classList.remove('touch-dragging');
             touchMoving = false;
             activeTouchId = null;
