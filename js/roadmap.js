@@ -1116,7 +1116,9 @@ function setupMobileBar() {
     btnRight.addEventListener('click', () => toggleMobSidebar('right'));
 
     // Close sidebars when user taps directly on the canvas area
-    document.getElementById('rm-main')?.addEventListener('touchstart', () => {
+    document.getElementById('rm-main')?.addEventListener('touchstart', e => {
+        // Không đóng sidebar nếu người dùng đang giữ để drag item
+        if (e.target.closest('.project-item-child, .folder-drag-area')) return;
         const sbLeft  = document.getElementById('sb-left');
         const sbRight = document.getElementById('sb-right');
         if (sbLeft?.classList.contains('mob-open') || sbRight?.classList.contains('mob-open')) {
@@ -1333,31 +1335,26 @@ function attachTouchDrag(el) {
     el.addEventListener('touchend', e => {
         clearTimeout(holdTimer); holdTimer = null;
 
-        console.log('[touchend] dragActive:', dragActive, '| iid:', iid);  // ← thêm
-
         if (!dragActive || !iid) {
             cleanup(true);
             return;
         }
 
         const tx = lastX, ty = lastY;
-        console.log('[touchend] tx/ty:', tx, ty);  // ← thêm
         cleanup(true);
 
         closeAllMobSidebars();
-        requestAnimationFrame(() => {
-            const cwEl = document.getElementById('cw');
-            console.log('[touchend] cwEl:', cwEl);  // ← thêm
-
-            if (!cwEl) return;
-            const r = cwEl.getBoundingClientRect();
-            const cx = (tx - r.left - panX) / zoom;
-            const cy = (ty - r.top  - panY) / zoom;
-            console.log('[touchend] cx/cy:', cx, cy, '| panX/Y:', panX, panY, '| zoom:', zoom);  // ← thêm
-
-            addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
-            console.log('[touchend] addNode called');  // ← thêm
-        });
+        // Đợi CSS transition của sidebar kết thúc trước khi tính getBoundingClientRect
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                const cwEl = document.getElementById('cw');
+                if (!cwEl) return;
+                const r = cwEl.getBoundingClientRect();
+                const cx = (tx - r.left - panX) / zoom;
+                const cy = (ty - r.top  - panY) / zoom;
+                addNode(iid, Math.max(0, cx - 80), Math.max(0, cy - 36));
+            });
+        }, 300); // khớp với thời gian transition CSS của sidebar
     }, { passive: true });
 
     el.addEventListener('touchcancel', () => {
