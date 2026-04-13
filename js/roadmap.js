@@ -188,16 +188,12 @@ function attachSidebarEvents(item) {
 
 /** Tạo ghost có viền xanh cho desktop drag, dùng setDragImage thay native screenshot */
 function attachDragGhost(e, sourceEl) {
-    const ghost = sourceEl.cloneNode(true);
-    ghost.classList.add('touch-drag-ghost');
+    const ghost = buildTouchGhost(sourceEl);
     ghost.style.opacity = '1';
-    // Đặt off-screen để không thấy trước khi drag engine dùng nó
     ghost.style.top  = '-9999px';
     ghost.style.left = '-9999px';
     document.body.appendChild(ghost);
-    // offset (40, 20) → ngón tay/con trỏ ở giữa-trái ghost
     e.dataTransfer.setDragImage(ghost, 40, 20);
-    // Xoá sau 1 frame — drag engine đã chụp ảnh rồi
     requestAnimationFrame(() => ghost.remove());
 }
 
